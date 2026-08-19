@@ -8,7 +8,11 @@
  * not), the examples import it beside their own stylesheets.
  */
 
-:root {
+/* The lowest layer: any unlayered rule of the page wins over these. */
+@layer tokens;
+
+@layer tokens {
+  :root {
     --main-font: "Onest", "Inter", sans-serif;
     --mono-font: ui-monospace, SFMono-Regular, Menlo, monospace;
 
@@ -119,55 +123,56 @@
     --quiet: 0.618;
     --dim: 0.382;
     --undone: 0.236;
-}
+  }
 
-@media (prefers-color-scheme: dark) {
+  @media (prefers-color-scheme: dark) {
     :root {
-        --bg: oklch(13.5% 0.012 264);
-        --surface: oklch(18.5% 0.012 264);
-        --ink: oklch(96% 0.006 264);
-        --muted: oklch(70% 0.012 264);
-        --faint: oklch(54% 0.012 264);
-        --line: oklch(27% 0.012 264);
-        --line-firm: oklch(33% 0.014 264);
+      --bg: oklch(13.5% 0.012 264);
+      --surface: oklch(18.5% 0.012 264);
+      --ink: oklch(96% 0.006 264);
+      --muted: oklch(70% 0.012 264);
+      --faint: oklch(54% 0.012 264);
+      --line: oklch(27% 0.012 264);
+      --line-firm: oklch(33% 0.014 264);
 
-        --accent: oklch(90% 0.02 264);
-        --warn: oklch(74% 0.16 28);
-        --emit: oklch(82% 0.13 75);
+      --accent: oklch(90% 0.02 264);
+      --warn: oklch(74% 0.16 28);
+      --emit: oklch(82% 0.13 75);
 
-        /* Lighter and slightly less chromatic — the same colour on a dark ground. The hues do
+      /* Lighter and slightly less chromatic — the same colour on a dark ground. The hues do
            not move. */
-        --lane-l: 76%;
-        --lane-c: 0.13;
+      --lane-l: 76%;
+      --lane-c: 0.13;
     }
-}
+  }
 
-* {
+  * {
     box-sizing: border-box;
-}
+  }
 
-/* Panel names. One height in all three panels — the figure and the run line up row for row. */
-.tag,
-.label {
+  /* Panel names. One height in all three panels — the figure and the run line up row for row. */
+  .tag,
+  .label {
     margin: 0;
     font: 500 var(--micro)/1 var(--main-font);
     letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--faint);
-}
+  }
 
-/*
+  /*
  * Chrome 139+: every corner on the page, the tabs and the state chip included. The property
  * does nothing where the radius is 0, so one rule covers everything that has a frame.
  */
-@supports (corner-shape: superellipse(1.25)) {
+  @supports (corner-shape: superellipse(1.25)) {
     * {
-        corner-shape: superellipse(1.25);
+      corner-shape: superellipse(1.25);
     }
-}
+  }
 
-@media (prefers-reduced-motion: reduce) {
+  @media (prefers-reduced-motion: reduce) {
     * {
-        transition: none !important;
+      transition: none !important;
     }
+  }
 }
