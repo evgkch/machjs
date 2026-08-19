@@ -1,0 +1,173 @@
+/*
+ * The palette and shared facts. Three laws: colour — one wheel for the machine, grey for the
+ * tool; presence — steps of φ; space — the module halved or doubled. No number below stands
+ * outside them.
+ *
+ * Shared by the fsmjs tools: the inspector publishes it as `@evgkch/fsmjs-inspector/tokens.css`
+ * (the widgets require it — custom properties are inherited into their shadow roots, rules are
+ * not), the examples import it beside their own stylesheets.
+ */
+
+:root {
+    --main-font: "Onest", "Inter", sans-serif;
+    --mono-font: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    /* Onest has no italic — allow a synthetic slant, never a synthetic weight. */
+    font-synthesis: style;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /*
+     * Three sizes of monospace for three uses: the source (read at length), a name in a drawing,
+     * a number or title. 15:12:10 is 5:4 and 6:5; the code's 13 stands off the ladder because it
+     * is read by the line, not the word.
+     */
+    --code: 13px;
+    --name: 0.75rem;
+    --micro: 0.625rem;
+
+    /*
+     * The module: one row of the figure, one line of the source, one slice of the run. The same
+     * number as `grid.ts` declares, present before any script runs so `var(--cell)` needs no
+     * fallback.
+     */
+    --cell: 24px;
+
+    /* One height for every pressable box, so a line of controls has no height wobble. */
+    --control: calc(var(--cell) + var(--step-2));
+
+    /*
+     * All spacing is the module halved and doubled: 3 6 12 18 24 36 — no two distances close
+     * enough to be mistaken. In pixels, because the figure is drawn on a 24px pixel grid.
+     */
+    --step-1: 3px;
+    --step-2: 6px;
+    --step-3: 12px;
+    --step-4: 18px;
+    --step-5: 24px;
+    --step-6: 36px;
+
+    /* One duration, one curve. */
+    --quick: 0.12s;
+    --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+
+    /*
+     * Layering is a border and a value step, no shadows (the floating overlay casts one). One
+     * ladder of lightness at one hue; the dark scheme is the same ladder from the other end.
+     */
+    --bg: oklch(96.5% 0.004 264);
+    --surface: oklch(100% 0 0);
+    --ink: oklch(22% 0.012 264);
+    --muted: oklch(52% 0.014 264);
+    --faint: oklch(68% 0.012 264);
+    --line: oklch(91% 0.006 264);
+    --line-firm: oklch(85.5% 0.008 264);
+
+    /*
+     * Colour means the machine; everything the tool says about itself is grey with a cool cast.
+     * The wheel belongs to the states, with the warm quadrant reserved for the two non-states:
+     * what a rule emits, and what is wrong.
+     */
+    --accent: oklch(38% 0.035 264);
+    --warn: oklch(54% 0.19 25);
+
+    /* Λ is the other axis, coloured — warmer than any lane, so no state is mistaken for an
+       output. */
+    --emit: oklch(56% 0.14 75);
+
+    /*
+     * Two radii at 3:2: surfaces and the things inside them. Generous, because a superellipse
+     * leaves the edge late — a small radius would show none of the shape.
+     */
+    --radius: 36px;
+    --radius-sm: 12px;
+
+    /*
+     * One colour per state, cycling after eight; every surface reads the same variable. One
+     * lightness and one chroma for all — states are equal, only the hue turns. Eight even steps
+     * of the wheel minus the warm quadrant, dealt so the first three are maximally far apart.
+     */
+    --lane-l: 56%;
+    --lane-c: 0.155;
+    --lane-0: oklch(var(--lane-l) var(--lane-c) 241);
+    --lane-1: oklch(var(--lane-l) var(--lane-c) 139);
+    --lane-2: oklch(var(--lane-l) var(--lane-c) 343);
+    --lane-3: oklch(var(--lane-l) var(--lane-c) 173);
+    --lane-4: oklch(var(--lane-l) var(--lane-c) 309);
+    --lane-5: oklch(var(--lane-l) var(--lane-c) 105);
+    --lane-6: oklch(var(--lane-l) var(--lane-c) 275);
+    --lane-7: oklch(var(--lane-l) var(--lane-c) 207);
+
+    /*
+     * Presence, in steps of φ: 10, 16, 26, 42.
+     *
+     *   wash       the ground: a rail, a string, a tint under the pointer
+     *   wash-firm  a row you are standing on, a band, a mark in the gutter
+     *   wash-hard  the body of a cell, and selected text
+     *   wash-full  the edge of a cell, and what is reachable but not in one step
+     */
+    --wash: 10%;
+    --wash-firm: 16%;
+    --wash-hard: 26%;
+    --wash-full: 42%;
+
+    /*
+     * The same ladder downwards: φ⁻¹, its square, its cube. Quiet — a dead rule, still read.
+     * Dim — out of reach. Undone — a step walked back past.
+     */
+    --quiet: 0.618;
+    --dim: 0.382;
+    --undone: 0.236;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: oklch(13.5% 0.012 264);
+        --surface: oklch(18.5% 0.012 264);
+        --ink: oklch(96% 0.006 264);
+        --muted: oklch(70% 0.012 264);
+        --faint: oklch(54% 0.012 264);
+        --line: oklch(27% 0.012 264);
+        --line-firm: oklch(33% 0.014 264);
+
+        --accent: oklch(90% 0.02 264);
+        --warn: oklch(74% 0.16 28);
+        --emit: oklch(82% 0.13 75);
+
+        /* Lighter and slightly less chromatic — the same colour on a dark ground. The hues do
+           not move. */
+        --lane-l: 76%;
+        --lane-c: 0.13;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* Panel names. One height in all three panels — the figure and the run line up row for row. */
+.tag,
+.label {
+    margin: 0;
+    font: 500 var(--micro)/1 var(--main-font);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+
+/*
+ * Chrome 139+: every corner on the page, the tabs and the state chip included. The property
+ * does nothing where the radius is 0, so one rule covers everything that has a frame.
+ */
+@supports (corner-shape: superellipse(1.25)) {
+    * {
+        corner-shape: superellipse(1.25);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+}
