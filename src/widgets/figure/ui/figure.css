@@ -1,0 +1,202 @@
+/* ── the figure: three blocks around a shared index ──────────────────────── */
+
+/* The figure's own box: it fills the band it is in and scrolls inside itself, so a schema too
+   wide or too tall for the page never makes the page itself scroll. */
+:host {
+    /* The element is a custom element, which is inline until told otherwise. The box is a block —
+       it fills its band, and a `<fsmjs-figure>` dropped into a page of its own stands on its own
+       line like any panel. */
+    display: block;
+    min-height: 16rem;
+    max-height: 100%;
+    /* The same inset as the source's name and the run's, so the three read as one row of names —
+       one step below the margin, because the radius it stands inside has grown to the same. */
+    padding: var(--step-4);
+    border: 1px solid var(--line-firm);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+/* It stays in its corner while the board scrolls under it: a name is not part of the drawing. */
+.tag {
+    position: sticky;
+    top: 0;
+    left: 0;
+    padding: 0 0 var(--step-2);
+}
+
+/* Three blocks around two shared indices: one rectangle, as wide as the schema makes it. */
+.figure {
+    display: flex;
+    align-items: flex-start;
+    width: max-content;
+    min-width: 100%;
+}
+
+/* The board is drawn at the size the schema makes it and stays there: its own `width` and `height`
+   are the size, the viewBox agrees with them, and the box around it scrolls. A percentage width
+   here would let the viewport decide the scale, and then a cell, a row of the run and a line of
+   the source — one height, declared once — would be three different heights on a narrow page. */
+svg.board {
+    display: block;
+}
+
+/* The rows and the columns the blocks share, drawn once so that sharing them is visible. */
+line.rail {
+    stroke: color-mix(
+        in oklab,
+        var(--c, var(--line)) var(--wash-firm),
+        transparent
+    );
+    stroke-width: 1;
+}
+
+/* An index name is a keyword of the language, set as the editor sets keywords. */
+text.cap {
+    font: 500 var(--micro)/1 var(--mono-font);
+    fill: var(--faint);
+}
+
+text.name {
+    font: 500 var(--name)/1 var(--mono-font);
+    fill: var(--c, var(--muted));
+}
+
+/* Event types are not states: they get no lane colour, and read as the axis they are. */
+text.name.on,
+text.name.out {
+    fill: var(--muted);
+}
+
+/* Nothing reaches this state from the start — the column below it is empty, and the name says
+   the same thing in the report. */
+text.name.off {
+    fill: var(--faint);
+    text-decoration: line-through;
+}
+
+/* The rails are drawn across the heading a silent outcome is hit by, and they are not something
+   to point at: they let the pointer through. Nor is the marker. */
+line.rail,
+circle.mark {
+    pointer-events: none;
+}
+
+/* Where the machine stands, on the index of states. There is no such state while exploring, so
+   there is no dot — which is the whole visible difference between the two. */
+circle.mark {
+    fill: var(--c, var(--accent));
+}
+
+/* ── the cells ──────────────────────────────────────────────────────────── */
+
+/*
+ * A cell has three states and no fourth: plain, lit (pointed at or held — the same look), dim
+ * (out of reach). One cell is one intersection; the rules inside are the guards' alternatives,
+ * so nothing is subdivided.
+ */
+.box rect {
+    fill: color-mix(
+        in oklab,
+        var(--c, var(--accent)) var(--wash-hard),
+        transparent
+    );
+    stroke: color-mix(
+        in oklab,
+        var(--c, var(--accent)) var(--wash-full),
+        transparent
+    );
+    stroke-width: 1;
+    transition:
+        fill var(--quick) var(--ease),
+        stroke var(--quick) var(--ease),
+        opacity var(--quick) var(--ease);
+}
+
+.box.lit rect {
+    fill: var(--c, var(--accent));
+    stroke: var(--c, var(--accent));
+}
+
+/* Out of reach: unreachable from here, or ruled out by a held half. No pointer cursor. */
+.box.dim {
+    opacity: var(--dim);
+}
+
+.box.hot {
+    cursor: pointer;
+}
+
+/* Something in this cell can never fire: a rule of it sits behind an unguarded one. */
+path.flag {
+    fill: var(--warn);
+}
+
+/* Λ is the other axis: one colour for every output, whichever state produced it. */
+.box.shot rect {
+    fill: color-mix(in oklab, var(--emit) var(--wash-hard), transparent);
+    stroke: color-mix(in oklab, var(--emit) var(--wash-full), transparent);
+}
+
+.box.shot.lit rect {
+    fill: var(--emit);
+    stroke: var(--emit);
+}
+
+/* The ground the bands and the cells stand on. Clicking it lets a choice go. */
+rect.floor {
+    fill: transparent;
+}
+
+text.name:focus {
+    outline: none;
+}
+
+/* `TO r` with nothing emitted has no cell; the column's name is what is clicked. */
+text.name.hot {
+    cursor: pointer;
+}
+
+/* Lit keeps the lane colour — the state must keep looking like itself — and the weight carries
+   the emphasis. Only a laneless name (an event) falls back to ink. */
+text.name.lit {
+    fill: var(--c, var(--ink));
+    font-weight: 700;
+}
+
+/* A cell's bands: its row and column, run out to the names. Background — drawn under the cells,
+   or the tint would cross them. */
+.wash {
+    pointer-events: none;
+}
+
+rect.lit-lane {
+    fill: color-mix(in oklab, var(--accent) var(--wash-firm), transparent);
+}
+
+/* Reachable, but not by one rule: the composition of the relation, which the text never shows
+   in any one place. On the diagonal it says the state lies on a cycle. */
+circle.far {
+    fill: color-mix(in oklab, var(--faint) var(--wash-full), transparent);
+}
+
+/* A word on end is a small target; the invisible heading it stands in takes the clicks. */
+rect.grab {
+    fill: transparent;
+    cursor: pointer;
+}
+
+rect.grab:focus {
+    outline: none;
+}
+
+.box g:focus {
+    outline: none;
+}
+
+.box g:focus-visible rect {
+    stroke: var(--accent);
+    stroke-width: 2;
+}

@@ -1,0 +1,367 @@
+/* The standalone page: a bar of controls, and two panes under it. */
+
+@layer tokens, controls, page;
+
+@layer page {
+    /*
+ * Three distances: 18 between panels, 24 between header and work, 36 for the page margin — far
+ * enough apart not to be mistaken for one another, and one gap between panels everywhere.
+ */
+    body {
+        margin: 0;
+        padding: var(--step-6);
+        background: var(--bg);
+        color: var(--ink);
+        font: 400 15px/1.6 var(--main-font);
+    }
+
+    /* As wide as the work wants and no wider: past this the extra width serves nothing but the run. */
+    main {
+        max-width: 96rem;
+        margin: 0 auto;
+        display: grid;
+        gap: var(--step-5);
+    }
+
+    /* ── controls ────────────────────────────────────────────────────────────── */
+
+    /* Inset by the same amount as every panel's name, so text aligns with text down the left edge. */
+    .bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        /* 6 name-to-value, 12 peers, 18 different kinds, 24 group ends. */
+        gap: var(--step-3) var(--step-5);
+        /* One row of the module, so the no-scroll arithmetic below has a known height. */
+        min-height: var(--control);
+        /* The same inset as every panel's name. */
+        padding: 0 var(--step-4);
+    }
+
+    /* The same small type as every other name on the page. */
+    .bar label {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--step-2);
+        font: 500 var(--micro)/1 var(--main-font);
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--faint);
+    }
+
+    /*
+ * The right-hand group: start and reset, pinned to the end of the line.
+ */
+    .bar .run {
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--step-3) var(--step-4);
+    }
+
+    /*
+ * The document actions, at peer distance. `margin-right: auto` here (not `margin-left` on the
+ * other group) so a wrapped run group starts at the margin instead of hanging off the right.
+ */
+    .bar .acts {
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--step-3);
+        margin-right: auto;
+    }
+
+    /* The page's own switches: the frame is theirs, the group gap sets them off. */
+    .bar .panels {
+        margin-left: 0;
+    }
+
+    /*
+     * One rule for field and button: same height, line, corner and transition, so the header is
+     * one row of one object. Hierarchy is carried in ink below, not in the frame. The transition
+     * names three properties — `all` would animate the content-sized field's width.
+     */
+    select,
+    .bar button {
+        height: var(--control);
+        padding: 0 var(--step-3);
+        border: 1px solid var(--line-firm);
+        /* Larger than the box: the stadium every word-in-a-box on the page wears. */
+        border-radius: var(--control);
+        background: var(--surface);
+        color: var(--ink);
+        font: 500 var(--name) / 1 var(--mono-font);
+        letter-spacing: 0;
+        text-transform: none;
+        cursor: pointer;
+        transition:
+            border-color var(--quick) var(--ease),
+            background-color var(--quick) var(--ease),
+            color var(--quick) var(--ease);
+    }
+
+    /* Room for the caret, which is drawn inside the field's own box a step in from its edge. */
+    select {
+        padding-right: var(--step-5);
+    }
+
+    /* Sized to the shown value, not the widest option — otherwise the caret hangs mid-header. */
+    select {
+        appearance: none;
+        field-sizing: content;
+    }
+
+    /* A document's title is not a word of the language, so not mono. */
+    #sample {
+        font-family: var(--main-font);
+    }
+
+    /* A state, written in the state's colour as everywhere else. */
+    #start {
+        color: var(--c, var(--ink));
+    }
+
+    /* The caret is drawn, not typed: the page's face has no ▾ glyph and the fallback showed a hyphen. */
+    .bar label:has(select) {
+        position: relative;
+    }
+
+    .bar label:has(select)::after {
+        content: "";
+        position: absolute;
+        right: var(--step-2);
+        top: 50%;
+        translate: 0 -50%;
+        width: 0;
+        height: 0;
+        border: var(--step-1) solid transparent;
+        border-bottom: 0;
+        border-top-color: var(--faint);
+        pointer-events: none;
+    }
+
+    /* One hover for every control. */
+    select:hover,
+    .bar button:hover {
+        border-color: var(--muted);
+        background: color-mix(
+            in oklab,
+            var(--accent) var(--wash),
+            var(--surface)
+        );
+    }
+
+    select:focus-visible,
+    .bar button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: var(--step-1);
+    }
+
+    /*
+ * `appearance: base-select` hands the popup over, so the list is drawn like every other list
+ * here — the panel's frame, the language's type, the same washes. The platform's ▾ is turned
+ * off; the caret stays the drawn one.
+ */
+    @supports (appearance: base-select) {
+        /* The base appearance's height floor and top alignment would put the word off its line;
+       the bar already provides the row height. */
+        select {
+            appearance: base-select;
+            align-items: center;
+            min-block-size: auto;
+        }
+
+        select::picker-icon {
+            display: none;
+        }
+
+        /* As wide as its longest name (the field is only as wide as the shown word), scrolling
+       inside itself. */
+        ::picker(select) {
+            margin-block: var(--step-2);
+            padding: var(--step-1);
+            border: 1px solid var(--line-firm);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            min-inline-size: max-content;
+            max-block-size: 50vh;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        /* A row of the list; written through the picker so the rule cannot leak onto the field. */
+        ::picker(select) option {
+            display: flex;
+            align-items: center;
+            gap: var(--step-2);
+            padding: var(--step-2) var(--step-3);
+            border-radius: var(--step-2);
+            /* A state carries its lane colour; a document has none and falls back to ink. */
+            color: var(--c, var(--ink));
+            font: 500 var(--name)/1 var(--mono-font);
+        }
+
+        /* The list in the same face as its field. */
+        #sample::picker(select) option {
+            font-family: var(--main-font);
+        }
+
+        /* No tick: pointed-at and chosen are a wash and a firmer wash, as everywhere else. */
+        ::picker(select) option::checkmark {
+            display: none;
+        }
+
+        ::picker(select) option:hover,
+        ::picker(select) option:focus {
+            background: color-mix(
+                in oklab,
+                var(--accent) var(--wash),
+                transparent
+            );
+            outline: none;
+        }
+
+        ::picker(select) option:checked {
+            background: color-mix(
+                in oklab,
+                var(--accent) var(--wash-firm),
+                transparent
+            );
+        }
+    }
+
+    /* Actions are quiet until pointed at; the difference from fields is in the ink only. */
+    .bar button {
+        color: var(--muted);
+        background: transparent;
+    }
+
+    .bar button:hover {
+        color: var(--accent);
+    }
+
+    .bar .reset[hidden] {
+        display: none;
+    }
+
+    /* ── panes ───────────────────────────────────────────────────────────────── */
+
+    /*
+ * Two floors under the alphabet: the schema — the text beside its diagram — and the run:
+ *
+ *     ┌──────────────────┬────────────┐
+ *     │ 1  the text      │ 2  diagram │
+ *     ├──────────────────┴────────────┤
+ *     │ 3  the figure and the history │
+ *     └───────────────────────────────┘
+ *
+ * Whether the history stands beside the figure is the inspector's measured decision. Every part
+ * scrolls inside itself; the page never scrolls sideways.
+ */
+    .panes {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--step-4);
+    }
+
+    /*
+ * The rows are shares of the height, not sums of contents: a content-sized row would grow with
+ * the schema, resizing the pane being typed in. Shares cannot; each pane scrolls inside its row.
+ */
+    @media (min-width: 62rem) {
+        .panes {
+            grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+            grid-template-rows: minmax(14rem, 38.2vh) minmax(18rem, 1fr);
+            /* At least the window minus margins, header, alphabet and gaps (36 + 30 + 24 + 18 +
+           24 + 36 = 168); a tall diagram grows the page instead of scrolling inside its band. */
+            min-height: clamp(36rem, calc(100vh - 168px), 64rem);
+        }
+
+        /* The run floor runs the whole width; the schema floor is its two panes. */
+        #inspector {
+            grid-column: 1 / -1;
+        }
+
+        /* One pane of the schema floor down: the other takes the floor. */
+        main[data-off~="code"] #chart,
+        main[data-off~="diagram"] #text {
+            grid-column: 1 / -1;
+        }
+
+        /* A floor that is empty leaves the grid, or its track would keep a gap. */
+        main[data-off~="code"][data-off~="diagram"] .panes {
+            grid-template-rows: minmax(18rem, 1fr);
+        }
+
+        main[data-off~="figure"][data-off~="history"] .panes {
+            grid-template-rows: minmax(14rem, 1fr);
+        }
+    }
+
+    /* A panel that is down is not drawn; each selector names the widget's outermost node. */
+    main[data-off~="code"] #text,
+    main[data-off~="diagram"] #chart,
+    main[data-off~="figure"] .out,
+    main[data-off~="history"] .history,
+    main[data-off~="states"] fsmjs-legend[kind="states"],
+    main[data-off~="in"] fsmjs-legend[kind="in"],
+    main[data-off~="out"] fsmjs-legend[kind="out"] {
+        display: none;
+    }
+
+    /* One drawing down: the other takes the whole row of the mount. */
+    main[data-off~="figure"] .work,
+    main[data-off~="history"] .work {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Both drawings down: their pane goes too. */
+    main[data-off~="figure"][data-off~="history"] #inspector {
+        display: none;
+    }
+
+    /* Nothing left up on a floor: no empty frame. */
+    main[data-off~="code"][data-off~="diagram"][data-off~="figure"][data-off~="history"]
+        .panes {
+        display: none;
+    }
+
+    main[data-off~="states"][data-off~="in"][data-off~="out"] .alphabet {
+        display: none;
+    }
+
+    /* ── the alphabet ───────────────────────────────────────────────────────── */
+
+    /* A frameless line over the drawings, inset like every panel's name. */
+    .alphabet {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--step-2) var(--step-5);
+        padding: 0 var(--step-4);
+    }
+
+    /* The diagram band is content-sized while there is room; short of room it scrolls inside. */
+    #chart {
+        min-height: 0;
+    }
+
+    /* A pane is one panel in its share of the page. */
+    .pane {
+        display: grid;
+        min-width: 0;
+        min-height: 0;
+    }
+
+    /* The editor takes the whole row. */
+    #text {
+        grid-template-rows: minmax(0, 1fr);
+    }
+
+    /* No floor of its own: the row already has one, and a second would make the editor overflow it
+   on short windows. */
+    @media (min-width: 62rem) {
+        #text .editor {
+            min-height: 0;
+        }
+    }
+}

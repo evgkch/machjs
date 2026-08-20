@@ -1,0 +1,7 @@
+{
+  "away": { "enter": [{ "to": ["over", "onto"], "when": "named" }] },
+  "over": {
+    "enter": [{ "to": ["over", "onto"], "when": "named" }],
+    "leave": [{ "to": "away" }]
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "name": "@evgkch/fsmjs-inspector",
+  "version": "0.0.2",
+  "type": "module",
+  "description": "Look at a state machine: three projections of its transition relation, drawn from the graph and driven by two clicks. Reads a dumped schema, or attaches to a machine that is running",
+  "license": "MIT",
+  "author": "Evgeny Kucherenko",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/evgkch/fsmjs-inspector.git"
+  },
+  "homepage": "https://evgkch.github.io/fsmjs/inspector/",
+  "keywords": [
+    "fsm",
+    "state-machine",
+    "mealy",
+    "inspector",
+    "devtools",
+    "visualisation"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "inspect": "node scripts/relay.mjs & vite --open /viewer.html",
+    "relay": "node scripts/relay.mjs",
+    "build": "npm run dump && tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "dump": "node --no-warnings scripts/dump.mjs",
+    "matrix": "node scripts/matrix.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build:lib": "vite build --config vite.lib.config.ts && tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build:lib"
+  },
+  "peerDependencies": {
+    "@evgkch/channeljs": ">=1.1.0",
+    "@evgkch/fsmjs": ">=0.2.1"
+  },
+  "devDependencies": {
+    "@evgkch/channeljs": "^1.1.0",
+    "@evgkch/fsmjs": "file:../fsmjs",
+    "happy-dom": "^20.11.2",
+    "prettier": "^3.9.6",
+    "typescript": "^5.9.3",
+    "vite": "^8.2.0",
+    "ws": "^8.21.3"
+  },
+  "files": [
+    "dist-lib"
+  ],
+  "main": "./dist-lib/index.js",
+  "types": "./dist-lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist-lib/index.d.ts",
+      "default": "./dist-lib/index.js"
+    },
+    "./ui": {
+      "types": "./dist-lib/ui.d.ts",
+      "default": "./dist-lib/ui.js"
+    },
+    "./style.css": "./dist-lib/ui.css",
+    "./tokens.css": "./dist-lib/shared/ui/tokens/tokens.css"
+  },
+  "sideEffects": [
+    "*.css"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "lit": "^3.3.3"
+  }
+}
