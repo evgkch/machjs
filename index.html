@@ -3,10 +3,10 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>fsmjs — examples</title>
+        <title>machjs — examples</title>
         <meta
             name="description"
-            content="Live examples for @evgkch/fsmjs — a small, typed Mealy state machine for TypeScript."
+            content="Live examples for @evgkch/machjs — a small, typed Mealy state machine for TypeScript."
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -19,7 +19,7 @@
     <body>
         <main>
             <header>
-                <p class="eyebrow">@evgkch/fsmjs</p>
+                <p class="eyebrow">@evgkch/machjs</p>
                 <h1>Examples</h1>
                 <p class="lede">
                     Each example is a small app built on the library: one table
@@ -28,17 +28,17 @@
                     goes through the same code line by line.
                 </p>
                 <p class="links">
-                    <a href="https://github.com/evgkch/fsmjs">Repository</a>
-                    <a href="https://www.npmjs.com/package/@evgkch/fsmjs"
+                    <a href="https://github.com/evgkch/machjs">Repository</a>
+                    <a href="https://www.npmjs.com/package/@evgkch/machjs"
                         >npm</a
                     >
                     <span
-                        ><a href="https://github.com/evgkch/fsmjs#readme"
+                        ><a href="https://github.com/evgkch/machjs#readme"
                             >Guide</a
                         >
                         <a
                             class="alt"
-                            href="https://github.com/evgkch/fsmjs/blob/master/README.ru.md"
+                            href="https://github.com/evgkch/machjs/blob/master/README.ru.md"
                             hreflang="ru"
                             >[ru]</a
                         ></span
@@ -74,17 +74,17 @@
                         <p class="links">
                             <a href="./selection-rect/">Open demo</a>
                             <a
-                                href="https://github.com/evgkch/fsmjs-examples/tree/master/selection-rect"
+                                href="https://github.com/evgkch/machjs-examples/tree/master/selection-rect"
                                 >Source</a
                             >
                             <span
                                 ><a
-                                    href="https://github.com/evgkch/fsmjs-examples/blob/master/selection-rect/README.md"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/selection-rect/README.md"
                                     >Walkthrough</a
                                 >
                                 <a
                                     class="alt"
-                                    href="https://github.com/evgkch/fsmjs-examples/blob/master/selection-rect/README.ru.md"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/selection-rect/README.ru.md"
                                     hreflang="ru"
                                     >[ru]</a
                                 ></span
@@ -132,13 +132,13 @@
                     <div class="body">
                         <h2><a href="./review/">Schema review</a></h2>
                         <p class="about">
-                            A change moving through a platform team's pipeline:
-                            an automated gate, then two sign-offs, then it
-                            ships. The gate is the library's own
-                            <code>validate</code> and <code>analyze</code>, run
-                            over the schema under review — and every button on
-                            the page is enabled by asking the machine
-                            <code>can()</code>.
+                            The document under review is itself a state-machine
+                            schema. The gate is the library's own
+                            <code>validate</code> and <code>analyze</code>, the
+                            sign-offs are ECDSA signatures over the text, and
+                            the machine is drawn on the page by the inspector's
+                            widgets. Every button is enabled by asking the
+                            machine <code>can()</code>.
                         </p>
                         <p class="tags">
                             <span>guards</span><span>output events</span
@@ -147,17 +147,90 @@
                         <p class="links">
                             <a href="./review/">Open demo</a>
                             <a
-                                href="https://github.com/evgkch/fsmjs-examples/tree/master/review"
+                                href="https://github.com/evgkch/machjs-examples/tree/master/review"
                                 >Source</a
                             >
                             <span
                                 ><a
-                                    href="https://github.com/evgkch/fsmjs-examples/blob/master/review/README.md"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/review/README.md"
                                     >Walkthrough</a
                                 >
                                 <a
                                     class="alt"
-                                    href="https://github.com/evgkch/fsmjs-examples/blob/master/review/README.ru.md"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/review/README.ru.md"
+                                    hreflang="ru"
+                                    >[ru]</a
+                                ></span
+                            >
+                        </p>
+                    </div>
+                </li>
+                <li class="card">
+                    <a
+                        class="thumb"
+                        href="./form/"
+                        aria-hidden="true"
+                        tabindex="-1"
+                    >
+                        <svg
+                            class="form"
+                            viewBox="0 0 120 64"
+                            role="presentation"
+                        >
+                            <rect
+                                class="line"
+                                x="10"
+                                y="6"
+                                width="100"
+                                height="11"
+                                rx="3"
+                            />
+                            <rect
+                                class="line"
+                                x="10"
+                                y="25"
+                                width="100"
+                                height="11"
+                                rx="3"
+                            />
+                            <rect
+                                class="go"
+                                x="10"
+                                y="46"
+                                width="46"
+                                height="12"
+                                rx="3"
+                            />
+                        </svg>
+                    </a>
+                    <div class="body">
+                        <h2><a href="./form/">A form over a flaky wire</a></h2>
+                        <p class="about">
+                            Typing folds into the context and the send is a
+                            phase rather than a flag: where there is no
+                            <code>input</code> rule, the form locks itself.
+                            Every send carries its attempt number — an answer
+                            to a bygone attempt matches no rule and is dropped,
+                            and three refusals spend the budget.
+                        </p>
+                        <p class="tags">
+                            <span>validation</span><span>retries</span
+                            ><span>async</span>
+                        </p>
+                        <p class="links">
+                            <a href="./form/">Open demo</a>
+                            <a
+                                href="https://github.com/evgkch/machjs-examples/tree/master/form"
+                                >Source</a
+                            >
+                            <span
+                                ><a
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/form/README.md"
+                                    >Walkthrough</a
+                                >
+                                <a
+                                    class="alt"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/form/README.ru.md"
                                     hreflang="ru"
                                     >[ru]</a
                                 ></span
@@ -171,7 +244,7 @@
                 <p>
                     Published from
                     <a
-                        href="https://github.com/evgkch/fsmjs/tree/master/examples"
+                        href="https://github.com/evgkch/machjs/tree/master/examples"
                         >examples/</a
                     >
                     on every push to <code>master</code>. MIT.

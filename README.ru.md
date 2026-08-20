@@ -1,15 +1,16 @@
 [English](README.md) · **Русский**
 
-# fsmjs — примеры
+# machjs — примеры
 
-Примеры к [`@evgkch/fsmjs`](https://github.com/evgkch/fsmjs), небольшому типизированному автомату Мили. Каждый пример — работающая страница на опубликованном пакете: чистый HTML и TypeScript, без фреймворков. К каждому приложен разбор, который проходит по тому же коду строка за строкой.
+Примеры к [`@evgkch/machjs`](https://github.com/evgkch/machjs), небольшому типизированному автомату Мили. Каждый пример — работающая страница на опубликованном пакете: чистый HTML и TypeScript, без фреймворков. К каждому приложен разбор того же кода, строка за строкой.
 
-**Сайт: [evgkch.github.io/fsmjs](https://evgkch.github.io/fsmjs/)**
+**Сайт: [evgkch.github.io/machjs](https://evgkch.github.io/machjs/)**
 
 | Пример                                   | Демонстрация                                               | Разбор                                                                            |
 | ---------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| [`selection-rect`](selection-rect)       | [открыть](https://evgkch.github.io/fsmjs/selection-rect/)  | [English](selection-rect/README.md) · [Русский](selection-rect/README.ru.md)       |
-| [`review`](review)                       | [открыть](https://evgkch.github.io/fsmjs/review/)          | [English](review/README.md) · [Русский](review/README.ru.md)                       |
+| [`selection-rect`](selection-rect)       | [открыть](https://evgkch.github.io/machjs/selection-rect/)  | [English](selection-rect/README.md) · [Русский](selection-rect/README.ru.md)       |
+| [`review`](review)                       | [открыть](https://evgkch.github.io/machjs/review/)          | [English](review/README.md) · [Русский](review/README.ru.md)                       |
+| [`form`](form)                           | [открыть](https://evgkch.github.io/machjs/form/)            | [English](form/README.md) · [Русский](form/README.ru.md)                           |
 
 ## Запуск
 
@@ -25,8 +26,8 @@ npm run preview   # посмотреть собранное
 Примеры зависят от пакета из npm, поэтому предварительно собирать библиотеку не нужно. Чтобы проверить их на неопубликованных изменениях, соберите библиотеку и подключите её через `npm link` — сначала из каталога библиотеки, затем отсюда:
 
 ```sh
-npm run build && npm link      # в fsmjs
-npm link @evgkch/fsmjs         # здесь
+npm run build && npm link      # в machjs
+npm link @evgkch/machjs         # здесь
 ```
 
 ## Как добавить пример
@@ -37,6 +38,6 @@ npm link @evgkch/fsmjs         # здесь
 
 ## Связь с репозиторием библиотеки
 
-[`evgkch/fsmjs`](https://github.com/evgkch/fsmjs) подключает этот репозиторий сабмодулем в `examples/` и публикует сайт из него: пуш сюда ничего не меняет на сайте, пока в `fsmjs` указатель сабмодуля не переведён на новый коммит.
+[`evgkch/machjs`](https://github.com/evgkch/machjs) подключает этот репозиторий сабмодулем в `examples/` и публикует сайт из него: пуш сюда ничего не меняет на сайте, пока в `machjs` указатель сабмодуля не переведён на новый коммит.
 
 MIT.

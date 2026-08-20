@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>fsmjs — selection rectangle</title>
+        <title>machjs — selection rectangle</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -15,7 +15,7 @@
     <body data-phase="empty">
         <main>
             <header>
-                <p class="eyebrow">@evgkch/fsmjs example</p>
+                <p class="eyebrow">@evgkch/machjs example</p>
                 <h1>Selection rectangle</h1>
                 <p class="lede">
                     Drag to draw. Grab the middle to move it, a corner or an
@@ -24,39 +24,42 @@
                 </p>
             </header>
 
-            <ol class="phases" aria-label="Machine phases">
-                <li data-for="empty">empty</li>
-                <li data-for="ready">ready</li>
-                <li data-for="drawing">drawing</li>
-                <li data-for="moving">moving</li>
-                <li data-for="resizing">resizing</li>
-            </ol>
+            <!-- The machine's states, drawn by the inspector's legend: the current one filled,
+                 every capsule in its lane colour. -->
+            <machjs-legend kind="states"></machjs-legend>
 
             <div id="area">
                 <div id="box"></div>
             </div>
 
-            <div class="readout">
-                <div class="stat">
-                    <span class="label">Rectangle</span>
-                    <span class="value" id="rect">—</span>
+            <!-- The same machine, drawn by the inspector's widgets. The desk wires them to one
+                 subject and gives each a switch; the readout stands on the same bar. -->
+            <section class="machine">
+                <div class="machine-bar">
+                    <h2>The machine</h2>
+                    <div class="readout">
+                        <div class="stat">
+                            <span class="label">Rectangle</span>
+                            <span class="value" id="rect">—</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Undo</span>
+                            <span class="value" id="undo">0</span>
+                        </div>
+                        <div class="stat keys">
+                            <span class="label">Keys</span>
+                            <span class="value"
+                                ><kbd>Esc</kbd> cancel · <kbd>⌘/Ctrl</kbd>+<kbd
+                                    >Z</kbd
+                                >
+                                undo</span
+                            >
+                        </div>
+                    </div>
+                    <div id="board"></div>
                 </div>
-                <div class="stat">
-                    <span class="label">Undo stack</span>
-                    <span class="value" id="undo">0</span>
-                </div>
-                <div class="stat keys">
-                    <span class="label">Keys</span>
-                    <span class="value"
-                        ><kbd>Esc</kbd> cancel · <kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd>
-                        undo drag</span
-                    >
-                </div>
-            </div>
-
-            <section class="trace">
-                <h2>Transitions</h2>
-                <pre id="log" aria-live="polite"></pre>
+                <machjs-diagram></machjs-diagram>
+                <machjs-history></machjs-history>
             </section>
         </main>
 

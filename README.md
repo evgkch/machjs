@@ -1,15 +1,16 @@
 **English** · [Русский](README.ru.md)
 
-# fsmjs — examples
+# machjs — examples
 
-Examples for [`@evgkch/fsmjs`](https://github.com/evgkch/fsmjs), a small typed Mealy state machine. Each one is a working page built on the published package: plain HTML and TypeScript, no framework. Every example comes with a walkthrough that goes through the same code line by line.
+Examples for [`@evgkch/machjs`](https://github.com/evgkch/machjs), a small typed Mealy state machine. Each one is a working page built on the published package: plain HTML and TypeScript, no framework. Every example comes with a walkthrough of the same code, line by line.
 
-**Live: [evgkch.github.io/fsmjs](https://evgkch.github.io/fsmjs/)**
+**Live: [evgkch.github.io/machjs](https://evgkch.github.io/machjs/)**
 
 | Example                                  | Demo                                                       | Walkthrough                                                                       |
 | ---------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| [`selection-rect`](selection-rect)       | [open](https://evgkch.github.io/fsmjs/selection-rect/)     | [English](selection-rect/README.md) · [Русский](selection-rect/README.ru.md)       |
-| [`review`](review)                       | [open](https://evgkch.github.io/fsmjs/review/)             | [English](review/README.md) · [Русский](review/README.ru.md)                       |
+| [`selection-rect`](selection-rect)       | [open](https://evgkch.github.io/machjs/selection-rect/)     | [English](selection-rect/README.md) · [Русский](selection-rect/README.ru.md)       |
+| [`review`](review)                       | [open](https://evgkch.github.io/machjs/review/)             | [English](review/README.md) · [Русский](review/README.ru.md)                       |
+| [`form`](form)                           | [open](https://evgkch.github.io/machjs/form/)               | [English](form/README.md) · [Русский](form/README.ru.md)                           |
 
 ## Running locally
 
@@ -25,8 +26,8 @@ npm run preview   # serve the build
 The examples depend on the package from npm, so nothing has to be built in the library repository first. To try them against unreleased changes, build the library and link it — from the library checkout, then from this one:
 
 ```sh
-npm run build && npm link      # in fsmjs
-npm link @evgkch/fsmjs         # here
+npm run build && npm link      # in machjs
+npm link @evgkch/machjs         # here
 ```
 
 ## Adding an example
@@ -37,6 +38,6 @@ npm link @evgkch/fsmjs         # here
 
 ## Relation to the library repository
 
-[`evgkch/fsmjs`](https://github.com/evgkch/fsmjs) includes this repository as a submodule at `examples/`, and publishes the site from it: pushing here changes nothing on the site until the submodule pointer in `fsmjs` is moved to the new commit.
+[`evgkch/machjs`](https://github.com/evgkch/machjs) includes this repository as a submodule at `examples/`, and publishes the site from it: pushing here changes nothing on the site until the submodule pointer in `machjs` is moved to the new commit.
 
 MIT.

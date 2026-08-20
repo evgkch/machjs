@@ -15,7 +15,7 @@
  * remembers. The word does not mean "update the context" but "the context to
  * arrive with", and the phase named by `to` decides its shape.
  */
-import { StateMachine } from "@evgkch/fsmjs";
+import { StateMachine } from "@evgkch/machjs";
 import { TOL, handleAt, norm, slideInto, within } from "./geometry.js";
 import type {
   Dragging,

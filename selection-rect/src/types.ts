@@ -1,4 +1,4 @@
-import type { IEvent, IState, Merge } from "@evgkch/fsmjs";
+import type { IEvent, IState, Merge } from "@evgkch/machjs";
 
 /**
  * The machine's types — sections 2.1 and 3 of the example write-up.
