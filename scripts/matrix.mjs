@@ -28,7 +28,7 @@ const { createServer } = await import(
   `${root}/node_modules/vite/dist/node/index.js`
 );
 const { toRules } = await import(
-  `${root}/node_modules/@evgkch/fsmjs/dist/formatters/index.js`
+  `${root}/node_modules/@evgkch/machjs/dist/formatters/index.js`
 );
 const server = await createServer({
   root,
@@ -52,10 +52,10 @@ try {
   const { mount } = await server.ssrLoadModule(
     "/src/widgets/inspector/mount.ts",
   );
-  const { FsmjsDiagram } = await server.ssrLoadModule(
+  const { MachjsDiagram } = await server.ssrLoadModule(
     "/src/widgets/diagram/diagram.ts",
   );
-  const { FsmjsEditor } = await server.ssrLoadModule(
+  const { MachjsEditor } = await server.ssrLoadModule(
     "/src/widgets/editor/editor.ts",
   );
   const { newFocus } = await server.ssrLoadModule(
@@ -85,11 +85,11 @@ try {
   const host = document.createElement("div");
   document.body.appendChild(host);
   const handle = mount(host, subject, { focus });
-  const dia = new FsmjsDiagram();
+  const dia = new MachjsDiagram();
   document.body.appendChild(dia);
   handle.enroll(dia);
 
-  const editor = new FsmjsEditor();
+  const editor = new MachjsEditor();
   editor.wiring = {
     focus,
     onEdit: () => {},
@@ -111,8 +111,8 @@ try {
   );
   await tick();
 
-  const fig = host.querySelector("fsmjs-figure");
-  const hist = host.querySelector("fsmjs-history");
+  const fig = host.querySelector("machjs-figure");
+  const hist = host.querySelector("machjs-history");
   const q = (el, sel) => el.shadowRoot.querySelectorAll(sel).length;
   const chip = (name) =>
     [...dia.shadowRoot.querySelectorAll("g.chip")].find(
@@ -373,12 +373,12 @@ try {
   eq("clicking the label takes the rule", subject.steps.length, was + 1);
 
   console.log("— M13: the legends read the alphabet off the subject —");
-  const { FsmjsLegend } = await server.ssrLoadModule(
+  const { MachjsLegend } = await server.ssrLoadModule(
     "/src/widgets/legend/legend.ts",
   );
   const kinds = ["states", "in", "out"];
   const legends = kinds.map((kind) => {
-    const one = new FsmjsLegend();
+    const one = new MachjsLegend();
     one.setAttribute("kind", kind);
     document.body.appendChild(one);
     handle.enroll(one);
@@ -396,17 +396,17 @@ try {
   );
 
   console.log("— M14: the desk wires, switches and synchronizes —");
-  const { FsmjsDesk } = await server.ssrLoadModule("/src/widgets/desk/desk.ts");
-  const { FsmjsHistory } = await server.ssrLoadModule(
+  const { MachjsDesk } = await server.ssrLoadModule("/src/widgets/desk/desk.ts");
+  const { MachjsHistory } = await server.ssrLoadModule(
     "/src/widgets/history/history.ts",
   );
-  const desk = new FsmjsDesk();
+  const desk = new MachjsDesk();
   document.body.appendChild(desk);
   desk.wiring = { subject, focus };
-  const dia2 = new FsmjsDiagram();
+  const dia2 = new MachjsDiagram();
   document.body.appendChild(dia2);
   desk.enroll(dia2);
-  const hist2 = new FsmjsHistory();
+  const hist2 = new MachjsHistory();
   document.body.appendChild(hist2);
   desk.enroll(hist2);
   await tick();
@@ -446,12 +446,23 @@ try {
   diaBox.dispatchEvent(new win.window.Event("change", { bubbles: true }));
   await tick();
   eq("and shows it again", dia2.hidden, false);
+  // `hidden` must beat the widget layer's `:host { display }` — the base rule carries
+  // `!important`, which reverses the layer order. Guarded here at the contract level:
+  // happy-dom does not compute layered shadow styles.
+  const { readFileSync } = await import("node:fs");
+  eq(
+    "the hidden rule outranks the widget layer",
+    /:host\(\[hidden\]\)\s*\{\s*display:\s*none\s*!important/.test(
+      readFileSync(`${root}/src/shared/ui/shadow.css`, "utf8"),
+    ),
+    true,
+  );
 
   console.log(
     "— M15: a guard that reads its payload cannot crash a bare ask —",
   );
   const { StateMachine: SM } = await import(
-    `${new URL("..", import.meta.url).pathname.replace(/\/$/, "")}/node_modules/@evgkch/fsmjs/dist/core/index.js`
+    `${new URL("..", import.meta.url).pathname.replace(/\/$/, "")}/node_modules/@evgkch/machjs/dist/core/index.js`
   );
   const { fromMachine } = await server.ssrLoadModule(
     "/src/entities/machine/lib/from-machine.ts",
@@ -464,10 +475,10 @@ try {
     { type: "off", context: undefined },
   );
   const live = fromMachine(touchy);
-  const desk2 = new FsmjsDesk();
+  const desk2 = new MachjsDesk();
   document.body.appendChild(desk2);
   desk2.wiring = { subject: live };
-  const dia3 = new FsmjsDiagram();
+  const dia3 = new MachjsDiagram();
   document.body.appendChild(dia3);
   let crashed = false;
   try {
@@ -491,7 +502,7 @@ try {
   // Nothing below this line reaches into the sources: the package's own entry has to carry the
   // reading, the palette and the flaws, or the editor cannot be wired from outside it.
   const ui = await server.ssrLoadModule("/src/ui.ts");
-  const lone = new ui.FsmjsEditor();
+  const lone = new ui.MachjsEditor();
   lone.wiring = {
     focus: ui.newFocus(),
     onEdit: () => {},

@@ -7,7 +7,7 @@
  * page gives its editor and its figure the same focus, which is why pointing at a cell lights the
  * line the rule is written on.
  */
-import { TRANSITION } from "@evgkch/fsmjs";
+import { TRANSITION } from "@evgkch/machjs";
 import type { RuleId, Subject } from "../../entities/machine/index.js";
 import { newFocus } from "../../features/focus/index.js";
 import { newSight } from "./model/showing.js";
@@ -15,8 +15,8 @@ import type { Focus } from "../../features/focus/index.js";
 import { make } from "../../shared/lib/dom.js";
 import { ensemble } from "./ensemble.js";
 import type { Member } from "./ensemble.js";
-import { FsmjsFigure } from "../figure/figure.js";
-import { FsmjsHistory } from "../history/history.js";
+import { MachjsFigure } from "../figure/figure.js";
+import { MachjsHistory } from "../history/history.js";
 import "./ui/inspector.css";
 
 /** How a figure is being looked at, as opposed to what it is looking at. */
@@ -47,8 +47,8 @@ export function mount(
 
   // The binder wires the cast and maps manual actions between the members; the mount adds the
   // layout, the measuring and the keyboard.
-  const figure = new FsmjsFigure();
-  const history = new FsmjsHistory();
+  const figure = new MachjsFigure();
+  const history = new MachjsHistory();
   const band = ensemble(subject, { figure, history }, { focus });
   const forget = band.forget;
 
@@ -61,7 +61,7 @@ export function mount(
   // The figure, and what happened on it — beside it or under it, which `fit` decides.
   const work = make("div", "work");
   work.append(figure, history);
-  const root = make("div", "fsmjs-inspector");
+  const root = make("div", "machjs-inspector");
   root.append(work);
   host.append(root);
   watching.observe(work);
@@ -104,7 +104,7 @@ export function mount(
   /**
    * Keyboard walk of the run — skipped while typing. The check uses `composedPath()[0]`, not
    * `target`: an event leaving a shadow tree is retargeted to the host, so `target` for a
-   * keystroke in the source is `<fsmjs-editor>`, not the textarea.
+   * keystroke in the source is `<machjs-editor>`, not the textarea.
    */
   const onKey = (e: KeyboardEvent) => {
     // Esc drops the whole selection.

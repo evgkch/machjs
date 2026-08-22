@@ -18,7 +18,7 @@
  * horizontal of a shallower arrow sharing the cell. What does cross a loop is bridged by the
  * casing.
  */
-import { edges } from "@evgkch/fsmjs";
+import { edges } from "@evgkch/machjs";
 import { flaws, hue, idOf, lanes } from "../../../entities/machine/index.js";
 import type { Graph, RuleId } from "../../../entities/machine/index.js";
 import { rowOf } from "../../../shared/lang/rules.js";

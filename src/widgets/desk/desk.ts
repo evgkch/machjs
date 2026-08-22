@@ -4,12 +4,12 @@
  * switch per enrolled widget, in the header's segmented box. The widgets stay where the page put
  * them; a switch turns its widget's `hidden` on and off.
  *
- * Custom element `<fsmjs-desk>`: `wiring = { subject, focus? }`, then `enroll(widget, name?)`.
+ * Custom element `<machjs-desk>`: `wiring = { subject, focus? }`, then `enroll(widget, name?)`.
  * A page that runs its own layout takes `seat(name)` — a switch alone — and reads `panels`.
  */
 import { LitElement, html, nothing } from "lit";
 import type { TemplateResult } from "lit";
-import { TRANSITION } from "@evgkch/fsmjs";
+import { TRANSITION } from "@evgkch/machjs";
 import type { Subject } from "../../entities/machine/index.js";
 import type { Focus } from "../../features/focus/index.js";
 import { newPanels } from "../../features/show-panels/index.js";
@@ -34,7 +34,7 @@ type Seat = {
   member?: Member & HTMLElement;
 };
 
-export class FsmjsDesk extends LitElement {
+export class MachjsDesk extends LitElement {
   static override styles = sheets(deskCss);
 
   #band: Ensemble | null = null;
@@ -80,13 +80,13 @@ export class FsmjsDesk extends LitElement {
 
   /**
    * Wire the widget, draw it, and give it a switch that shows and hides it. The name defaults
-   * to the tag without the `fsmjs-` prefix; several widgets of one tag — three legends — are
+   * to the tag without the `machjs-` prefix; several widgets of one tag — three legends — are
    * named by the caller.
    */
   enroll(member: Member & HTMLElement, name?: string): void {
     const band = this.#band;
     if (!band) return;
-    const word = name ?? member.tagName.toLowerCase().replace(/^fsmjs-/, "");
+    const word = name ?? member.tagName.toLowerCase().replace(/^machjs-/, "");
     band.enroll(member);
     this.#seats.push({ name: word, locked: false, member });
     this.requestUpdate();
@@ -122,5 +122,5 @@ export class FsmjsDesk extends LitElement {
   }
 }
 
-if (!customElements.get("fsmjs-desk"))
-  customElements.define("fsmjs-desk", FsmjsDesk);
+if (!customElements.get("machjs-desk"))
+  customElements.define("machjs-desk", MachjsDesk);

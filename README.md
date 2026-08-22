@@ -1,12 +1,12 @@
 **English** · [Русский](README.ru.md)
 
-# fsmjs inspector
+# machjs inspector
 
-A finite-state-machine inspector for [`@evgkch/fsmjs`](https://github.com/evgkch/fsmjs). It reads a dumped schema or attaches to a running machine and shows three projections of one automaton: the rule text, the transition figure, and the run. The projections are linked: point at a cell of the figure and the rule's line lights up, point at a line and the cell does, name both halves of a transition and it fires.
+A finite-state-machine inspector for [`@evgkch/machjs`](https://github.com/evgkch/machjs). It reads a dumped schema or attaches to a running machine and shows three projections of one automaton: the rule text, the transition figure, and the run. The projections are linked: point at a cell of the figure and the rule's line lights up, point at a line and the cell does, name both halves of a transition and it fires.
 
 `JSON.stringify(machine)` returns the graph — the schema without function bodies, but with their names. That is enough to draw, check and run the machine.
 
-[**Open the inspector**](https://evgkch.github.io/fsmjs-inspector/)
+[**Open the inspector**](https://evgkch.github.io/machjs-inspector/)
 
 ---
 
@@ -16,9 +16,9 @@ A finite-state-machine inspector for [`@evgkch/fsmjs`](https://github.com/evgkch
 | -------------------------------------------------------- | --------------------------------------------------- |
 | [Installation](#installation)                            | Entry points, peer dependencies                    |
 | [Ways of working](#ways-of-working)                      | The page, a running machine, embedding             |
-| [`@evgkch/fsmjs-inspector`](#evgkchfsmjs-inspector)      | `inspect`, `close`, `RELAY`, what crosses the wire |
+| [`@evgkch/machjs-inspector`](#evgkchmachjs-inspector)      | `inspect`, `close`, `RELAY`, what crosses the wire |
 | [The relay](#the-relay)                                  | `scripts/relay.mjs`, the port                      |
-| [`@evgkch/fsmjs-inspector/ui`](#evgkchfsmjs-inspectorui) | `overlay`, `mount`, `ensemble`, subjects, focus    |
+| [`@evgkch/machjs-inspector/ui`](#evgkchmachjs-inspectorui) | `overlay`, `mount`, `ensemble`, subjects, focus    |
 | [Widgets](#widgets)                                      | Six custom elements and their `wiring`             |
 | [Schemas](#schemas)                                      | Ready-made files, the rule language                |
 | [Limitations](#limitations)                              | What to keep in mind                               |
@@ -30,7 +30,7 @@ A finite-state-machine inspector for [`@evgkch/fsmjs`](https://github.com/evgkch
 The inspector's pages and [the relay](#the-relay) — a WebSocket server through which the application under debugging hands its machines to the watching page — run from a clone of the repository. The application itself takes the npm package:
 
 ```sh
-npm i -D @evgkch/fsmjs-inspector
+npm i -D @evgkch/machjs-inspector
 ```
 
 The `inspect` call stays out of the production build:
@@ -41,7 +41,7 @@ if (import.meta.env.DEV) inspect(fsm, { name: "cart" });
 
 If the widgets are part of the page's interface, the dependency is a regular one.
 
-The package is ESM-only. Its one dependency of its own is `lit`, the custom-elements base. Peer dependencies — `@evgkch/fsmjs >= 0.2.1` and `@evgkch/channeljs >= 1.1.0`: neither is bundled, and the application must have exactly one copy of `fsmjs` (see [Limitations](#limitations)).
+The package is ESM-only. Its one dependency of its own is `lit`, the custom-elements base. Peer dependencies — `@evgkch/machjs >= 0.2.1` and `@evgkch/chanjs >= 1.1.0`: neither is bundled, and the application must have exactly one copy of `machjs` (see [Limitations](#limitations)).
 
 Entry points:
 
@@ -74,18 +74,18 @@ npm run inspect      # the relay at ws://localhost:8999 and the watching page
 The application under debugging gains one line:
 
 ```ts
-import { inspect } from "@evgkch/fsmjs-inspector";
+import { inspect } from "@evgkch/machjs-inspector";
 
 const cart = inspect(new StateMachine(schema, start), { name: "cart" });
 ```
 
 `cart` appears on the page: its schema, its current state, and every new transition. There may be several machines — from one process or from many.
 
-**On your own page.** The inspector embeds into the page under debugging — no relay and no second page: whole, through [`overlay`](#evgkchfsmjs-inspectorui), or one widget at a time (see [Widgets](#widgets)):
+**On your own page.** The inspector embeds into the page under debugging — no relay and no second page: whole, through [`overlay`](#evgkchmachjs-inspectorui), or one widget at a time (see [Widgets](#widgets)):
 
 ```ts
-import { overlay } from "@evgkch/fsmjs-inspector/ui";
-import "@evgkch/fsmjs-inspector/style.css";
+import { overlay } from "@evgkch/machjs-inspector/ui";
+import "@evgkch/machjs-inspector/style.css";
 
 const gone = overlay(cart);
 // …
@@ -94,7 +94,7 @@ gone.close();
 
 ---
 
-## `@evgkch/fsmjs-inspector`
+## `@evgkch/machjs-inspector`
 
 The main entry point — what the application writes. No document and no styles: the process under debugging may have no DOM.
 
@@ -110,7 +110,7 @@ function inspect<T extends AnyMachine>(fsm: T, opts?: Options): T;
 | -------------- | -------------------------------------------------------------------- |
 | `name?`        | The name on the inspector's page. Without one — `machine N`         |
 | `description?` | A line about what the machine is for                                |
-| `history?`     | A `history(fsm)` recorder from `@evgkch/fsmjs/debug` — turns rewinding on |
+| `history?`     | A `history(fsm)` recorder from `@evgkch/machjs/debug` — turns rewinding on |
 | `carry?`       | Send payloads and contexts with the steps — what JSON can write     |
 | `url?`         | The relay's address, when it is not on this host. Defaults to `RELAY` |
 | `link?`        | A channel of your own instead of the socket; then `url` is unused   |
@@ -120,7 +120,7 @@ Machines of one process share one socket per address: the connection opens on th
 ### Rewinding
 
 ```ts
-import { history } from "@evgkch/fsmjs/debug";
+import { history } from "@evgkch/machjs/debug";
 
 const past = history(cart);
 inspect(cart, { name: "cart", history: past });
@@ -166,7 +166,7 @@ type Options = {
   link?: Link;
 };
 
-/** A recorder by shape — `History` from `fsmjs/debug` fits. */
+/** A recorder by shape — `History` from `machjs/debug` fits. */
 type Past = {
   readonly index: number;
   jump(index: number): boolean;
@@ -178,7 +178,7 @@ type Past = {
 
 ## The relay
 
-The relay is a WebSocket server (`scripts/relay.mjs`). The application with its machines and the watching page both connect to it; neither knows about the other.
+The relay is a WebSocket server (`scripts/relay.mjs`). The application with its machines and the watching page both connect to it; they are not connected to each other directly.
 
 ```sh
 npm run inspect            # the relay and the watching page together
@@ -190,7 +190,7 @@ The relay hands every message to every other client; it does not parse messages 
 
 ---
 
-## `@evgkch/fsmjs-inspector/ui`
+## `@evgkch/machjs-inspector/ui`
 
 The second entry point — the inspector's interface, for embedding. Importing the module attaches `tokens.css`.
 
@@ -209,7 +209,7 @@ Shows a running machine without the relay and without a second page: the figure 
 | `history?` | A recorder, as in `inspect` — turns rewinding on                |
 | `focus?`   | A focus shared with something else on the page                  |
 
-The floating panel drags by its header and closes by the cross; `Overlaid.close()` does the same from code and releases the machine.
+The floating panel drags by its header and closes by the cross; `Overlaid.close()` does the same from code and takes its listener off the machine.
 
 ### `mount`
 
@@ -233,14 +233,14 @@ type Surface = { draw(start: string): void; dress(): void };
 type Member = Surface & { wiring?: { subject: Subject; focus: Focus } };
 ```
 
-`enroll` registers a widget on the same subject and focus — `<fsmjs-diagram>`, for instance; the page wires nothing itself.
+`enroll` registers a widget on the same subject and focus — `<machjs-diagram>`, for instance; the page wires nothing itself.
 
 ### `ensemble`
 
 ```ts
 function ensemble(subject: Subject, cast: Cast, options?: { focus?: Focus; start?: string }): Ensemble;
 
-type Cast = { figure?: FsmjsFigure; history?: FsmjsHistory; diagram?: FsmjsDiagram };
+type Cast = { figure?: MachjsFigure; history?: MachjsHistory; diagram?: MachjsDiagram };
 type Ensemble = {
   readonly focus: Focus;
   readonly start: string; // the state the rows are counted from
@@ -254,7 +254,7 @@ type Ensemble = {
 };
 ```
 
-The binding without the markup. The widgets are independent: each hears the subject and draws itself; `ensemble` wires the members to a shared subject and focus and takes a rule named on any of them — once, in one place. `mount` is built on `ensemble` and adds the grid, the measuring and the keyboard; a page with markup of its own calls `ensemble` directly.
+The binding without the markup. The widgets are independent: each is subscribed to the subject and draws itself; `ensemble` wires the members to a shared subject and focus and takes a rule named on any of them — once, in one place. `mount` is built on `ensemble` and adds the grid, the measuring and the keyboard; a page with markup of its own calls `ensemble` directly.
 
 ### Subjects
 
@@ -285,22 +285,22 @@ The inspector's panels are published as custom elements. Importing any of them r
 
 ```ts
 import {
-  FsmjsFigure,
-  FsmjsHistory,
-  FsmjsEditor,
-  FsmjsDiagram,
-  FsmjsLegend,
-} from "@evgkch/fsmjs-inspector/ui";
+  MachjsFigure,
+  MachjsHistory,
+  MachjsEditor,
+  MachjsDiagram,
+  MachjsLegend,
+} from "@evgkch/machjs-inspector/ui";
 ```
 
 | Element           | Class          | What it draws                                            |
 | ----------------- | -------------- | --------------------------------------------------------- |
-| `<fsmjs-figure>`  | `FsmjsFigure`  | The transition figure: three blocks around two axes      |
-| `<fsmjs-history>` | `FsmjsHistory` | The run: steps over state rows, rewinding by click       |
-| `<fsmjs-editor>`  | `FsmjsEditor`  | The rule text with highlighting, a gutter and completion |
-| `<fsmjs-diagram>` | `FsmjsDiagram` | The classic diagram: states in a row, transitions as arcs |
-| `<fsmjs-legend>`  | `FsmjsLegend`  | A frameless row of capsules: `kind` — `states`, `in` or `out` |
-| `<fsmjs-desk>`    | `FsmjsDesk`    | The desk: a menu of switches, and the others synchronized   |
+| `<machjs-figure>`  | `MachjsFigure`  | The transition figure: three blocks around two axes      |
+| `<machjs-history>` | `MachjsHistory` | The run: steps over state rows, rewinding by click       |
+| `<machjs-editor>`  | `MachjsEditor`  | The rule text with highlighting, a gutter and completion |
+| `<machjs-diagram>` | `MachjsDiagram` | The classic diagram: states in a row, transitions as arcs |
+| `<machjs-legend>`  | `MachjsLegend`  | A frameless row of capsules: `kind` — `states`, `in` or `out` |
+| `<machjs-desk>`    | `MachjsDesk`    | The desk: a menu of switches, and the others synchronized   |
 
 A widget is configured through the `wiring` property — a JavaScript object, not an attribute. It draws into a shadow root with a stylesheet of its own; the page's styles do not reach inside. The palette does: the tokens are custom properties and inherit through the shadow, so `tokens.css` is required, and overriding a token changes the widget.
 
@@ -308,12 +308,12 @@ The minimal assembly of a figure with a run:
 
 ```ts
 import {
-  FsmjsFigure,
-  FsmjsHistory,
+  MachjsFigure,
+  MachjsHistory,
   fromMachine,
   newFocus,
-} from "@evgkch/fsmjs-inspector/ui";
-import "@evgkch/fsmjs-inspector/tokens.css";
+} from "@evgkch/machjs-inspector/ui";
+import "@evgkch/machjs-inspector/tokens.css";
 
 const subject = fromMachine(fsm);
 const focus = newFocus();
@@ -323,42 +323,42 @@ const forget = () => {
 };
 const start = subject.at;
 
-const figure = new FsmjsFigure();
+const figure = new MachjsFigure();
 figure.wiring = { subject, focus, forget };
 host.append(figure);
 figure.draw(start); // nothing is drawn before draw
 
-const run = new FsmjsHistory();
+const run = new MachjsHistory();
 run.wiring = { subject, focus, rewind: (i) => subject.rewind?.(i) };
 host.append(run);
 run.show(subject.graph, start); // the order of the rows
 run.draw();
 ```
 
-`draw` is called again when the graph changed; `dress` — when only the focus moved. Individual widgets do not assemble the taking of a named rule; `mount` does. If you do not need your own panel order, use `mount`.
+`draw` is called again when the graph changed; `dress` — when only the focus moved. A named rule is taken by a binding — `mount` or `ensemble` — not by a single widget. If you do not need your own panel order, use `mount`.
 
-`<fsmjs-diagram>` wires the same way: `wiring = { subject, focus, fire? }`, then `draw(start)` — or `handle.enroll(diagram)`. `fire` takes a rule and drops the selection; `ensemble` passes its own, and without one the widget does both itself. States are cells in a row, transitions are arcs: leftward over the row, rightward under it, an arc in its target's colour. Rules that differ only in guard are one arrow; a rule with a different `emit` is its own line. The label is `on · when / emit`, to the extent the rule has a guard and an output: three `down` arrows out of one state read apart by their guard names. Pointing at an arc lights its rule in the figure and in the text; clicking an arc takes the rule, if the machine can, and drops the selection. A transition the machine takes runs its dashes along its own arc — on every step, whoever made it. The `on / emit` label answers for its arc — to pointing and to clicking alike. Clicking a state is a press in the shared choice: only its transitions stay on the table, the figure bands its row, the history draws the step's dashed candidates; `Escape` drops it, along with everything else. Pressing the outgoing state and then the incoming one takes the transition between them — a second way of taking, equal to the arc click; the same state twice is the self-loop. Pointing at the incoming state while the outgoing one is pressed bands the candidates in the figure: the source's row, the target's column, their events' columns and their outputs' rows.
+`<machjs-diagram>` wires the same way: `wiring = { subject, focus, fire? }`, then `draw(start)` — or `handle.enroll(diagram)`. `fire` takes a rule and drops the selection; `ensemble` passes its own, and without one the widget does both itself. States are cells in a row, transitions are arcs: leftward over the row, rightward under it, an arc in its target's colour. Rules that differ only in guard are one arrow; a rule with a different `emit` is its own line. The label is `on · when / emit`, to the extent the rule has a guard and an output: three `down` arrows out of one state are told apart by their guard names. Pointing at an arc lights its rule in the figure and in the text; clicking an arc takes the rule, if the machine can, and drops the selection. A transition the machine takes runs its dashes along its own arc — on every step, whoever made it. The `on / emit` label acts for its arc — on pointing and on clicking alike. Clicking a state is a press in the shared choice: only its transitions stay on the diagram, the figure bands its row, the history draws the step's dashed candidates; `Escape` drops it, along with everything else. Pressing the outgoing state and then the incoming one takes the transition between them — a second way of taking, equal to the arc click; the same state twice is the self-loop. Pointing at the incoming state while the outgoing one is pressed bands the candidates in the figure: the source's row, the target's column, their events' columns and their outputs' rows.
 
-`<fsmjs-legend>` is a frameless row of capsules with no controls: the `kind` attribute picks `states` (names in their lane colours, the current one filled in its own colour, unreachable ones struck through), `in` or `out`. The inspector's pages keep three such rows above the panels, each under its own switch.
+`<machjs-legend>` is a frameless row of capsules with no controls: the `kind` attribute picks `states` (names in their lane colours, the current one filled in its own colour, unreachable ones struck through), `in` or `out`. The inspector's pages keep three such rows above the panels, each under its own switch.
 
-`<fsmjs-desk>` is the desk: one widget that runs the others. Inside is an [`ensemble`](#ensemble) of its own; in the shadow — the menu, one switch per enrolled widget. The widgets stay in the page's markup; a switch turns its widget's `hidden` on and off.
+`<machjs-desk>` is the desk: one widget that runs the others. Inside is an [`ensemble`](#ensemble) of its own; in the shadow root — the menu, one switch per enrolled widget. The widgets stay in the page's markup; a switch turns its widget's `hidden` on and off.
 
 ```ts
-import { FsmjsDesk, FsmjsDiagram, fromMachine } from "@evgkch/fsmjs-inspector/ui";
-import "@evgkch/fsmjs-inspector/tokens.css";
+import { MachjsDesk, MachjsDiagram, fromMachine } from "@evgkch/machjs-inspector/ui";
+import "@evgkch/machjs-inspector/tokens.css";
 
-const desk = new FsmjsDesk();
+const desk = new MachjsDesk();
 desk.wiring = { subject: fromMachine(fsm) };
 bar.append(desk);
 
-const diagram = new FsmjsDiagram();
+const diagram = new MachjsDiagram();
 host.append(diagram);
 desk.enroll(diagram); // wiring, drawing and a switch
 ```
 
-The switch's name is the tag without `fsmjs-`; several widgets of one tag are named by the second argument. `desk.seat(name, { locked?, title? })` is a switch without the wiring, for a panel the page shows and hides itself; its state reads off `desk.panels` — the panels machine. `desk.ensemble` is the binder (`fire`, `rewind`, `forget`, `draw`). The menu of both inspector pages is this very desk.
+The switch's name is the tag without `machjs-`; several widgets of one tag are named by the second argument. `desk.seat(name, { locked?, title? })` is a switch without the wiring, for a panel the page shows and hides itself; its state reads off `desk.panels` — the panels machine. `desk.ensemble` is the binder (`fire`, `rewind`, `forget`, `draw`). The menu of both inspector pages is this very desk.
 
-`<fsmjs-editor>` is assembled from `readSchema`, which gives `show` what it takes: the rules with the line each was written on, one colour per state, and what the checks found.
+`<machjs-editor>` is assembled from `readSchema`, which gives `show` what it takes: the rules with the line each was written on, one colour per state, and what the checks found.
 
 ```ts
 function readSchema(text: string, keep?: string): Read;
@@ -370,15 +370,15 @@ type Read =
 
 ```ts
 import {
-  FsmjsEditor,
+  MachjsEditor,
   flaws,
   newFocus,
   palette,
   readSchema,
-} from "@evgkch/fsmjs-inspector/ui";
-import "@evgkch/fsmjs-inspector/tokens.css";
+} from "@evgkch/machjs-inspector/ui";
+import "@evgkch/machjs-inspector/tokens.css";
 
-const editor = new FsmjsEditor();
+const editor = new MachjsEditor();
 // No machine behind the text: nothing can be taken, and nothing stands anywhere.
 editor.wiring = {
   focus: newFocus(),
@@ -426,10 +426,10 @@ FROM open   ON pass               TO locked
 
 ## Limitations
 
-- **The application must have exactly one copy of `@evgkch/fsmjs`.** Transitions publish on the `TRANSITION` symbol, and a second copy of the library has a symbol of its own — the `inspect` listener never hears it. When building from several bundles, Vite's `resolve.dedupe` helps.
+- **The application must have exactly one copy of `@evgkch/machjs`.** Transitions publish on the `TRANSITION` symbol, and a second copy of the library has a symbol of its own — the `inspect` listener never hears it. When building from several bundles, Vite's `resolve.dedupe` helps.
 - **A Node script needs `close()`.** An open socket holds the event loop; without the call the process does not exit.
 - **Rewinding requires a recorder.** Without `history` in `inspect`'s options the rewind controls do nothing.
-- **Names only cross the wire, unless `carry` says otherwise.** Dump guards do not run: the watching page sends the event, and which rule fires is decided by the machine in its own process. Without `carry: true`, contexts and payloads do not leave the application.
+- **Names only cross the wire, unless `carry` says otherwise.** Dump guards do not run: the watching page sends the event, and which rule fires is decided by the guards in the application's process. Without `carry: true`, contexts and payloads do not leave the application.
 - **The widgets require `tokens.css`.** The palette reaches the shadow root through custom properties; without the tokens a widget is left without colours.
 
 ---
@@ -441,7 +441,7 @@ MIT
 ---
 
 <p align="center">
-  <a href="https://github.com/evgkch/fsmjs">fsmjs</a> ·
-  <a href="https://evgkch.github.io/fsmjs/">Examples</a> ·
+  <a href="https://github.com/evgkch/machjs">machjs</a> ·
+  <a href="https://evgkch.github.io/machjs/">Examples</a> ·
   <a href="LICENSE">MIT</a>
 </p>

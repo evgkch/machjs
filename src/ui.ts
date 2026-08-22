@@ -1,5 +1,5 @@
 /**
- * @evgkch/fsmjs-inspector/ui — the drawing half. An application writes `inspect(fsm)` (the main
+ * @evgkch/machjs-inspector/ui — the drawing half. An application writes `inspect(fsm)` (the main
  * entry); a page that wants the tool on it uses `mount`, `overlay`, or the widgets below.
  * Importing this module imports a stylesheet.
  */
@@ -24,26 +24,26 @@ export type { Overlaid, Options as OverlayOptions } from "./app/overlay.js";
  * palette crosses in through inherited custom properties, so `tokens.css` is required;
  * `style.css` covers the light DOM only — the mount's grid and the overlay.
  */
-export { FsmjsFigure } from "./widgets/figure/figure.js";
+export { MachjsFigure } from "./widgets/figure/figure.js";
 export type { Wiring as FigureWiring } from "./widgets/figure/figure.js";
-export { FsmjsHistory } from "./widgets/history/history.js";
+export { MachjsHistory } from "./widgets/history/history.js";
 export type { Wiring as HistoryWiring } from "./widgets/history/history.js";
-export { FsmjsEditor } from "./widgets/editor/editor.js";
+export { MachjsEditor } from "./widgets/editor/editor.js";
 export type { Wiring as EditorWiring } from "./widgets/editor/editor.js";
-export { FsmjsDiagram } from "./widgets/diagram/diagram.js";
+export { MachjsDiagram } from "./widgets/diagram/diagram.js";
 export type { Wiring as DiagramWiring } from "./widgets/diagram/diagram.js";
-export { FsmjsLegend } from "./widgets/legend/legend.js";
+export { MachjsLegend } from "./widgets/legend/legend.js";
 export type {
   Kind as LegendKind,
   Wiring as LegendWiring,
 } from "./widgets/legend/legend.js";
-export { FsmjsDesk } from "./widgets/desk/desk.js";
+export { MachjsDesk } from "./widgets/desk/desk.js";
 export type { Wiring as DeskWiring } from "./widgets/desk/desk.js";
 
 export { report } from "./features/report/index.js";
 
 /**
- * Rule text, read as a schema — everything `<fsmjs-editor>`'s `show` and `blame` are given. A page
+ * Rule text, read as a schema — everything `<machjs-editor>`'s `show` and `blame` are given. A page
  * that assembles the editor itself calls `readSchema` on every edit and keeps what it wants of the
  * outcome. Taken from the module rather than from the feature's index, which also publishes the
  * inspector's page machine: the reading holds no state, and neither does a page that borrows it.

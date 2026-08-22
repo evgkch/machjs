@@ -3,8 +3,8 @@
  * is already true, so a socket that closes twice moves nothing. Kept apart from `readyState`,
  * which is about the current socket — the wire outlives any one of them.
  */
-import { StateMachine } from "@evgkch/fsmjs";
-import type { IEvent, IState, Merge, Schema } from "@evgkch/fsmjs";
+import { StateMachine } from "@evgkch/machjs";
+import type { IEvent, IState, Merge, Schema } from "@evgkch/machjs";
 
 export type Wire = Merge<IState<"dialling"> | IState<"live">>;
 

@@ -3,8 +3,8 @@
  * its transition channel. This subject cannot choose which rule of a cell applies — the guards
  * are real code — so `take` sends the event, and whichever rule the guards pass is what fires.
  */
-import { TRANSITION } from "@evgkch/fsmjs";
-import type { AnyMachine, Off } from "@evgkch/fsmjs";
+import { TRANSITION } from "@evgkch/machjs";
+import type { AnyMachine, Off } from "@evgkch/machjs";
 import type { Graph, Step } from "../model/graph.js";
 import { partsOf } from "../model/rule.js";
 import type { Change, Subject } from "../model/subject.js";
@@ -13,7 +13,7 @@ import type { Change, Subject } from "../model/subject.js";
 type Any = AnyMachine;
 
 export type Options = {
-  /** A recorder from `history(fsm)` (`@evgkch/fsmjs/debug`); passing one turns rewinding on. */
+  /** A recorder from `history(fsm)` (`@evgkch/machjs/debug`); passing one turns rewinding on. */
   history?: Past;
 };
 

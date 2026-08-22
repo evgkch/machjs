@@ -8,8 +8,8 @@
  * A machine, not a closure with listeners: the state is readable, the offset is its context, and
  * the window listeners follow the state. Where the panel goes is an output event.
  */
-import { StateMachine } from "@evgkch/fsmjs";
-import type { IEvent, IState, Merge, Schema } from "@evgkch/fsmjs";
+import { StateMachine } from "@evgkch/machjs";
+import type { IEvent, IState, Merge, Schema } from "@evgkch/machjs";
 
 export type Held = Merge<
   IState<"still"> | IState<"dragging", { dx: number; dy: number }>

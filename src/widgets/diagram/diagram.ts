@@ -3,7 +3,7 @@
  * over the row, a rightward one under it, each in its target's colour, `on · when / emit` at its
  * middle.
  *
- * Custom element `<fsmjs-diagram>`, on Lit: the whole picture is one template over the layout
+ * Custom element `<machjs-diagram>`, on Lit: the whole picture is one template over the layout
  * and the focus, and a dress is a re-render the differ reduces to class changes. Pointing at an
  * arc names both halves of its rule, so a figure and an editor on the same focus light the same
  * rule.
@@ -11,7 +11,7 @@
 import { html, svg, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { edgeLabel } from "@evgkch/fsmjs/formatters";
+import { edgeLabel } from "@evgkch/machjs/formatters";
 import {
   CORNER,
   SOURCE,
@@ -27,7 +27,7 @@ import type { Focus } from "../../features/focus/index.js";
 import { canFire, take } from "../../features/take-rule/index.js";
 import type { Row } from "../../shared/lang/rules.js";
 import { CELL } from "../../shared/lib/grid.js";
-import { FsmjsElement, sheets } from "../../shared/lib/element.js";
+import { MachjsElement, sheets } from "../../shared/lib/element.js";
 import { STEP, TIP, lay } from "./model/lay.js";
 import type { Arc, Lay } from "./model/lay.js";
 import type { Graph } from "../../entities/machine/index.js";
@@ -56,7 +56,7 @@ const idOf = (a: Arc): string => {
   return `${r.from}\0${r.on}\0${r.to}\0${r.emit ?? ""}`;
 };
 
-export class FsmjsDiagram extends FsmjsElement<Change, Wiring> {
+export class MachjsDiagram extends MachjsElement<Change, Wiring> {
   static override styles = sheets(diagramCss);
 
   /** The cell under the pointer — the soft version of the press. */
@@ -305,5 +305,5 @@ export class FsmjsDiagram extends FsmjsElement<Change, Wiring> {
   }
 }
 
-if (!customElements.get("fsmjs-diagram"))
-  customElements.define("fsmjs-diagram", FsmjsDiagram);
+if (!customElements.get("machjs-diagram"))
+  customElements.define("machjs-diagram", MachjsDiagram);

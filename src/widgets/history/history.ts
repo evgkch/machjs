@@ -7,14 +7,14 @@
  * curve here. Pointing at a column therefore also lights the figure and the line of text, which
  * do distinguish them.
  *
- * Custom element `<fsmjs-history>`, on Lit: the board is one template over the run and the
+ * Custom element `<machjs-history>`, on Lit: the board is one template over the run and the
  * focus. A step appends a column because the differ keeps every column whose geometry did not
  * change; a rewind moves only the classes; a hover redraws only the preview layer's nodes.
  */
 import { html, svg, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { edges } from "@evgkch/fsmjs";
+import { edges } from "@evgkch/machjs";
 import { halvesOf, holds } from "../../entities/cell/index.js";
 import { folds, hue, lanes } from "../../entities/machine/index.js";
 import type {
@@ -28,7 +28,7 @@ import type { Focus } from "../../features/focus/index.js";
 import { CELL, EM, HEAD } from "../../shared/lib/grid.js";
 import { rowOf } from "../../shared/lang/rules.js";
 import type { Row } from "../../shared/lang/rules.js";
-import { FsmjsElement, sheets } from "../../shared/lib/element.js";
+import { MachjsElement, sheets } from "../../shared/lib/element.js";
 import historyCss from "./ui/history.css?raw";
 
 /**
@@ -104,7 +104,7 @@ export type Wiring = {
   rewind: (step: number) => void;
 };
 
-export class FsmjsHistory extends FsmjsElement<Change, Wiring> {
+export class MachjsHistory extends MachjsElement<Change, Wiring> {
   static override styles = sheets(historyCss);
 
   #graph: Graph = {};
@@ -380,5 +380,5 @@ export class FsmjsHistory extends FsmjsElement<Change, Wiring> {
   }
 }
 
-if (!customElements.get("fsmjs-history"))
-  customElements.define("fsmjs-history", FsmjsHistory);
+if (!customElements.get("machjs-history"))
+  customElements.define("machjs-history", MachjsHistory);

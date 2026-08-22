@@ -4,8 +4,8 @@
  * over), so nothing fires and nothing is edited. Instead of a schema menu there is a roster:
  * every published machine announces itself, and the strip along the top lists them.
  */
-import { TRANSITION } from "@evgkch/fsmjs";
-import { toRules } from "@evgkch/fsmjs/formatters";
+import { TRANSITION } from "@evgkch/machjs";
+import { toRules } from "@evgkch/machjs/formatters";
 import { flaws, fromWire, palette } from "../../entities/machine/index.js";
 import type { Subject } from "../../entities/machine/index.js";
 import { newFocus } from "../../features/focus/index.js";
@@ -14,10 +14,10 @@ import type { Panel } from "../../features/show-panels/index.js";
 import { page, read } from "../../features/read-schema/index.js";
 import { newSocket } from "../../shared/api/link.js";
 import { el, make } from "../../shared/lib/dom.js";
-import { FsmjsDiagram } from "../../widgets/diagram/diagram.js";
-import { FsmjsDesk } from "../../widgets/desk/desk.js";
-import { FsmjsLegend } from "../../widgets/legend/legend.js";
-import { FsmjsEditor } from "../../widgets/editor/editor.js";
+import { MachjsDiagram } from "../../widgets/diagram/diagram.js";
+import { MachjsDesk } from "../../widgets/desk/desk.js";
+import { MachjsLegend } from "../../widgets/legend/legend.js";
+import { MachjsEditor } from "../../widgets/editor/editor.js";
 import { report } from "../../features/report/index.js";
 import { mount } from "../../widgets/inspector/mount.js";
 import type { Handle } from "../../widgets/inspector/mount.js";
@@ -44,7 +44,7 @@ export function viewer(): void {
   const wait = el<HTMLElement>("wait");
   const said = el<HTMLParagraphElement>("said");
   const line = el<HTMLPreElement>("line");
-  line.textContent = `import { inspect } from "@evgkch/fsmjs-inspector";\n\nconst fsm = inspect(yourMachine, { name: "cart" });`;
+  line.textContent = `import { inspect } from "@evgkch/machjs-inspector";\n\nconst fsm = inspect(yourMachine, { name: "cart" });`;
 
   const link = newSocket(url);
   const there = fromWire(link);
@@ -54,7 +54,7 @@ export function viewer(): void {
   // both.
   const focus = newFocus();
   const source = el<HTMLElement>("text");
-  const editor = new FsmjsEditor();
+  const editor = new MachjsEditor();
   editor.wiring = {
     focus,
     // The machine is compiled into another application; typing could not reach it.
@@ -74,7 +74,7 @@ export function viewer(): void {
 
   // The desk is the menu; the page reads which panels are up off its machine, and the
   // stylesheet hides what is down.
-  const desk = new FsmjsDesk();
+  const desk = new MachjsDesk();
   const panels = desk.panels;
   const board = el<HTMLElement>("panels");
   for (const panel of [
@@ -156,12 +156,12 @@ export function viewer(): void {
       const handle = mount(host, one.subject, { focus });
       report(one.subject, one.who);
       // The diagram is not one of the mount's own pair; enrolled, it is wired and redrawn with them.
-      const dia = new FsmjsDiagram();
+      const dia = new MachjsDiagram();
       chart.replaceChildren(dia);
       handle.enroll(dia);
       alphabet.replaceChildren(
         ...(["states", "in", "out"] as const).map((kind) => {
-          const one = new FsmjsLegend();
+          const one = new MachjsLegend();
           one.setAttribute("kind", kind);
           handle.enroll(one);
           return one;

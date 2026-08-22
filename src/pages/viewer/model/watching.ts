@@ -8,8 +8,8 @@
  * `gone` is guarded here, not checked by the caller: another machine leaving is no reason to
  * look away from this one.
  */
-import { StateMachine } from "@evgkch/fsmjs";
-import type { IEvent, IState, Merge, Schema } from "@evgkch/fsmjs";
+import { StateMachine } from "@evgkch/machjs";
+import type { IEvent, IState, Merge, Schema } from "@evgkch/machjs";
 
 export type Look = Merge<
   IState<"nobody"> | IState<"watching", { who: string }>

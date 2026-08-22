@@ -23,7 +23,7 @@
 import { svg } from "lit";
 import type { TemplateResult } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { edgeLabel } from "@evgkch/fsmjs/formatters";
+import { edgeLabel } from "@evgkch/machjs/formatters";
 import {
   CAUSE,
   CORNER,

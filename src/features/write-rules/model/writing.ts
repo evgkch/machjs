@@ -16,8 +16,8 @@
  * text from those and the letters typed so far, so no keystroke depends on the previous one and
  * the offsets are read once from a text that does not move.
  */
-import { StateMachine } from "@evgkch/fsmjs";
-import type { IEvent, IState, Merge, Schema } from "@evgkch/fsmjs";
+import { StateMachine } from "@evgkch/machjs";
+import type { IEvent, IState, Merge, Schema } from "@evgkch/machjs";
 import { ahead } from "../../../shared/lang/complete.js";
 import type { Ahead, Vocab } from "../../../shared/lang/complete.js";
 import { hits, swap } from "../../../shared/lang/names.js";

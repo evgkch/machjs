@@ -14,7 +14,7 @@ wss.on("error", (err) => {
   // A relay from an earlier run is already listening on this port. One line instead of a stack
   // trace, and exit 0: the relay this script was asked for is running.
   if (err.code === "EADDRINUSE") {
-    console.log(`fsmjs inspector relay — ws://localhost:${port} (already up)`);
+    console.log(`machjs inspector relay — ws://localhost:${port} (already up)`);
     process.exit(0);
   }
   throw err;
@@ -23,7 +23,7 @@ wss.on("error", (err) => {
 // Printed on `listening`, not at startup: on a busy port the listen fails after the constructor
 // returns, and a line printed earlier would be wrong.
 wss.on("listening", () => {
-  console.log(`fsmjs inspector relay — ws://localhost:${port}`);
+  console.log(`machjs inspector relay — ws://localhost:${port}`);
 });
 
 wss.on("connection", (sock) => {

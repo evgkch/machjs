@@ -5,7 +5,7 @@
 @layer tokens, controls, page;
 
 @layer page {
-    .fsmjs-overlay {
+    .machjs-overlay {
         position: fixed;
         right: var(--step-4);
         bottom: var(--step-4);

@@ -7,12 +7,12 @@
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import type { TemplateResult } from "lit";
-import { edges } from "@evgkch/fsmjs";
+import { edges } from "@evgkch/machjs";
 import { flaws, hue, lanes } from "../../entities/machine/index.js";
 import type { Change, Subject } from "../../entities/machine/index.js";
 import type { Focus } from "../../features/focus/index.js";
 import { rowOf } from "../../shared/lang/rules.js";
-import { FsmjsElement, sheets } from "../../shared/lib/element.js";
+import { MachjsElement, sheets } from "../../shared/lib/element.js";
 import legendCss from "./ui/legend.css?raw";
 
 export type Kind = "states" | "in" | "out";
@@ -22,7 +22,7 @@ export type Wiring = {
   focus: Focus;
 };
 
-export class FsmjsLegend extends FsmjsElement<Change, Wiring> {
+export class MachjsLegend extends MachjsElement<Change, Wiring> {
   static override styles = sheets(legendCss);
 
   constructor() {
@@ -79,5 +79,5 @@ export class FsmjsLegend extends FsmjsElement<Change, Wiring> {
   }
 }
 
-if (!customElements.get("fsmjs-legend"))
-  customElements.define("fsmjs-legend", FsmjsLegend);
+if (!customElements.get("machjs-legend"))
+  customElements.define("machjs-legend", MachjsLegend);

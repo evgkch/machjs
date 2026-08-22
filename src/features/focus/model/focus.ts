@@ -17,8 +17,8 @@
  * cell is in reach arrives with the press as `alive`; what to do once both halves are named is
  * `took`, and the listener's.
  */
-import { StateMachine } from "@evgkch/fsmjs";
-import type { IEvent, IState, Merge, Schema } from "@evgkch/fsmjs";
+import { StateMachine } from "@evgkch/machjs";
+import type { IEvent, IState, Merge, Schema } from "@evgkch/machjs";
 import {
   CAUSE,
   CORNER,

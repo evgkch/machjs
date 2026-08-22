@@ -11,7 +11,7 @@
  *
  * The figure is written against `Subject` and never learns which one it got.
  */
-import type { Off } from "@evgkch/fsmjs";
+import type { Off } from "@evgkch/machjs";
 import type { Graph, Step } from "./graph.js";
 import type { RuleId } from "./rule.js";
 

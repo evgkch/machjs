@@ -3,7 +3,7 @@
  * somewhere else. On Lit those are one render over the plan and the focus — the differ reduces
  * a dress to class changes, and a step to moving the mark.
  *
- * It is a custom element — `<fsmjs-figure>` — so a page can put a figure down on its own, wired to
+ * It is a custom element — `<machjs-figure>` — so a page can put a figure down on its own, wired to
  * a subject and a focus, without lifting the whole inspector. The element *is* the `.out` box,
  * drawn on the host with a shadow root inside it: the palette reaches in through the variables,
  * and the page still hides it by the class it wears in the light DOM.
@@ -12,7 +12,7 @@ import { html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import type { Change, Graph, Subject } from "../../entities/machine/index.js";
 import type { Focus } from "../../features/focus/index.js";
-import { FsmjsElement, sheets } from "../../shared/lib/element.js";
+import { MachjsElement, sheets } from "../../shared/lib/element.js";
 import { plan } from "./model/plan.js";
 import type { Draw } from "./model/plan.js";
 import { board } from "./ui/board.js";
@@ -25,7 +25,7 @@ export type Wiring = {
   forget: () => void;
 };
 
-export class FsmjsFigure extends FsmjsElement<Change, Wiring> {
+export class MachjsFigure extends MachjsElement<Change, Wiring> {
   static override styles = sheets(figureCss);
 
   /**
@@ -82,5 +82,5 @@ export class FsmjsFigure extends FsmjsElement<Change, Wiring> {
   }
 }
 
-if (!customElements.get("fsmjs-figure"))
-  customElements.define("fsmjs-figure", FsmjsFigure);
+if (!customElements.get("machjs-figure"))
+  customElements.define("machjs-figure", MachjsFigure);

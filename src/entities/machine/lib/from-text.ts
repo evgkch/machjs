@@ -4,10 +4,10 @@
  * `guarded` gives each rule a real guard instead — "is this the rule that was named" — so naming
  * a rule is what makes it fire.
  */
-import { StateMachine, TRANSITION } from "@evgkch/fsmjs";
-import type { Off } from "@evgkch/fsmjs";
-import { history, log, rules } from "@evgkch/fsmjs/debug";
-import type { History } from "@evgkch/fsmjs/debug";
+import { StateMachine, TRANSITION } from "@evgkch/machjs";
+import type { Off } from "@evgkch/machjs";
+import { history, log, rules } from "@evgkch/machjs/debug";
+import type { History } from "@evgkch/machjs/debug";
 import type { Ctx, Ev, Graph, Step } from "../model/graph.js";
 import { partsOf, ruleId } from "../model/rule.js";
 import type { RuleId } from "../model/rule.js";

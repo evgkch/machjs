@@ -5,8 +5,8 @@
  * anywhere lights the rule everywhere, and either surface can name a rule to fire. The rest of
  * this file is where the schema comes from and which state a run starts at.
  */
-import { TRANSITION, nodes } from "@evgkch/fsmjs";
-import { toRules } from "@evgkch/fsmjs/formatters";
+import { TRANSITION, nodes } from "@evgkch/machjs";
+import { toRules } from "@evgkch/machjs/formatters";
 import {
   flaws,
   fromText,
@@ -22,10 +22,10 @@ import { canFire } from "../../features/take-rule/index.js";
 import { el } from "../../shared/lib/dom.js";
 import { looksLikeRules } from "../../shared/lang/rules.js";
 import type { Written } from "../../shared/lang/rules.js";
-import { FsmjsDiagram } from "../../widgets/diagram/diagram.js";
-import { FsmjsDesk } from "../../widgets/desk/desk.js";
-import { FsmjsLegend } from "../../widgets/legend/legend.js";
-import { FsmjsEditor } from "../../widgets/editor/editor.js";
+import { MachjsDiagram } from "../../widgets/diagram/diagram.js";
+import { MachjsDesk } from "../../widgets/desk/desk.js";
+import { MachjsLegend } from "../../widgets/legend/legend.js";
+import { MachjsEditor } from "../../widgets/editor/editor.js";
 import { report } from "../../features/report/index.js";
 import { mount } from "../../widgets/inspector/mount.js";
 import type { Handle } from "../../widgets/inspector/mount.js";
@@ -52,7 +52,7 @@ export function workbench(): void {
 
   // Which panels are up; the stylesheet hides what is down. All four switch here.
   // The desk is the menu; the page reads which panels are up off its machine.
-  const desk = new FsmjsDesk();
+  const desk = new MachjsDesk();
   const panels = desk.panels;
   const board = el("panels");
   for (const panel of [
@@ -76,7 +76,7 @@ export function workbench(): void {
   const idOfLine = (r: Written) => ruleId(r.edge.from, r.edge.on, r.slot);
 
   let timer = 0;
-  const editor = new FsmjsEditor();
+  const editor = new MachjsEditor();
   editor.wiring = {
     focus,
     onEdit: () => {
@@ -100,13 +100,13 @@ export function workbench(): void {
     handle = mount(host, subject, { focus });
     // Neither the diagram nor the legends are the mount's own pair; enrolled, they are wired
     // and redrawn with it.
-    const dia = new FsmjsDiagram();
+    const dia = new MachjsDiagram();
     chart.replaceChildren(dia);
     handle.enroll(dia);
     const board = handle;
     strip.replaceChildren(
       ...(["states", "in", "out"] as const).map((kind) => {
-        const one = new FsmjsLegend();
+        const one = new MachjsLegend();
         one.setAttribute("kind", kind);
         board.enroll(one);
         return one;

@@ -12,7 +12,7 @@
  * Writing aids: the word being typed is completed in grey where only one word fits (TAB takes
  * it), and a double-clicked name can be renamed in every line at once.
  *
- * Custom element `<fsmjs-editor>`, a LitElement for its shadow, styles and lifecycle — and an
+ * Custom element `<machjs-editor>`, a LitElement for its shadow, styles and lifecycle — and an
  * imperative text engine inside: the textarea, the `insertText` writes that keep the browser's
  * undo stack, the caret and the completion ghost are managed by hand, and the one render places
  * the nodes the constructor built. `disconnectedCallback` unsubscribes from the focus and
@@ -20,8 +20,8 @@
  */
 import { LitElement, html } from "lit";
 import type { TemplateResult } from "lit";
-import { TRANSITION } from "@evgkch/fsmjs";
-import type { Off } from "@evgkch/fsmjs";
+import { TRANSITION } from "@evgkch/machjs";
+import type { Off } from "@evgkch/machjs";
 import { halvesOf, shows } from "../../entities/cell/index.js";
 import { ruleId } from "../../entities/machine/index.js";
 import type { Flaws, Lane } from "../../entities/machine/index.js";
@@ -53,7 +53,7 @@ export type Wiring = {
   fire: (rule: Written) => void;
 };
 
-export class FsmjsEditor extends LitElement {
+export class MachjsEditor extends LitElement {
   static override styles = sheets(editorCss);
 
   #w?: Wiring;
@@ -526,5 +526,5 @@ export class FsmjsEditor extends LitElement {
   }
 }
 
-if (!customElements.get("fsmjs-editor"))
-  customElements.define("fsmjs-editor", FsmjsEditor);
+if (!customElements.get("machjs-editor"))
+  customElements.define("machjs-editor", MachjsEditor);

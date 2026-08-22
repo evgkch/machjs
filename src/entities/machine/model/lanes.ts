@@ -3,7 +3,7 @@
  * order and one function, so the surfaces cannot drift apart. The order is breadth-first from
  * the start (`analyze`'s `reachable`), unreachable states last.
  */
-import { analyze } from "@evgkch/fsmjs/analysis";
+import { analyze } from "@evgkch/machjs/analysis";
 import type { Graph } from "./graph.js";
 
 /** The palette repeats after this many states. */

@@ -3,8 +3,8 @@
  * is one channel and one machine, so neither side holds a socket. The one implementation is a
  * WebSocket — the transport a browser and a Node process both have without installing anything.
  */
-import Channel from "@evgkch/channeljs";
-import type { Rx } from "@evgkch/channeljs";
+import Channel from "@evgkch/chanjs";
+import type { Rx } from "@evgkch/chanjs";
 import { newDialling } from "./model/dialling.js";
 
 /** What a pipe says: something arrived, or the wire itself moved. */

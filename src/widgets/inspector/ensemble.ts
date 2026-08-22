@@ -12,7 +12,7 @@
  * re-dresses them. A page composes the cast and hands it over — no page wires widgets to each
  * other directly.
  */
-import { edges } from "@evgkch/fsmjs";
+import { edges } from "@evgkch/machjs";
 import type { Graph, RuleId, Subject } from "../../entities/machine/index.js";
 import { newFocus } from "../../features/focus/index.js";
 import type { Focus } from "../../features/focus/index.js";

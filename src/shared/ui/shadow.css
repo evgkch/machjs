@@ -10,10 +10,11 @@
     box-sizing: border-box;
 }
 
-/* `hidden` still hides: every widget sets a `display` on its host, which beats the UA's
-   `[hidden]` rule. */
+/* `hidden` still hides: every widget sets a `display` on its host in the later `widget`
+   layer, and a later layer beats this one regardless of specificity — `!important` reverses
+   the layer order and wins back. */
 :host([hidden]) {
-    display: none;
+    display: none !important;
 }
 
 /* A panel's name, as `tokens.css` sets it for the light DOM. */

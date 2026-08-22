@@ -14,8 +14,8 @@
  * The reader also keeps the line each rule was written on — the join every highlight and gutter
  * mark runs on.
  */
-import { nameOf } from "@evgkch/fsmjs";
-import type { Edge } from "@evgkch/fsmjs";
+import { nameOf } from "@evgkch/machjs";
+import type { Edge } from "@evgkch/machjs";
 
 /**
  * One rule as a flat row of names — what this tool holds where the library holds an `Edge`.

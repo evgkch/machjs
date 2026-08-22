@@ -3,8 +3,8 @@
  * on what is already on, the guard refuses and nothing redraws — so `TRANSITION` always means a
  * change.
  */
-import { StateMachine } from "@evgkch/fsmjs";
-import type { IEvent, IState, Merge, Schema } from "@evgkch/fsmjs";
+import { StateMachine } from "@evgkch/machjs";
+import type { IEvent, IState, Merge, Schema } from "@evgkch/machjs";
 
 /** A panel is named by the page that shows it; the machine takes any list of names. */
 export type Panel = string;

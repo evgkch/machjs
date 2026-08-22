@@ -3,8 +3,8 @@
  * and which cells hold what. Nothing here is a selection, and nothing analyses the graph itself:
  * `analysis` answers reachability, `edges` flattens the schema, `lanes` fixes the order.
  */
-import { edges } from "@evgkch/fsmjs";
-import { analyze } from "@evgkch/fsmjs/analysis";
+import { edges } from "@evgkch/machjs";
+import { analyze } from "@evgkch/machjs/analysis";
 import { flaws, hue, idOf, lanes } from "../../../entities/machine/index.js";
 import type {
   Graph,

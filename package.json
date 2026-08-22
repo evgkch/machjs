@@ -1,15 +1,15 @@
 {
-  "name": "@evgkch/fsmjs-inspector",
-  "version": "0.0.6",
+  "name": "@evgkch/machjs-inspector",
+  "version": "0.0.7",
   "type": "module",
   "description": "Look at a state machine: three projections of its transition relation, drawn from the graph and driven by two clicks. Reads a dumped schema, or attaches to a machine that is running",
   "license": "MIT",
   "author": "Evgeny Kucherenko",
   "repository": {
     "type": "git",
-    "url": "https://github.com/evgkch/fsmjs-inspector.git"
+    "url": "https://github.com/evgkch/machjs-inspector.git"
   },
-  "homepage": "https://evgkch.github.io/fsmjs/inspector/",
+  "homepage": "https://evgkch.github.io/machjs-inspector/",
   "keywords": [
     "fsm",
     "state-machine",
@@ -33,12 +33,12 @@
     "prepublishOnly": "npm run build:lib"
   },
   "peerDependencies": {
-    "@evgkch/channeljs": ">=1.1.0",
-    "@evgkch/fsmjs": ">=0.2.1"
+    "@evgkch/chanjs": ">=1.0.0",
+    "@evgkch/machjs": ">=0.3.0"
   },
   "devDependencies": {
-    "@evgkch/channeljs": "^1.1.0",
-    "@evgkch/fsmjs": "file:../fsmjs",
+    "@evgkch/chanjs": "^1.0.0",
+    "@evgkch/machjs": "file:../machjs",
     "happy-dom": "^20.11.2",
     "prettier": "^3.9.6",
     "typescript": "^5.9.3",

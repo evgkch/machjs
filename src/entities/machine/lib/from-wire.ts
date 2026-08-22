@@ -6,8 +6,8 @@
  * application handed `inspect` a `History`; both are absent rather than refused, and every
  * drawing already checks.
  */
-import Channel from "@evgkch/channeljs";
-import type { Rx } from "@evgkch/channeljs";
+import Channel from "@evgkch/chanjs";
+import type { Rx } from "@evgkch/chanjs";
 import type { Row } from "../../../shared/lang/rules.js";
 import type { Graph, Step } from "../model/graph.js";
 import type { Change, Subject } from "../model/subject.js";

@@ -4,8 +4,8 @@
  * nothing, this draws here. Pressing a cause and an effect sends the event to the machine; its
  * own guards decide which rule fires.
  */
-import { TRANSITION } from "@evgkch/fsmjs";
-import type { AnyMachine } from "@evgkch/fsmjs";
+import { TRANSITION } from "@evgkch/machjs";
+import type { AnyMachine } from "@evgkch/machjs";
 import { newDrag } from "../features/drag-panel/index.js";
 import { fromMachine } from "../entities/machine/index.js";
 import type { WatchOptions } from "../entities/machine/index.js";
@@ -40,7 +40,7 @@ export function overlay(fsm: AnyMachine, options: Options = {}): Overlaid {
 
   // A floating panel with its own stylesheet; the application underneath needs nothing.
   const panel = document.createElement("div");
-  panel.className = "fsmjs-overlay";
+  panel.className = "machjs-overlay";
 
   const bar = document.createElement("div");
   bar.className = "overlay-bar";

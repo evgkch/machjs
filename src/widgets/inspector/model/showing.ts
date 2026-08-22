@@ -13,8 +13,8 @@
  * told what is already true is no transition. `beside` is reachable only while the whole board
  * fits — the run moves under it, the figure never narrows.
  */
-import { StateMachine } from "@evgkch/fsmjs";
-import type { IEvent, IState, Merge, Schema } from "@evgkch/fsmjs";
+import { StateMachine } from "@evgkch/machjs";
+import type { IEvent, IState, Merge, Schema } from "@evgkch/machjs";
 
 /** How wide the board came out, which is what the column it stands in is set to. */
 type Wide = { board: number };

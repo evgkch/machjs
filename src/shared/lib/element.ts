@@ -21,7 +21,7 @@ export function sheets(own: string): CSSResult[] {
   ];
 }
 
-export abstract class FsmjsElement<
+export abstract class MachjsElement<
   T,
   W extends { subject: Heard<T> },
 > extends LitElement {

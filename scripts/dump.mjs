@@ -40,8 +40,8 @@ const { newPanels } = await vite.ssrLoadModule(
 const { newWatching } = await vite.ssrLoadModule(
   "/src/pages/viewer/model/watching.ts",
 );
-const { validate } = await vite.ssrLoadModule("@evgkch/fsmjs/analysis");
-const { formatIssues } = await vite.ssrLoadModule("@evgkch/fsmjs/formatters");
+const { validate } = await vite.ssrLoadModule("@evgkch/machjs/analysis");
+const { formatIssues } = await vite.ssrLoadModule("@evgkch/machjs/formatters");
 
 const check = (name, machine) => {
   const issues = validate(

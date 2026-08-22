@@ -1,5 +1,5 @@
 /**
- * @evgkch/fsmjs-inspector — the main entry, what an application writes:
+ * @evgkch/machjs-inspector — the main entry, what an application writes:
  *
  *   const cart = inspect(new StateMachine(schema, start), { name: "cart" });
  *
@@ -8,8 +8,8 @@
  * is names only: the schema as `JSON.stringify` writes it, and the four types of every
  * transition. All machines of one process share one socket per address.
  */
-import { TRANSITION } from "@evgkch/fsmjs";
-import type { AnyMachine } from "@evgkch/fsmjs";
+import { TRANSITION } from "@evgkch/machjs";
+import type { AnyMachine } from "@evgkch/machjs";
 import type { Graph } from "./entities/machine/model/graph.js";
 import { isWire } from "./entities/machine/model/wire.js";
 import type { Kept, Went } from "./entities/machine/model/wire.js";
@@ -21,7 +21,7 @@ import type { Row } from "./shared/lang/rules.js";
 export const RELAY = "ws://localhost:8999";
 
 /**
- * A recorder, as `history(fsm)` from `@evgkch/fsmjs/debug` makes one — asked for by its shape, so
+ * A recorder, as `history(fsm)` from `@evgkch/machjs/debug` makes one — asked for by its shape, so
  * that this file needs no generic parameters to accept somebody's real one.
  */
 export type Past = {
@@ -38,7 +38,7 @@ export type Options = {
   /** A line about what the machine is for — the schema does not say. */
   description?: string;
   /**
-   * A recorder from `history(fsm)` (`@evgkch/fsmjs/debug`); passing one turns rewinding on.
+   * A recorder from `history(fsm)` (`@evgkch/machjs/debug`); passing one turns rewinding on.
    * Rewinding from the inspector's window moves this machine, in this process, through it.
    */
   history?: Past;

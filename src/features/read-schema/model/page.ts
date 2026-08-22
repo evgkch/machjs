@@ -4,8 +4,8 @@
  * is why a half-typed brace does not blank the figure. `broken` entered from `blank` has nothing
  * to carry, and the type says so.
  */
-import { StateMachine } from "@evgkch/fsmjs";
-import type { FsmState, IEvent, IState, Merge, Schema } from "@evgkch/fsmjs";
+import { StateMachine } from "@evgkch/machjs";
+import type { FsmState, IEvent, IState, Merge, Schema } from "@evgkch/machjs";
 import type { Graph } from "../../../entities/machine/index.js";
 import type { Written } from "../../../shared/lang/rules.js";
 import { startOf } from "./reading.js";

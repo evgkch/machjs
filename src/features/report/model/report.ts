@@ -5,7 +5,7 @@
  * with the payload and the reached context inside. A rewind and a restatement are one line each.
  * The pages and the overlay wire it; a page that wants silence never calls it.
  */
-import type { Off } from "@evgkch/fsmjs";
+import type { Off } from "@evgkch/machjs";
 import { lanes } from "../../../entities/machine/index.js";
 import type { Subject } from "../../../entities/machine/index.js";
 

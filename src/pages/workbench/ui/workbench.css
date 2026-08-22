@@ -303,9 +303,9 @@
     main[data-off~="diagram"] #chart,
     main[data-off~="figure"] .out,
     main[data-off~="history"] .history,
-    main[data-off~="states"] fsmjs-legend[kind="states"],
-    main[data-off~="in"] fsmjs-legend[kind="in"],
-    main[data-off~="out"] fsmjs-legend[kind="out"] {
+    main[data-off~="states"] machjs-legend[kind="states"],
+    main[data-off~="in"] machjs-legend[kind="in"],
+    main[data-off~="out"] machjs-legend[kind="out"] {
         display: none;
     }
 

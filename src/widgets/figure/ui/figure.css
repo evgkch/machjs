@@ -4,7 +4,7 @@
    wide or too tall for the page never makes the page itself scroll. */
 :host {
     /* The element is a custom element, which is inline until told otherwise. The box is a block —
-       it fills its band, and a `<fsmjs-figure>` dropped into a page of its own stands on its own
+       it fills its band, and a `<machjs-figure>` dropped into a page of its own stands on its own
        line like any panel. */
     display: block;
     min-height: 16rem;

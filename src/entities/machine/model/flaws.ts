@@ -3,8 +3,8 @@
  * about — struck through in the source and the figure, marked in the gutter, listed nowhere.
  * One object, so the two surfaces cannot disagree.
  */
-import { edges } from "@evgkch/fsmjs";
-import { analyze, validate } from "@evgkch/fsmjs/analysis";
+import { edges } from "@evgkch/machjs";
+import { analyze, validate } from "@evgkch/machjs/analysis";
 import type { Graph } from "./graph.js";
 import { partsOf } from "./rule.js";
 import type { RuleId } from "./rule.js";

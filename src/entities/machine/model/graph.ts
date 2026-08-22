@@ -2,7 +2,7 @@
  * What is left of a machine after `JSON.stringify` — the whole of what this tool reads: labels,
  * and the name of every operation. Enough to draw, to check, and to run.
  */
-import type { Transition } from "@evgkch/fsmjs";
+import type { Transition } from "@evgkch/machjs";
 
 /** A schema read back from JSON: labels, and the name of every operation that was there. */
 export type Graph = Record<string, unknown>;

@@ -1,7 +1,7 @@
 /**
  * The editor's text, read as a schema — the reading itself, with no machine around it and no
  * widget under it. The inspector's pages run it through the page machine; a page that assembles
- * `<fsmjs-editor>` on its own calls it directly and hands the outcome to `show` or to `blame`.
+ * `<machjs-editor>` on its own calls it directly and hands the outcome to `show` or to `blame`.
  *
  * Two forms are accepted and only one of them is the tool's own. The editor speaks the library's
  * language — one sentence per rule, `FROM ON WHEN TO WITH EMIT BY`, the same sentence `toRules`
@@ -9,7 +9,7 @@
  * `JSON.stringify(machine)` is read too: that is where a schema usually comes from, and refusing
  * it would be a tool being precious.
  */
-import { nodes } from "@evgkch/fsmjs";
+import { nodes } from "@evgkch/machjs";
 import type { Graph } from "../../../entities/machine/index.js";
 import {
   RuleSyntaxError,

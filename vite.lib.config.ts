@@ -5,9 +5,9 @@ import type { Plugin } from "vite";
 /**
  * The palette, published on its own.
  *
- * `@evgkch/fsmjs-inspector/tokens.css` is a file of the package's manifest, so it has to be in
+ * `@evgkch/machjs-inspector/tokens.css` is a file of the package's manifest, so it has to be in
  * `dist-lib` whenever `dist-lib` exists — and it is the one thing there that is not a build
- * product: it is the `fsmjs-tokens` submodule's file, copied. That copy used to be a `cp` in the npm
+ * product: it is the `machjs-tokens` submodule's file, copied. That copy used to be a `cp` in the npm
  * script beside the build, which meant the build alone produced a `dist-lib` that was missing a
  * file the manifest promises, and the promise is what somebody else's stylesheet imports. Running
  * the build on its own is a thing anybody does; emitting it here makes one command enough.
@@ -16,13 +16,13 @@ import type { Plugin } from "vite";
  *
  * It lands where the source has it, under `shared/ui`, and not at the root — that is the path the
  * manifest maps `./tokens.css` onto, and one mapping is cheaper than a copy at the root beside
- * the tree. What a reader writes is `@evgkch/fsmjs-inspector/tokens.css` either way: the name is
+ * the tree. What a reader writes is `@evgkch/machjs-inspector/tokens.css` either way: the name is
  * the manifest's, and where the file sits under it is nobody's business but this build's.
  */
 const TOKENS = "shared/ui/tokens/tokens.css";
 
 const tokens = (): Plugin => ({
-  name: "fsmjs-inspector-tokens",
+  name: "machjs-inspector-tokens",
   // The library build only. The site's own build has no manifest to keep.
   apply: "build",
   generateBundle() {
@@ -39,7 +39,7 @@ const tokens = (): Plugin => ({
  * `index.html`; this builds `src/index.ts` into something another application can import.
  *
  * The library is left out of the bundle: whoever embeds the inspector already has a machine, and
- * a second copy of `fsmjs` would be a second `TRANSITION` symbol — the listener would never fire.
+ * a second copy of `machjs` would be a second `TRANSITION` symbol — the listener would never fire.
  *
  * Two entries, and which one is the main one is the whole point. `index` is `inspect(fsm)`: what an
  * application writes, with no document and no stylesheet in it, because the thing being debugged
