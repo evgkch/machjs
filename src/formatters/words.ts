@@ -1,16 +1,13 @@
 /**
  * The word language, shared by the schema printer and the live log — internal.
  *
- * One rule reads as one sentence: `FROM ON WHEN TO WITH EMIT BY` — the five words of the rule
- * plus its two coordinates, in the order the rule runs. That order is the whole point: `when`
- * decides, `to` names the target, `with` folds the input into the context, `emit`/`by` unfold
- * the reached context into the output. `toRules` writes all seven over a whole schema; the
- * debug layer's `rules` writes the four label words over transitions as they fire. Both are
- * the same writer with different arguments, which is why the machinery lives here and not in
- * either caller.
+ * One rule reads as one sentence: `FROM ON WHEN TO WITH EMIT BY`, in the order the rule runs —
+ * `when` decides, `to` names the target, `with` folds the input in, `emit`/`by` unfold the
+ * output. `toRules` writes all seven over a schema; `rules` (in `machjs/debug`) writes the four
+ * label words over transitions as they fire, using the same writer with different arguments.
  *
- * Not exported from the package: the writer is a factory, not a `Formatter`, and a second
- * public entry point into the same language would only invite the two to drift apart.
+ * Not exported: the writer is a factory, not a `Formatter`, and a second public entry point
+ * into the same language would invite the two to drift apart.
  */
 import { nameOf } from "../core/index.js";
 import type { Edge } from "../core/types.js";
@@ -29,12 +26,11 @@ export const WORDS = [
 export type Word = (typeof WORDS)[number];
 
 /**
- * The words a transition can fill: it knows where it came from, on what event, where it went
- * and what it emitted, but not which operations the rule that carried it named.
+ * The words a transition can fill: where it came from, on what event, where it went, what it
+ * emitted — not which operations the rule named.
  *
- * Nothing worth having is lost. Two rules these four cannot tell apart are exactly what
- * `validate` reports as `duplicate-edge`, so on a machine that passes validation a line is
- * unambiguous.
+ * Two rules these four cannot tell apart are exactly what `validate` reports as
+ * `duplicate-edge`, so on a machine that passes validation a line is unambiguous.
  */
 export const LABELS = [
   "FROM",
@@ -66,10 +62,10 @@ const said = (row: Edge, word: Word): string | undefined => {
 /**
  * Build a writer: a function of one row, with the columns already sized.
  *
- * Widths come from the rows given here, not from the row being written, which is what lets a
- * *stream* of rows line up — the schema is known in advance even when the run is not. A word no
- * row can fill is dropped whole; one that some row fills is padded blank in the rest. Pass a
- * single row to get an unaligned one-off line.
+ * Widths come from the rows given here, not the row being written, so a stream of rows lines up
+ * even when only the schema (not the run) is known in advance. A word no row can fill is
+ * dropped; one some row fills is padded blank in the rest. Pass a single row for an unaligned
+ * one-off line.
  */
 export const writer = (rows: readonly Edge[], words: readonly Word[]) => {
   const width = (word: Word) =>

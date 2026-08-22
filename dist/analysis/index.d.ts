@@ -10,15 +10,10 @@ export declare function analyze<T, Q extends PropertyKey = PropertyKey>(schema: 
  *   warning — terminal node (dead end, possibly an intended final state)
  *   warning — duplicate edge: two rules a run cannot tell apart
  *
- * A `terminal` node is a warning rather than an error because it is usually a final state on
- * purpose — a fact worth seeing, not a repair to make.
- *
- * Note what is *not* here, and deliberately. Several rules on one cell is not a finding:
- * their guards decide. Neither is a cell whose every rule is guarded. An absent `when` reads
- * as ⊤, so "guarded" versus "unguarded" is not a distinction between a careful cell and a
- * careless one — it is just whether the event can be refused here, and a refusal is a
- * legitimate outcome. That is the partiality of δ, and the reason `dispatch` returns a
- * boolean. Reporting it flagged every machine that meant it.
+ * `terminal` is a warning, not an error, since it is usually an intended final state. Several
+ * rules on one cell is not itself a finding, nor is a cell whose every rule is guarded — an
+ * absent `when` reads as ⊤, and a guard refusing an event is a legitimate outcome of δ's
+ * partiality, the same reason `dispatch` returns a boolean.
  */
 export declare function validate<T, Q extends PropertyKey = PropertyKey>(schema: T, start?: Q): Issue<Q>[];
 /**

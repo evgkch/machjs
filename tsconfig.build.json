@@ -2,7 +2,7 @@
   // Build config: emit dist/ (JS + declarations) from src/ only.
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "target": "es2020",
+    "target": "es2022",
     "module": "es2020",
     "moduleResolution": "node",
     "declaration": true,

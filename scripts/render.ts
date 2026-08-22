@@ -16,8 +16,8 @@ import {
   toTree,
   toRules,
   formatIssues,
-} from "@evgkch/fsmjs/formatters";
-import { validate } from "@evgkch/fsmjs/analysis";
+} from "@evgkch/machjs/formatters";
+import { validate } from "@evgkch/machjs/analysis";
 
 const [file, mode = "tree", start] = process.argv.slice(2);
 

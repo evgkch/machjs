@@ -4,27 +4,22 @@ import type { Edge } from "../core/types.js";
  * The contract: format some value (with options) into a string. Every export of this module has
  * this shape — pass any function of the same shape to swap in your own.
  *
- * Two prefixes divide them, and the rule is exact: `to*` takes a **schema** (`toRules`,
- * `toTree`, `toMermaid`, `toDot`), `format*` takes a **value some other module produced**
- * (`formatIssues`). Nothing here takes a schema and returns anything but a string.
+ * `to*` takes a schema (`toRules`, `toTree`, `toMermaid`, `toDot`); `format*` takes a value
+ * another module produced (`formatIssues`). A custom renderer wanting the library's own edge
+ * label should call `edgeLabel` rather than rebuild it.
  *
- * A custom renderer wanting the library's own edge label — `ON event WHEN … WITH … EMIT …` —
- * should call `edgeLabel` rather than rebuild it, so the two cannot drift apart.
+ * The options parameter is spelled `Opts`, not `O` — `O` also reads as the output carrier
+ * elsewhere in the library, spelled `Λ`, and one symbol meaning two things invites drift.
  *
- * The options parameter is spelled `Opts`, never `O`: `O` is the obvious abbreviation for
- * *options*, and it is equally the obvious one for the output carrier — which is exactly why
- * that carrier is written `Λ` here. One symbol meaning two things is how drift starts.
- *
- * It defaults to `never`, not `void`, so that the bare `Formatter<T>` is the shape *every*
- * formatter fits — the one you can hold them all in:
+ * Defaults to `never`, not `void`, so the bare `Formatter<T>` is a shape every formatter fits:
  *
  * ```ts
  * const renderers: Record<string, Formatter<unknown>> = { rules: toRules, tree: toTree };
  * ```
  *
- * With `void` that assignment is rejected, because `void` is not assignable to an options object.
- * `never` also leaves room to give a formatter options later without breaking anyone who typed a
- * variable as the bare shape.
+ * `void` would reject that assignment, since `void` is not assignable to an options object;
+ * `never` also leaves room to add options later without breaking a variable typed as the bare
+ * shape.
  */
 export type Formatter<T, Opts = never> = (value: T, options?: Opts) => string;
 /** Options for the diagram-language renderers (`toMermaid`, `toDot`). */

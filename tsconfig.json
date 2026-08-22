@@ -1,7 +1,7 @@
 {
   // Editor / typecheck config for the whole repo (src, test, scripts). Emits nothing —
   // building dist is `tsconfig.build.json`. The `paths` entries resolve the package's own
-  // name to its sources, so anything importing `@evgkch/fsmjs` typechecks without a build.
+  // name to its sources, so anything importing `@evgkch/machjs` typechecks without a build.
   "compilerOptions": {
     "target": "es2022",
     "module": "esnext",
@@ -13,8 +13,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@evgkch/fsmjs": ["./src/core/index.ts"],
-      "@evgkch/fsmjs/*": ["./src/*/index.ts"]
+      "@evgkch/machjs": ["./src/core/index.ts"],
+      "@evgkch/machjs/*": ["./src/*/index.ts"]
     }
   },
   "include": ["src", "test", "scripts"]

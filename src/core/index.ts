@@ -1,21 +1,12 @@
 /**
- * The kernel — and nothing else.
- *
- * A machine is one object: state → event type → rules, each rule five words. `new StateMachine`
- * takes that schema and the state to start in, and there is nothing between you and it — no
- * builder, no factory. The three carriers are given explicitly because none of them can be read
- * off the schema, and giving them is also what lets you write the machine's type down:
- * `StateMachine<Till, Σ, Λ>` names a field, a parameter or a variable.
- *
- * A machine advances one way — `dispatch(type, payload?)` — and answers one question about
- * advancing: `can(type, payload?)`. Both work from where the machine actually is; there is
- * no second entry point taking a state of its own.
- *
- * There is no second artifact to keep in step. The graph is a projection of the one
- * object — `toJSON` turns each operation into its name and forgets the rest — and `edges`
- * and `nodes` read either form, with the functions present or loaded back from JSON as names.
+ * The kernel: a machine is one object, `new StateMachine(schema, start)`, with no builder or
+ * factory. `Q`, `Σ`, `Λ` are given explicitly because none can be read off the schema; naming
+ * them types the machine as `StateMachine<Till, Σ, Λ>`. `dispatch(type, payload?)` advances and
+ * `can(type, payload?)` asks whether it would, both from the machine's current state — there is
+ * no second entry point. `toJSON` projects the schema to its graph (each operation reduced to a
+ * name); `edges` and `nodes` read a schema in either form.
  */
-import Channel from "@evgkch/channeljs";
+import Channel from "@evgkch/chanjs";
 import type {
   By,
   Carrier,
@@ -47,22 +38,19 @@ export type {
   Merge,
 } from "./types.js";
 
-// Outside production, freeze every context handed out: `Readonly<Q[q]>` is compile-time only,
-// and `when` is called speculatively, so an in-place mutation would corrupt live state. This
-// covers the pass-through case too — a rule with no `with` hands the caller's own object
-// straight back, which is exactly where a mutation hides. Gated so production pays nothing;
-// the `typeof process` guard keeps this safe with no bundler.
+// Freezes every context outside production: `Readonly<Q[q]>` is compile-time only and `when`
+// runs speculatively, so an in-place mutation could corrupt live state — including the
+// pass-through case, where a rule with no `with` hands back the caller's own object. Gated off
+// in production so it costs nothing there; the `typeof process` guard requires no bundler.
 const freezing =
   typeof process === "undefined" || process.env?.NODE_ENV !== "production";
 const freeze = <C>(context: C): C =>
   freezing ? (Object.freeze(context as object) as C) : context;
 
 /**
- * One rule as the kernel reads it — the precise `Rule<…>` lives at the edges.
- *
- * Untyped in the contexts on purpose: `Rule` ties each operation to the state it belongs to,
- * and the kernel walks a schema whose states it cannot name. The narrowing happened where the
- * schema was written; here every context is just a value being passed along.
+ * One rule as the kernel reads it — the precise `Rule<…>` lives at the edges. Contexts are
+ * untyped here on purpose: the kernel walks a schema without knowing its states, so each
+ * context is just a value passed along; narrowing already happened where the schema was written.
  */
 /** An operation as it may be found: code where the schema still has any, a name off a dump. */
 type Op = ((context: never, payload: never) => unknown) | string;
@@ -71,20 +59,17 @@ type Op = ((context: never, payload: never) => unknown) | string;
 type Slot = PropertyKey | readonly [PropertyKey, Op | null];
 
 type LooseRule = {
-  // The operations are taken at their loosest here: `Readonly<C>` in the precise types does
-  // not accept a context that may be `void`, and at this level a context is only a value in
-  // transit. Every narrowing already happened where the schema was written.
+  // Operations are taken at their loosest here: `Readonly<C>` in the precise types rejects a
+  // context that may be `void`, but here a context is only a value in transit.
   to: Slot;
   emit?: Slot;
   when?: ((context: never, payload: never) => boolean) | string;
 };
 
 /**
- * The two halves of a slot, and the only place in this library that knows a slot has two forms.
- *
- * Every reader asks through these — `edges` before it hands a row on, `dispatch` before it runs
- * one — so "a name, or a name and its operation" is a fact about the schema's shape and not a
- * branch each consumer writes for itself, slightly differently, until one of them forgets.
+ * The two halves of a slot — the only place that reads whether a slot is a bare name or a
+ * [name, operation] pair. `edges` and `dispatch` both go through this rather than branching on
+ * the shape themselves.
  */
 const isPair = (
   slot: Slot | undefined,
@@ -106,12 +91,35 @@ type LooseSchema = Record<
   Record<PropertyKey, LooseRule[] | undefined> | undefined
 >;
 
+type Guard = (context: unknown, payload: unknown) => boolean;
+type Make = (context: unknown, payload: unknown) => unknown;
+
 /**
- * Flatten a schema into the transition relation — one `Edge` per rule, in schema order.
- *
- * A row is the rule itself with its two coordinates in front: the words are already one
- * column per fact, so nothing is taken apart here. Operations ride along as themselves; a row
- * off a JSON-loaded schema has none.
+ * A rule read once: the labels resolved, the operations in their own slots, `null` for a neutral
+ * one — a name off a dump included. One class for every rule, whatever shape it was written in,
+ * so the dispatch path reads one object layout however varied the schema literals were.
+ */
+class TightRule {
+  readonly to: PropertyKey;
+  readonly when: Guard | null;
+  readonly make: Make | null;
+  readonly emit: PropertyKey | undefined;
+  readonly by: Make | null;
+  constructor(rule: LooseRule) {
+    this.to = nameIn(rule.to) as PropertyKey;
+    this.when = typeof rule.when === "function" ? (rule.when as Guard) : null;
+    const carry = opIn(rule.to);
+    this.make = typeof carry === "function" ? (carry as Make) : null;
+    this.emit = nameIn(rule.emit);
+    const pack = opIn(rule.emit);
+    this.by = typeof pack === "function" ? (pack as Make) : null;
+  }
+}
+
+/**
+ * Flatten a schema into the transition relation: one `Edge` per rule, in schema order, each row
+ * the rule itself with its `from`/`on` coordinates in front. Operations ride along as functions,
+ * or are absent on a schema loaded from JSON.
  */
 export function edges<T>(schema: T): Edge<Nodes<T>>[] {
   type Q = Nodes<T>;
@@ -119,9 +127,7 @@ export function edges<T>(schema: T): Edge<Nodes<T>>[] {
   for (const [from, byLetter] of Object.entries((schema ?? {}) as LooseSchema))
     for (const [on, cell] of Object.entries(byLetter ?? {}))
       for (const rule of cell ?? [])
-        // Flattened, and that is the point of this function: a row is one column per fact, so a
-        // target and its carrier come apart here and every reader downstream — a diagram, a
-        // report, a rule line, another program's inspector — goes on reading four flat words.
+        // Target and carrier come apart into flat fields here.
         rows.push({
           ...(rule.when !== undefined && { when: rule.when }),
           from: from as Q,
@@ -135,14 +141,10 @@ export function edges<T>(schema: T): Edge<Nodes<T>>[] {
 }
 
 /**
- * Every state the schema names — its own keys, plus every target some rule leads to.
+ * Every state the schema names: its own keys, plus every target some rule leads to.
  *
- * Graph vocabulary on purpose: this reads the projection, and a graph has nodes. The machine
- * is *in* a state; the drawing *has* nodes, and they are the same Q seen from two sides.
- *
- * The keys matter on their own: a state written with an empty cell (`ghost: {}`) has no rows
- * at all, and reading the node set off `edges` alone would hide it from exactly the checks
- * meant to find it.
+ * Reads the schema's keys directly rather than only `edges`, because a state written with an
+ * empty cell (`ghost: {}`) has no rows and would otherwise be missed.
  */
 export function nodes<T>(schema: T): Nodes<T>[] {
   const found = new Set<PropertyKey>(Object.keys((schema ?? {}) as object));
@@ -151,17 +153,12 @@ export function nodes<T>(schema: T): Nodes<T>[] {
 }
 
 /**
- * Name an operation: its own name, or a name already read off a previous dump, passed
- * straight through since a dump cannot un-forget the code it forgot. Both fall back to `?`
- * when there is nothing to show.
+ * Name an operation: its own function name, or a name already read off a dump, passed through
+ * unchanged. Falls back to `?` when there is nothing to show.
  *
- * The `slot` matters for the function case: a property-valued arrow inherits the *property's*
- * name from JS itself (`{ when: () => … }.when.name` is `"when"`, not `""`), and without
- * discounting that every anonymous guard would misreport as a guard literally named "when".
- *
- * Exported for `fsmjs/formatters`, which prints the same names on rule lines and diagram
- * labels — one naming rule for the dump and for the drawing, so they cannot disagree about
- * what an operation is called.
+ * `slot` discounts the property name JS assigns an anonymous arrow (`{ when: () => {} }.when.name`
+ * is `"when"`, not `""`) — without it every anonymous guard would misreport as one named "when".
+ * Exported for `machjs/formatters`, so the dump and the diagrams name operations the same way.
  */
 export function nameOf(
   operation: Function | string | null | undefined,
@@ -178,15 +175,11 @@ export function nameOf(
 /**
  * The graph: the labels, and each operation's name where one was there.
  *
- * Three columns turned into names rather than dropped — `JSON.stringify` would drop `with` and
- * `by` unaided, since they are function-valued properties, but the point was never to shrink
- * the schema, only to make it safe to ship: a name cannot be run, so the dump carries what a
- * diagram or a rule line can say about a rule without carrying the code that says it.
- *
- * `when`'s presence is what a graph must never drop, named or not: it decides whether a rule
- * applies at all, which is part of the transition relation a graph is. Without it a dumped
- * machine reads as nondeterministic where it is only conditional, and `validate` would call a
- * sound cell's second rule dead.
+ * `with`, `by` and `when` become names instead of being dropped like `JSON.stringify` would drop
+ * them — a name cannot run, but it still says a rule was guarded or transformed. `when`'s
+ * presence must survive even unnamed: it decides whether a rule applies, so dropping it would
+ * make a dumped machine read as nondeterministic instead of conditional, and `validate` would
+ * misreport a sound cell's second rule as dead.
  */
 export function graph<
   T,
@@ -202,9 +195,7 @@ export function graph<
         const pack = opIn(rule.emit);
         const letter = nameIn(rule.emit);
         return {
-          // The pair survives the dump as a pair. A name where the function was, and nothing
-          // wrapped around it: the shape a schema has in code is the shape it has in JSON, and a
-          // reader who wants something else overrides `toJSON` — which is what this is.
+          // Pair survives as a pair: a name in place of the function, nothing else.
           to:
             carry === undefined
               ? nameIn(rule.to)
@@ -220,22 +211,20 @@ export function graph<
 }
 
 /**
- * The one type behind the two calls — `dispatch` and `can` — as a variadic tuple union:
- * `[type]` for an event that carries nothing, `[type, payload]` for one that does.
- *
- * One signature rather than the two overloads that used to split the alphabet by whether an
- * event carries a payload. The correlation is the same — a payload is impossible where there is
- * nothing to attach and mandatory where there is — but as a single tuple the editor offers every
- * event name in one list, and a wrong name is reported against the concrete union of keys rather
- * than an alias.
+ * The type behind `dispatch` and `can`: a variadic tuple union, `[type]` for an event with no
+ * payload and `[type, payload]` for one that has it — one signature instead of two overloads, so
+ * the editor offers every event name in one list and a wrong name is reported against the
+ * concrete union of keys.
  *
  * Distributive on purpose: `keyof M` over a `Merge<…>` carrier does not reduce to a literal union
- * on its own, so a mapped type over it stays symbolic. Distributing `K extends keyof M` folds each
- * key separately, and the union comes out in literal shapes — `["coin"] | ["tick", { dt }]`.
+ * on its own, so distributing `K extends keyof M` is what folds each key into a literal shape —
+ * `["coin"] | ["tick", { dt }]` — instead of leaving the mapped type symbolic.
  */
 type Args<M extends Carrier> = keyof M extends infer K
   ? K extends keyof M
-    ? void extends M[K] ? [type: K] : [type: K, payload: M[K]]
+    ? void extends M[K]
+      ? [type: K]
+      : [type: K, payload: M[K]]
     : never
   : never;
 
@@ -243,17 +232,12 @@ type Args<M extends Carrier> = keyof M extends infer K
 export const TRANSITION = Symbol("transition");
 
 /**
- * A transition that happened — what a machine says about itself after every *fired* dispatch.
+ * A transition that happened — sent after every *fired* dispatch.
  *
- * Four of these fields are the step materialized — `FsmState<Q> × Msg(Σ) ⇀ FsmState<Q> × Msg(Λ)`:
- * the input event and the source state going in, the reached state and an optional output event
- * coming out. A state in full at both ends, since a type name alone would not carry a context.
- *
- * The fifth is when. It is no part of the relation — δ says nothing about clocks — but it is part
- * of what happened, and every reader that keeps a run keeps it: a log without times is a list, and
- * the gap between two steps is the difference between a machine that is working and one that is
- * stuck. Stamped here rather than by whoever is listening, because a listener may be a window in
- * another process, and its clock would date the run by when the network mentioned it.
+ * `input`, `source`, `target`, `output` materialize the step: the event and state going in, the
+ * state and optional event coming out, each state in full since a type name alone carries no
+ * context. `at` is stamped by the machine itself, not the listener, so a run stays dated by one
+ * clock regardless of which process observes it.
  */
 export interface Transition<
   Q extends Carrier,
@@ -269,12 +253,9 @@ export interface Transition<
 }
 
 /**
- * A transition that happened, in the four names it is made of and the time it happened at.
- *
- * `Transition<Carrier, Carrier, Carrier>` is not the loose form it looks like: `Carrier` binds
- * every payload to `unknown`, and the mapped `FsmEvent` reads that as "carries nothing", so the
- * erased transition is one that specifically has no payloads. This says what it means to say —
- * these fields, these names, nothing about what rides with them.
+ * A transition erased to its four names and the time. Not `Transition<Carrier, Carrier, Carrier>`:
+ * `Carrier` binds every payload to `unknown`, which the mapped `FsmEvent` reads as "carries
+ * nothing" — so that instantiation would specifically mean no payloads, not any payload.
  */
 export type AnyTransition = {
   readonly input: { readonly type: PropertyKey };
@@ -285,16 +266,13 @@ export type AnyTransition = {
 };
 
 /**
- * Any machine at all, as a reader of one needs it.
+ * The shape a generic reader of a machine needs — a logger, a recorder, a debugger — without
+ * naming `Q`, `Σ`, `Λ`.
  *
- * `StateMachine<Q, Σ, Λ>` is invariant in all three parameters, so the erased shape — no context,
- * no payload — is the one shape a real application's machine never is. Anything written *about*
- * machines rather than *for* one had to ask for that shape and send its caller looking for a cast:
- * a logger, a recorder, a debugger, a page drawing what is happening.
- *
- * So this asks for what such a reader actually touches — the name of the state it is in, the
- * channel it says its transitions on, and the two calls that move it — and a concrete machine
- * satisfies it without being told to.
+ * `StateMachine<Q, Σ, Λ>` is invariant in all three, so no concrete machine is ever typed
+ * `StateMachine<Carrier, Carrier, Carrier>`; a caller who needed that shape had to cast. This
+ * asks only for what such a reader touches — current state, the transition channel, `can` and
+ * `dispatch` — which any concrete machine satisfies structurally.
  */
 export type AnyMachine = {
   readonly state: { readonly type: PropertyKey };
@@ -307,12 +285,12 @@ export type AnyMachine = {
 };
 
 /**
- * The channel's message map — every output event type keyed by itself, plus the reserved
+ * The channel's message map: every output event type keyed by itself, plus the reserved
  * `TRANSITION` key.
  *
- * One mapped type rather than an intersection of two: with a generic `Λ`, TS cannot prove
- * `Λ` has no `TRANSITION`-typed member, so an intersection leaks a phantom member into
- * every listener.
+ * One mapped type rather than an intersection of two, because with a generic `Λ` TS cannot prove
+ * `Λ` lacks a `TRANSITION` member — an intersection would leak a phantom member into every
+ * listener.
  */
 type Messages<Q extends Carrier, Σ extends Carrier, Λ extends Carrier> = {
   [λ in keyof Λ | typeof TRANSITION]: λ extends typeof TRANSITION
@@ -339,13 +317,11 @@ export class DispatchInsideHandlerError extends Error {
 /**
  * A state machine: the schema, where it currently is, and the output bus.
  *
- * The schema stays a public field — a wrapper reads it to draw or validate, operations still
- * in view. `Q` is a carrier — state ↦ the context that state carries — exactly as `Σ` is
- * event type ↦ payload, so the set of states is `keyof Q` and needs no parameter of its own.
- *
- * The constructor takes the starting state as a `State`, one value rather than two, because
- * with a per-state context the two arguments were only valid in combination: `('empty', {…})`
- * could name a state and hand it another state's context.
+ * `schema` is a public field so a wrapper can read it to draw or validate, operations included.
+ * `Q` is a carrier (state ↦ context), so the state set is `keyof Q` and needs no parameter of
+ * its own. The constructor takes the starting state as one `FsmState` value rather than two
+ * arguments, since a separate state-name and context could be mismatched (`('empty', {…})`
+ * naming one state but carrying another's context).
  */
 export class StateMachine<
   Q extends Carrier,
@@ -357,31 +333,48 @@ export class StateMachine<
   #channel?: Channel<Messages<Q, Σ, Λ>>;
   #dispatching: boolean = false;
 
+  /** The schema as the kernel walks it — read once here; the schema is not watched afterwards. */
+  #rules = new Map<PropertyKey, Map<PropertyKey, TightRule[]>>();
+
+  /** The current state's cells, hoisted: one lookup per dispatch instead of two. */
+  #cells: Map<PropertyKey, TightRule[]> | undefined;
+
   constructor(
     readonly schema: Schema<Q, Σ, Λ>,
     start: FsmState<Q>,
   ) {
     this.#type = start.type as keyof Q;
     this.#context = start.context as Q[keyof Q];
+    const loose = schema as LooseSchema;
+    // `ownKeys`, not `entries`: a state or an event may be a symbol.
+    for (const q of Reflect.ownKeys(loose)) {
+      const byLetter = loose[q];
+      if (byLetter === undefined) continue;
+      const cells = new Map<PropertyKey, TightRule[]>();
+      for (const σ of Reflect.ownKeys(byLetter)) {
+        const cell = byLetter[σ];
+        if (cell === undefined) continue;
+        cells.set(
+          σ,
+          cell.map((rule) => new TightRule(rule)),
+        );
+      }
+      this.#rules.set(q, cells);
+    }
+    this.#cells = this.#rules.get(this.#type);
   }
 
   /**
-   * Where the machine is: the state, and the context that state carries — one value.
-   *
-   * One accessor rather than a pair of them, because with a per-state context the two halves
-   * are only meaningful together. Two independent getters could not be correlated by the
-   * compiler either: testing the state's name would say nothing about what its context holds,
-   * so reading a field would mean reading it off the union of every state's context. Here `type`
-   * is the discriminant, and narrowing it narrows the context with it:
+   * Where the machine is: the state and the context it carries, as one value — `type` is the
+   * discriminant, so narrowing it narrows `context` with it:
    *
    * ```ts
    * const at = machine.state;
    * if (at.type === 'resizing') at.context.handle;   // a field only that state has
    * ```
    *
-   * It is the same type the ends of a `Transition` carry, the entries `history` records, and
-   * the argument the constructor and `restore` take — one shape for "where a machine is",
-   * wherever the question comes up.
+   * The same `FsmState` shape as a `Transition`'s ends, `history`'s entries, and the constructor
+   * and `restore` arguments.
    */
   get state(): FsmState<Q> {
     return { type: this.#type, context: this.#context } as FsmState<Q>;
@@ -393,123 +386,91 @@ export class StateMachine<
   }
 
   /**
-   * The rule this message would fire from here, or `undefined` for none — the whole of the
-   * partiality, and the only place a guard runs.
+   * The rule this message would fire from here, or `undefined` — the only place a guard runs.
    *
-   * Finding the rule and applying it are two different things, and the split is the same one
-   * the theory makes: the search is partial (a cell may be absent, every guard may refuse),
-   * while `with` and `by` are total on what the search returned. `can` needs the first half
-   * and stops; `dispatch` runs both.
+   * Search and apply are split because the search is partial (a cell may be absent, every guard
+   * may refuse) while `with`/`by` are total on what it returns. `can` stops after the search;
+   * `dispatch` runs both.
    */
-  #rule(type: PropertyKey, payload: unknown): LooseRule | undefined {
-    const cell = (this.schema as LooseSchema)[this.#type]?.[type];
+  #rule(type: PropertyKey, payload: unknown): TightRule | undefined {
+    const cell = this.#cells?.get(type);
     if (cell === undefined) return; // no cell here
-    for (const rule of cell) {
-      // A `when` that is not a function is a guard whose code this copy of the machine does
-      // not carry — a name off a dumped schema. It reads as ⊤, which is what keeps such a
-      // schema runnable.
-      if (
-        typeof rule.when === "function" &&
-        !(rule.when as (c: unknown, p: unknown) => boolean)(
-          this.#context,
-          payload,
-        )
-      )
-        continue;
-      return rule;
-    }
+    // A null `when` is a neutral one — absent, or a name off a dumped schema. It reads as ⊤,
+    // so a dumped schema still runs.
+    for (const rule of cell)
+      if (rule.when === null || rule.when(this.#context, payload)) return rule;
     return; // every guard rejected
   }
 
   /**
-   * Would this message fire from here? A question, not a move: the guards run, nothing else
-   * does, and the machine does not budge.
+   * Would this message fire from here? Runs the guards and nothing else; the machine does not
+   * move.
    *
-   * Exactly equivalent to what the next `dispatch` of the same message would return —
-   * `with` and `by` cannot refuse a rule the guard admitted, so nothing beyond the guards
-   * can change the answer. That equivalence is why the guards must be pure: asking twice
-   * has to give the same answer as asking once.
-   *
-   * This is the question a view asks — whether to enable the button — and it is answerable
-   * without a speculative copy of the machine because the guard is the only thing that
-   * decides.
+   * Equivalent to what the next `dispatch` of the same message would return, since `with`/`by`
+   * cannot refuse a rule the guard admitted — which is why guards must be pure: asking twice must
+   * give the same answer as asking once.
    */
-  can(...args: Args<Σ>): boolean {
-    const [type, payload] = args;
+  can(...args: Args<Σ>): boolean;
+  // The rest parameter above types the pair; the fixed pair below keeps the call from
+  // materializing an array on every ask.
+  can(type: PropertyKey, payload?: unknown): boolean {
     return this.#rule(type, payload) !== undefined;
   }
 
   /**
-   * Feed one event, from wherever the machine now is. `true` if a transition fired.
+   * Feed one event from wherever the machine now is. Returns `true` if a transition fired; a
+   * dispatch that fires nothing changes and sends nothing. Operations run in order: `when`
+   * decides, `with` folds the input into the context, `by` unfolds the reached context into the
+   * output.
    *
-   * One transition is that partial function, and this is the only way to take one.
-   * The operations run in the order they are named: `when` decides, `with` folds the input into
-   * the context, `by` unfolds the reached context into the output. A dispatch that fires nothing
-   * changes nothing and sends nothing.
-   *
-   * Everything here is synchronous, notifications included, so a second `dispatch` reached
-   * from inside this one — from a listener, or from `when`/`with`/`by` — would put one
-   * transition inside another and let the inner commit be overwritten by the outer. That is
-   * refused rather than allowed to happen quietly: the machine holds a lock for the length of
-   * the call and a re-entrant `dispatch` throws `DispatchInsideHandlerError`. To send an event
-   * *because* of this one, defer it with `queueMicrotask` and it lands after this call returns.
-   *
-   * `can` is not affected — it asks the guards a question and moves nothing, so it stays
-   * answerable from inside a handler.
+   * Synchronous throughout, including notifications, so a `dispatch` called from inside this one
+   * (a listener, or the rule's own `when`/`with`/`by`) would nest one transition inside another.
+   * That throws `DispatchInsideHandlerError` instead of happening silently; defer with
+   * `queueMicrotask` to send an event after this call returns. `can` is unaffected and stays
+   * callable from inside a handler.
    */
-  dispatch(...args: Args<Σ>): boolean {
-    const [type, payload] = args;
+  dispatch(...args: Args<Σ>): boolean;
+  // As in `can`: the tuple types the pair, the fixed pair costs no array.
+  dispatch(type: PropertyKey, payload?: unknown): boolean {
     if (this.#dispatching) throw new DispatchInsideHandlerError();
 
-    // The lock is held for the whole transition, not just the notifications, and released in a
-    // `finally` so it cannot outlive the call. Both halves of that matter:
-    //
-    // Holding it over the operations closes the other way in. A `with` or `by` that dispatches
-    // is the same fault as a listener that does — the inner transition commits, the outer one
-    // overwrites it, and nothing anywhere says so. Guarding only the sends left that silent.
-    //
-    // Releasing it in `finally` is what keeps one bad listener from being fatal. A listener
-    // that throws is ordinary; if the flag were cleared on the normal path only, it would stay
-    // raised and every later `dispatch` on this machine would throw
-    // `DispatchInsideHandlerError` forever — a live machine bricked by an unrelated bug.
+    // Held for the whole call, not just the notifications, so a `with`/`by` that dispatches is
+    // caught too, not only a listener that does. Released in `finally` so a listener that throws
+    // does not leave the flag raised and every later `dispatch` throwing forever.
     this.#dispatching = true;
     try {
       const rule = this.#rule(type, payload);
       if (rule === undefined) return false;
 
-      const source = this.state;
-      // On a rule loaded back from `toJSON`, `with`/`by` are names rather than code. Each then
-      // reads as its own neutral element — `id` for `with`, "no payload" for `by` — the same
-      // way a named `when` reads as ⊤.
-      const carry = opIn(rule.to);
+      // Where the machine stood, as values — the `source` object is built only if a
+      // `TRANSITION` listener will read it.
+      const fromType = this.#type;
+      const fromContext = this.#context;
+      // A null `make`/`by` is a neutral one — absent, or a name off a dumped schema: `id` for
+      // `with`, "no payload" for `by` — the same way a null `when` reads as ⊤.
       const reached = freeze(
-        typeof carry === "function"
-          ? (carry as (c: unknown, p: unknown) => unknown)(
-              this.#context,
-              payload,
-            )
-          : this.#context,
+        rule.make === null ? this.#context : rule.make(this.#context, payload),
       ) as Q[keyof Q];
-      const letter = nameIn(rule.emit);
-      const pack = opIn(rule.emit);
-      const output =
-        letter === undefined
-          ? undefined
-          : ({
-              type: letter,
-              ...(typeof pack === "function" && {
-                payload: (pack as (c: unknown, p: unknown) => unknown)(
-                  reached,
-                  payload,
-                ),
-              }),
-            } as unknown as FsmEvent<Λ>);
-
-      this.#type = nameIn(rule.to) as keyof Q;
-      this.#context = reached;
-      const target = this.state;
 
       const tx = this.#channel?.tx;
+      const heard = tx !== undefined && tx.has(TRANSITION);
+      // `by` always runs — a nested dispatch from it must be caught, observed or not. The event
+      // object is built only where something can read it: its own listener, or `TRANSITION`'s.
+      const emitted = rule.by === null ? undefined : rule.by(reached, payload);
+      const told =
+        rule.emit !== undefined &&
+        tx !== undefined &&
+        (tx.has(rule.emit as never) || heard);
+      const output = !told
+        ? undefined
+        : ((rule.by === null
+            ? { type: rule.emit }
+            : { type: rule.emit, payload: emitted }) as unknown as FsmEvent<Λ>);
+
+      this.#type = rule.to as keyof Q;
+      this.#context = reached;
+      this.#cells = this.#rules.get(rule.to);
+
       if (tx && output) {
         // The channel is keyed by event type and takes the payload as an argument, so the event
         // is taken apart again here — one shape for a value, another for a call.
@@ -519,7 +480,7 @@ export class StateMachine<
         };
         (tx.send as (k: keyof Λ, p: unknown) => boolean)(λ, emitted);
       }
-      if (tx?.has(TRANSITION))
+      if (heard)
         (tx.send as (k: typeof TRANSITION, t: Transition<Q, Σ, Λ>) => boolean)(
           TRANSITION,
           {
@@ -527,8 +488,8 @@ export class StateMachine<
               type,
               ...(payload !== undefined && { payload }),
             } as unknown as FsmEvent<Σ>,
-            source,
-            target,
+            source: { type: fromType, context: fromContext } as FsmState<Q>,
+            target: this.state,
             output,
             at: Date.now(),
           },
@@ -542,13 +503,14 @@ export class StateMachine<
   /**
    * Move to a state directly (persistence, time travel). Sends nothing.
    *
-   * Takes a `State`, the same one value the constructor does — there is no partial
-   * restore, because half a state is not a state the machine could have been in, and with a
-   * per-state context a loose pair could name one state and hand it another's context.
+   * Takes one `FsmState` value, like the constructor — no partial restore, since half a state
+   * is not a state the machine could have been in, and a separate state/context pair could
+   * mismatch.
    */
   restore(start: FsmState<Q>): void {
     this.#type = start.type as keyof Q;
     this.#context = start.context as Q[keyof Q];
+    this.#cells = this.#rules.get(this.#type);
   }
 
   /** The `JSON.stringify` hook: a machine serializes as its `graph`. */

@@ -1,49 +1,31 @@
 /**
- * Formatters (opt-in via `fsmjs/formatters`).
+ * Formatters (opt-in via `machjs/formatters`).
  *
- * Standard implementations of the `Formatter` contract — turn a schema into strings: diagram
- * source (Mermaid / DOT / a terminal tree / SQL-like rule lines), and a `validate` report into
- * terminal text. Swap in your own by passing any function of the same shape, and say an edge with
- * `edgeLabel` so it reads like the shipped ones.
+ * Standard implementations of the `Formatter` contract: turn a schema into diagram source
+ * (Mermaid / DOT / a terminal tree / SQL-like rule lines) or a `validate` report into terminal
+ * text. `to*` takes a schema, `format*` takes a value another module produced. Swap in your own
+ * renderer by passing any function of the same shape, and reuse `edgeLabel` so an edge reads
+ * like the shipped ones.
  *
- * Two prefixes, one rule: `to*` takes a schema, `format*` takes a value another module produced.
- *
- * Everything here *renders* what it is given and computes nothing about the graph: walking it,
- * reaching over it and enumerating it belong to `fsmjs/analysis`, which returns data. The one
- * traversal in this module is the one every renderer needs — `edges`, listing the rows in schema
- * order.
- *
- * Every renderer takes a schema, in either of its two forms, and says the same thing about both.
- * Given `machine.schema` the operations are present and get named; given a schema read back from
- * JSON the names are already there, because that is what `toJSON` wrote in place of the code.
- * `toRules(machine.schema)` and `toRules(machine.toJSON())` therefore print the same lines. What a
- * renderer never does is pretend: an edge that fires conditionally is a different fact from one
- * that always does, and a diagram that hid the guard would be lying — so a guard with no name of
- * its own still shows as `?`.
- *
- * Names are taken from the functions themselves (`const underCap = …` → `underCap`), by the one
- * `nameOf` the dump also uses. They are not a namespace: nothing is looked up by them, and they
- * cannot drift from what the code does the way a hand-written label could.
+ * Renderers compute nothing about the graph — walking, reaching, enumerating belong to
+ * `machjs/analysis` — the only traversal used here is `edges`, in schema order. A renderer says
+ * the same thing for `machine.schema` and `machine.toJSON()`, since `toJSON` already wrote each
+ * operation's name in place of its code; a guard with no name still shows as `?` rather than
+ * being hidden. Names come from `nameOf`, the same function the dump uses, so a diagram and a
+ * dump cannot disagree about what an operation is called.
  */
 import { edges, nodes, nameOf } from "../core/index.js";
 import { WORDS, writer } from "./words.js";
 /**
- * The edge label, in run order: `ON event WHEN … WITH … EMIT …`.
+ * The edge label, in run order: `ON event WHEN … WITH … EMIT …` — the same keywords `toRules`
+ * prints. Classic statechart notation (`event [when] / emit`) is available by passing your own
+ * `label` to `toMermaid`, `toDot` or `toTree`, but is not the default.
  *
- * These are the keywords `toRules` prints, the same four a transition can fill on its own
- * — one vocabulary for the table, the drawing and the running log. Nothing is punctuation, so
- * nothing needs a legend: a reader who can read a rule can read an arrow.
+ * `by` is left out here: it only shapes the payload of an event already named on the label,
+ * unlike `when`/`with`/`emit` which change which edge fires or what it carries. It appears in
+ * `toRules`, which has a column for everything.
  *
- * The classic statechart notation would be `event [when] / emit`. It is one line away — pass your
- * own `label` to `toMermaid`, `toDot` or `toTree` — but it is not the default, because it would put
- * a second vocabulary next to the one the rest of the library already uses.
- *
- * `by` is the one word a diagram leaves out. A guard changes which edge fires and an update changes
- * the context, both facts about the walk; `by` only shapes the payload of an event already named on
- * the label. It appears in `toRules`, which has a column for everything.
- *
- * Exported so a renderer of your own says an edge the way the shipped ones do: rebuilding it by
- * hand is how two drawings of one machine start to disagree.
+ * Exported so a custom renderer can reuse the library's own edge label instead of rebuilding it.
  */
 export const edgeLabel = (row) => {
     const when = nameOf(row.when, "when");
@@ -92,12 +74,9 @@ export const toDot = (schema, options) => {
 /**
  * Plain-text adjacency tree for the terminal — current node `●`, dead ends `∎`.
  *
- * Nodes come in schema order, and a node written with an empty cell still gets a line: it has no
- * rows at all, and reading the node set off the edges alone would hide exactly the mistake worth
- * seeing.
- *
- * Pass `at` to print one node's slice instead of the whole machine — the cheap answer to "what
- * does this node do", which is one lookup because the schema is keyed by node first.
+ * Nodes come in schema order; a node with an empty cell still gets a line, since reading the
+ * node set off the edges alone would hide it. Pass `at` to print one node's slice — one lookup,
+ * since the schema is keyed by node first.
  */
 export const toTree = (schema, options) => {
     const rows = edges(schema);
@@ -108,7 +87,9 @@ export const toTree = (schema, options) => {
         : nodes(schema)) {
         const outgoing = rows.filter((r) => r.from === node);
         const mark = options?.current === node ? " ●" : outgoing.length === 0 ? " ∎" : "";
-        const name = options?.color && options?.current === node ? invert(String(node)) : String(node);
+        const name = options?.color && options?.current === node
+            ? invert(String(node))
+            : String(node);
         lines.push(`${name}${mark}`);
         outgoing.forEach((row, i) => lines.push(`  ${i === outgoing.length - 1 ? "└─" : "├─"} ${say(row)} → ${String(row.to)}`));
     }
@@ -121,20 +102,13 @@ export const toTree = (schema, options) => {
  *     FROM locked ON coin               TO open   WITH reset   EMIT opened
  *     FROM open   ON pass               TO locked
  *
- * One column per word, plus the two coordinates — the same shape as the rule it dumps, in the
- * order the rule runs: `WHEN` gates, `WITH` folds, `EMIT`/`BY` observe.
+ * One column per word, in the order the rule runs: `WHEN` gates, `WITH` folds, `EMIT`/`BY`
+ * observe. `FROM`, `ON`, `TO`, `EMIT` carry labels; `WHEN`, `WITH`, `BY` carry a function's name
+ * (`?` if none), so a schema loaded from JSON reads the same line — a column vanishes only when
+ * no rule in the schema fills it.
  *
- * `FROM`, `ON`, `TO` and `EMIT` carry labels — the graph. `WHEN`, `WITH` and `BY` carry what can be
- * said about a function: its name, or `?` for one that has none. They are bound parameters in the
- * SQL sense — the operation exists, but it is supplied by the code. A schema loaded from JSON
- * carries the names without the code, so the columns stay and the line reads the same; a column
- * vanishes only when no rule in the schema fills it at all.
- *
- * Rows come in schema order, which is state-major, so `FROM` groups. The grammar is regular and
- * whitespace-insensitive, though the library ships no parser for it.
- *
- * `fsmjs/debug`'s `rules` writes a running machine in this same language, four words of it. A
- * schema and a log read the same way on purpose: one vocabulary for the table and the run.
+ * Rows come in schema order (state-major, so `FROM` groups). `machjs/debug`'s `rules` writes a
+ * running machine in the same language, four words of it.
  */
 export const toRules = (schema) => {
     const rows = edges(schema);

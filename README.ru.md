@@ -1,24 +1,24 @@
 [English](README.md) · **Русский**
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@evgkch/fsmjs"><img alt="npm" src="https://img.shields.io/npm/v/%40evgkch%2Ffsmjs?color=cb3837&logo=npm"></a>
-  <a href="LICENSE"><img alt="Лицензия MIT" src="https://img.shields.io/npm/l/%40evgkch%2Ffsmjs?color=blue"></a>
+  <a href="https://www.npmjs.com/package/@evgkch/machjs"><img alt="npm" src="https://img.shields.io/npm/v/%40evgkch%2Fmachjs?color=cb3837&logo=npm"></a>
+  <a href="LICENSE"><img alt="Лицензия MIT" src="https://img.shields.io/npm/l/%40evgkch%2Fmachjs?color=blue"></a>
   <img alt="Типы включены" src="https://img.shields.io/badge/types-included-3178c6?logo=typescript&logoColor=white">
   <img alt="Только ESM" src="https://img.shields.io/badge/module-ESM%20only-f7df1e?logo=javascript&logoColor=black">
-  <img alt="Зависимости: только channeljs" src="https://img.shields.io/badge/deps-1-brightgreen">
+  <img alt="Зависимости: только chanjs" src="https://img.shields.io/badge/deps-1-brightgreen">
 </p>
 
 <p align="center">
   <a href="#установка">Установка</a> ·
   <a href="#быстрый-старт">Быстрый старт</a> ·
-  <a href="https://evgkch.github.io/fsmjs/">Примеры</a> ·
+  <a href="https://evgkch.github.io/machjs/">Примеры</a> ·
   <a href="#формальное-определение-и-термины">Формальное определение</a> ·
-  <a href="https://github.com/evgkch/fsmjs/issues">Issues</a>
+  <a href="https://github.com/evgkch/machjs/issues">Issues</a>
 </p>
 
 Библиотека реализует автомат Мили с контекстом, привязанным к состоянию. Автомат задаётся схемой — типизированной структурой переходов, которую можно анализировать, форматировать и визуализировать.
 
-Готовые примеры лежат в отдельном репозитории [`evgkch/fsmjs-examples`](https://github.com/evgkch/fsmjs-examples) и выложены на [evgkch.github.io/fsmjs](https://evgkch.github.io/fsmjs/).
+Готовые примеры лежат в отдельном репозитории [`evgkch/machjs-examples`](https://github.com/evgkch/machjs-examples) и выложены на [evgkch.github.io/machjs](https://evgkch.github.io/machjs/).
 
 ---
 
@@ -28,10 +28,11 @@
 | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | [Установка](#установка)                                                           | Точки входа, требования к сборке                                             |
 | [Быстрый старт](#быстрый-старт)                                                   | Язык правил, два примера                                                     |
-| [`@evgkch/fsmjs`](#evgkchfsmjs)                                                   | Класс `StateMachine`, носители, схема, шина, граф, JSON                      |
-| [`@evgkch/fsmjs/analysis`](#evgkchfsmjsanalysis)                                  | Достижимость, ошибки, пути                                                   |
-| [`@evgkch/fsmjs/formatters`](#evgkchfsmjsformatters)                              | Дерево, правила, Mermaid, DOT                                                |
-| [`@evgkch/fsmjs/debug`](#evgkchfsmjsdebug)                                        | Журнал, инварианты, история                                                  |
+| [`@evgkch/machjs`](#evgkchmachjs)                                                   | Класс `StateMachine`, носители, схема, шина, сериализация, асинхронность, граф, JSON       |
+| [`@evgkch/machjs/analysis`](#evgkchmachjsanalysis)                                  | Достижимость, ошибки, пути                                                   |
+| [`@evgkch/machjs/formatters`](#evgkchmachjsformatters)                              | Дерево, правила, Mermaid, DOT                                                |
+| [`@evgkch/machjs/debug`](#evgkchmachjsdebug)                                        | Журнал, инварианты, история                                                  |
+| [Инспектор](#инспектор)                                                                  | Инструмент разработки: страницы и виджеты                              |
 | [Ограничения](#ограничения)                                                       | Что важно помнить при использовании                                          |
 | [Сообщения компилятора TypeScript](#сообщения-компилятора-typescript)             | Как читать ошибки типов                                                      |
 | [Формальное определение и термины](#формальное-определение-и-термины)             | Математическая модель, обозначения                                           |
@@ -42,21 +43,21 @@
 ## Установка
 
 ```sh
-npm i @evgkch/fsmjs
+npm i @evgkch/machjs
 ```
 
 Пакет поставляется только в формате ESM и требует `"module": "nodenext"` или совместимого резолвера. Основная точка входа:
 
 ```ts
-import { StateMachine, TRANSITION } from "@evgkch/fsmjs";
+import { StateMachine, TRANSITION } from "@evgkch/machjs";
 ```
 
 Дополнительные модули подключаются отдельно — в сборку попадает только то, что импортировано:
 
 ```ts
-import { analyze, validate, paths } from "@evgkch/fsmjs/analysis";
-import { toTree, toMermaid } from "@evgkch/fsmjs/formatters";
-import { log, history } from "@evgkch/fsmjs/debug";
+import { analyze, validate, paths } from "@evgkch/machjs/analysis";
+import { toTree, toMermaid } from "@evgkch/machjs/formatters";
+import { log, history } from "@evgkch/machjs/debug";
 ```
 
 ---
@@ -101,8 +102,8 @@ FROM paid  ON select TO idle  EMIT vend
 Запишем правила с помощью библиотеки.
 
 ```ts
-import { StateMachine } from "@evgkch/fsmjs";
-import type { IState, IEvent, Merge } from "@evgkch/fsmjs";
+import { StateMachine } from "@evgkch/machjs";
+import type { IState, IEvent, Merge } from "@evgkch/machjs";
 
 type Q = IState<"idle" | "paid">;                  // состояния без контекста
 type Σ = Merge<IEvent<"coin"> | IEvent<"select">>; // входные события без данных
@@ -145,20 +146,18 @@ FROM <состояние>  ON <событие>  [WHEN <условие>]  TO <с�
 
 Каждое состояние хранит свой контекст:
 
-- `idle` хранит только накопленную сумму,
-- `paid` хранит сумму и сдачу.
+- `idle` хранит накопленную сумму и сдачу, выданную в прошлый раз,
+- `paid` хранит только сумму.
 
 ```ts
-import type { IState, IEvent, Merge } from "@evgkch/fsmjs";
+import { StateMachine } from "@evgkch/machjs";
+import type { IState, IEvent, Merge } from "@evgkch/machjs";
 
-type Q = Merge<
-  | IState<"idle", { paid: number }>
-  | IState<"paid", { paid: number; change: number }>
->;
-type Σ  = Merge<
-  | IEvent<"coin", { value: number }>
-  | IEvent<"select">
->;
+type Idle = { paid: number; change: number };
+type Paid = { paid: number };
+
+type Q = Merge<IState<"idle", Idle> | IState<"paid", Paid>>;
+type Σ = Merge<IEvent<"coin", { value: number }> | IEvent<"select">>;
 type Λ = IEvent<"vend", { change: number }>;
 
 const PRICE = 50;
@@ -169,42 +168,39 @@ const vm = new StateMachine<Q, Σ, Λ>(
       coin: [
         {
           when: (ctx, { value }) => ctx.paid + value < PRICE,
-          to: ["idle", (ctx, { value }) => ({ paid: ctx.paid + value })],
+          to: [
+            "idle",
+            (ctx, { value }) => ({ paid: ctx.paid + value, change: 0 }),
+          ],
         },
         {
-          to: [
-            "paid",
-            (ctx, { value }) => ({
-              paid: ctx.paid + value,
-              change: ctx.paid + value - PRICE,
-            }),
-          ],
+          to: ["paid", (ctx, { value }) => ({ paid: ctx.paid + value })],
         },
       ],
     },
     paid: {
       select: [
         {
-          to: ["idle", () => ({ paid: 0 })],
-          emit: ["vend", (ctx) => ({ change: ctx.change })],
+          to: ["idle", (ctx) => ({ paid: 0, change: ctx.paid - PRICE })],
+          emit: ["vend", (ctx: Idle) => ({ change: ctx.change })],
         },
       ],
     },
   },
-  { type: "idle", context: { paid: 0 } },
+  { type: "idle", context: { paid: 0, change: 0 } },
 );
 
 vm.rx.on("vend", ({ change }) => console.log(`Сдача: ${change}`));
 vm.dispatch("coin", { value: 20 }); // idle → idle, paid=20
-vm.dispatch("coin", { value: 50 }); // idle → paid, paid=70, change=20
-vm.dispatch("select");              // выдача, сдача 20
+vm.dispatch("coin", { value: 50 }); // idle → paid, paid=70
+vm.dispatch("select");              // снова idle — товар выдан, сдача 20
 ```
 
-Обратите внимание: функция в паре с `paid` возвращает контекст с полями `paid` и `change`, а в паре с `idle` — только `paid`. Типизация требует точного соответствия: состояние с контекстом требует функции, состояние без контекста её запрещает.
+Каждая функция контекста возвращает ровно контекст состояния, названного рядом с ней, — `Idle` со сдачей, `Paid` без — и типизация требует точного соответствия. На `select` сдачу вычисляет `with` в новый контекст `idle`, а `by` читает её оттуда: `by` получает контекст уже после перехода. Его параметр аннотирован: `to`, записанный парой, не сужает цель для вывода типов TypeScript.
 
 ---
 
-## `@evgkch/fsmjs`
+## `@evgkch/machjs`
 
 ### Создание автомата и состояние
 
@@ -225,7 +221,7 @@ vm.state.type;    // 'idle'
 vm.state.context; // { paid: 0 }
 ```
 
-Контекст привязан к состоянию, поэтому отдельного геттера для контекста нет — он всегда идёт вместе с типом. Сужение по `type` сужает и контекст:
+Контекст привязан к состоянию, поэтому отдельного геттера для контекста нет — он возвращается вместе с типом. Сужение по `type` сужает и контекст:
 
 ```ts
 if (vm.state.type === "paid") {
@@ -249,7 +245,7 @@ vm.restore({ type: "paid", context: { paid: 70, change: 20 } });
 | `Σ` | входное событие → его данные | `keyof Σ` |
 | `Λ` | выходное событие → его данные | `keyof Λ` |
 
-Носитель можно написать руками:
+Носитель можно написать вручную:
 
 ```ts
 type Q = { empty: void; ready: { rect: Rect }; dragging: { rect: Rect; from: Point } };
@@ -304,13 +300,13 @@ type Σ = Merge<IEvent<"down" | "move", Point> | IEvent<"up">>;
 | `when?` | опционально    | Условие применимости (чистая функция)                               |
 | `emit?` | опционально    | Выходное событие: имя или пара `[имя, функция]`                     |
 
-`to` — это имя или пара `[имя, функция]`; что писать, решает целевое состояние:
+`to` — это имя или пара `[имя, функция]`; что писать, зависит от целевого состояния:
 
 - если оно ничего не хранит — только имя, пара не скомпилируется;
 - если контекст источника подходит — любая из двух;
 - если формы различаются — только пара, одного имени не хватит.
 
-`emit` подчиняется тому же правилу: событие без данных пишется именем, событие с данными — парой. Если `emit` нет вовсе, не пишется ни то, ни другое.
+Для `emit` правило то же: событие без данных пишется именем, событие с данными — парой. Если `emit` нет вовсе, не пишется ни то, ни другое.
 
 Дамп сохраняет пару: `JSON.stringify` пишет `["idle", "toIdle"]` — имя функции там, где стояла функция.
 
@@ -345,7 +341,7 @@ button.disabled = !vm.can("select");
 
 ### Шина `rx` и `TRANSITION`
 
-Выходные события публикуются в `rx` — приёмной стороне канала [`@evgkch/channeljs`](https://github.com/evgkch/channeljs).
+Выходные события публикуются в `rx` — приёмнике канала [`@evgkch/chanjs`](https://github.com/evgkch/chanjs).
 
 ```ts
 const off = vm.rx.on("vend", ({ change }) => console.log(change));
@@ -355,7 +351,7 @@ off(); // отписка
 Каждый успешный переход публикует объект `Transition` по ключу `TRANSITION`:
 
 ```ts
-import { TRANSITION } from "@evgkch/fsmjs";
+import { TRANSITION } from "@evgkch/machjs";
 vm.rx.on(TRANSITION, (t) => console.log(t));
 ```
 
@@ -363,23 +359,61 @@ vm.rx.on(TRANSITION, (t) => console.log(t));
 
 ### Атомарность и вложенные вызовы
 
-Состояние фиксируется до отправки событий — обработчики видят уже новое состояние. Исключение в условии или в любой из двух функций оставляет автомат без изменений.
+Состояние фиксируется до отправки событий — обработчики выполняются уже при новом состоянии. Исключение в условии или в любой из двух функций оставляет автомат без изменений.
 
-Вложенный `dispatch` от того же экземпляра автомата **запрещён** — выбрасывается `DispatchInsideHandlerError`. Для создания обратной связи через `dispatch` используйте `queueMicrotask` внутри подписки `rx.on / rx.once`.
+Вложенный `dispatch` от того же экземпляра автомата **запрещён** — выбрасывается `DispatchInsideHandlerError`. Чтобы отправить следующее событие в ответ на переход, вызовите `dispatch` через `queueMicrotask` внутри подписки `rx.on / rx.once`.
+
+### Сериализация
+
+`JSON.stringify(machine)` пишет граф — схему, где каждая операция сведена к имени. Позиция машины — `machine.state`: пара `{ type, context }`; JSON записывает её, если записывается сам контекст, а контексту с несериализуемым содержимым задаётся свой `toJSON`. Восстановление — конструктором:
+
+```ts
+const saved = JSON.stringify(vm.state);
+// …в другом процессе, с той же схемой:
+const vm2 = new StateMachine<Q, Σ, Λ>(schema, JSON.parse(saved));
+```
+
+Прогон сериализуется теми же парами: запись из `history` (`@evgkch/machjs/debug`) — готовые JSON-значения.
+
+### Асинхронность
+
+`when`, `with` и `by` синхронны. Асинхронная работа выполняется вне автомата; в автомат отправляется её результат — обычным событием. Два способа:
+
+**Результат вычисляется до отправки:**
+
+```ts
+button.addEventListener("click", async () => {
+  vm.dispatch("sign", { who, sig: await sign(who, text) });
+});
+```
+
+**Ожидание — это состояние.** Запрос отправляется выходным событием, ответ — входным; между ними автомат находится в состоянии ожидания:
+
+```text
+FROM draft    ON submit  TO checking EMIT gate
+FROM checking ON checked TO review
+```
+
+```ts
+vm.rx.on("gate", async ({ text }) => {
+  // После `await` выполнение продолжается вне текущего перехода: это не вложенный dispatch.
+  vm.dispatch("checked", await check(text));
+});
+```
 
 ### Чтение схемы без автомата
 
 `edges`, `nodes`, `graph` извлекают информацию из схемы:
 
 ```ts
-import { edges, nodes, graph } from "@evgkch/fsmjs";
+import { edges, nodes, graph } from "@evgkch/machjs";
 
 const allEdges = edges(schema);   // Edge[] — по одному ребру на правило
 const allNodes = nodes(schema);   // string[] — все состояния
 const graphObj = graph(schema);   // Graph<...> — то же, что toJSON
 ```
 
-`nodes` возвращает объединение ключей схемы и всех целевых состояний правил. Поэтому в список попадает и состояние с пустой ячейкой (`ghost: {}`), у которого нет ни одного ребра, и состояние, встречающееся только как цель. Обход одних лишь рёбер потерял бы оба этих случая, а для `analyze` они существенны.
+`nodes` возвращает объединение ключей схемы и всех целевых состояний правил. Поэтому в список попадает и состояние с пустой ячейкой (`ghost: {}`), у которого нет ни одного ребра, и состояние, встречающееся только как цель.
 
 Там же экспортируется `nameOf(operation, slot)`. Её используют `toJSON` и форматтеры, поэтому имена операций во всех представлениях схемы совпадают. Собственному рендереру лучше вызывать эту функцию, а не восстанавливать имя самостоятельно.
 
@@ -401,7 +435,7 @@ const graphObj = graph(schema);   // Graph<...> — то же, что toJSON
 }
 ```
 
-У JSON та же форма, что и у схемы в коде. Эта форма закрывает и вопрос про `emit`: `["vend", "refund"]` — одно событие с функцией данных, а не список из двух событий.
+У JSON та же форма, что и у схемы в коде. Эта форма однозначна и для `emit`: `["vend", "refund"]` — одно событие с функцией данных, а не список из двух событий.
 
 Такую схему можно не только нарисовать и проверить, но и передать в конструктор. Имя на месте функции трактуется как её нейтральное значение: условие — как истинное, функция контекста — как тождественная, функция данных — как отсутствие данных. Автомат, восстановленный из JSON, выполняет переходы по графу, но ничего не вычисляет: контекст переносится в целевое состояние без изменений, а выходные события отправляются без данных.
 
@@ -447,13 +481,13 @@ class DispatchInsideHandlerError extends Error {}
 const TRANSITION: unique symbol;
 ```
 
-`Args<Σ>` в сигнатурах выше — внутренний тип, он не экспортируется. Это единственный тип за обоими вызовами: где событие ничего не несёт — только имя, где несёт — имя вместе с данными; одно объединение кортежей вместо двух перегрузок.
+`Args<Σ>` в сигнатурах выше — внутренний тип, он не экспортируется. Один тип на оба вызова: где событие ничего не несёт — только имя, где несёт — имя вместе с данными; одно объединение кортежей вместо двух перегрузок.
 
 Экспортируемые типы: `Carrier`, `IState`, `IEvent`, `Merge`, `FsmState`, `FsmEvent`, `When`, `With`, `By`, `Rule`, `Schema`, `Graph`, `Edge`, `Nodes`, `Transition`, `AnyTransition`, `AnyMachine`, `Off`.
 
 ---
 
-## `@evgkch/fsmjs/analysis`
+## `@evgkch/machjs/analysis`
 
 Статическая проверка схемы: автомат не запускается, условия не вызываются. Анализ опирается на структуру графа — поля `to`, `emit` и наличие `when`, — но не на то, какое значение возвращает условие. Поэтому схема с кодом и та же схема, восстановленная из JSON, дают одинаковый результат.
 
@@ -475,7 +509,7 @@ function paths<T, Q extends PropertyKey = PropertyKey>(schema: T, from: Q): Path
 | `terminal`    | без исходящих переходов                    |
 
 > [!WARNING]
-> `start` необязателен, но без него достижимость не считается вовсе: `reachable` и `unreachable` возвращаются пустыми. То есть `validate(schema)` без второго аргумента молча не найдёт ни одного недостижимого состояния.
+> `start` необязателен, но без него достижимость не считается вовсе: `reachable` и `unreachable` возвращаются пустыми. То есть `validate(schema)` без второго аргумента не выдаст ни одной находки `unreachable`.
 
 ### `validate`
 
@@ -502,7 +536,7 @@ console.log(formatIssues(validate(vm.schema, "idle")));
 
 ### `paths`
 
-`paths` перечисляет все простые пути из заданного состояния. В `nodes` лежит последовательность состояний, в `legs` — пройденные рёбра, в `kind` — способ завершения пути: `terminal`, если путь упёрся в состояние без исходящих переходов, и `cycle`, если он вернулся в уже пройденное состояние. Во втором случае последний элемент `nodes` повторяет один из предыдущих.
+`paths` перечисляет все простые пути из заданного состояния. В `nodes` лежит последовательность состояний, в `legs` — пройденные рёбра, в `kind` — способ завершения пути: `terminal`, если путь закончился в состоянии без исходящих переходов, и `cycle`, если он вернулся в уже пройденное состояние. Во втором случае последний элемент `nodes` повторяет один из предыдущих.
 
 > [!WARNING]
 > На плотных графах число путей растёт экспоненциально.
@@ -511,7 +545,7 @@ console.log(formatIssues(validate(vm.schema, "idle")));
 
 ---
 
-## `@evgkch/fsmjs/formatters`
+## `@evgkch/machjs/formatters`
 
 Вывод схемы в текст. Модуль только формирует представление и ничего не вычисляет о графе: обход, достижимость и перечисление путей относятся к `analysis`.
 
@@ -581,9 +615,9 @@ toTree(vm.schema, { at: "paid" });
 
 ---
 
-## `@evgkch/fsmjs/debug`
+## `@evgkch/machjs/debug`
 
-Наблюдение за работающим автоматом. Все четыре функции подписываются на `TRANSITION`, поэтому им видны только состоявшиеся переходы. `dispatch`, вернувший `false`, и `restore` событий не публикуют и в наблюдение не попадают.
+Наблюдение за работающим автоматом. Все четыре функции подписываются на `TRANSITION`, поэтому получают только состоявшиеся переходы. `dispatch`, вернувший `false`, и `restore` событий не публикуют и в наблюдение не попадают.
 
 ```ts
 function log(fsm, sink?: (t: Transition) => void): Off;
@@ -613,7 +647,7 @@ log(vm); // sink по умолчанию — rules(), печать в консо
 log(vm, rules((line) => file.write(line + "\n")));
 ```
 
-Вторым аргументом обёрнутая функция получает сам переход, поэтому, чтобы достать данные события, не нужно разбирать собранную строку обратно.
+Вторым аргументом обёрнутая функция получает сам переход, поэтому, чтобы получить данные события, не нужно разбирать собранную строку обратно.
 
 > [!NOTE]
 > Не следует путать `rules` из `debug` и `toRules` из `formatters`. Первая форматирует по одному состоявшемуся переходу, вторая печатает схему целиком; язык у них общий.
@@ -639,16 +673,31 @@ invariant(vm, (ctx) => ctx.paid >= 0);
 | `rx`                 | публикует `moved` с новым индексом, когда история сдвигает автомат |
 | `stop()`             | прекратить запись и отписаться от переходов                 |
 
-Навигация выполняется через `fsm.restore`: переходы не переигрываются и `Transition` не публикуется, поэтому собственные шаги история не записывает. Вместо этого она публикует `moved` в собственном `rx`, чтобы всё, что рисует автомат, узнало об изменении вида. Очередной `dispatch` после отмены отбрасывает всё, что было записано впереди.
+Навигация выполняется через `fsm.restore`: переходы не переигрываются и `Transition` не публикуется, поэтому собственные шаги история не записывает. Вместо этого она публикует `moved` в собственном `rx` — сигнал перерисовать все представления автомата. Очередной `dispatch` после отмены отбрасывает всё, что было записано впереди.
 
-Параметр `maxSize` (не меньше 1) ограничивает размер буфера. При переполнении удаляется самая старая запись, и отмена дотягивается назад не дальше чем на `maxSize` переходов.
+Параметр `maxSize` (не меньше 1) ограничивает размер буфера. При переполнении удаляется самая старая запись, и отмена доступна не дальше чем на `maxSize` переходов назад.
 
 Экспортируемый тип: `History`.
 
 ---
 
+## Инспектор
+
+[`@evgkch/machjs-inspector`](https://github.com/evgkch/machjs-inspector) — инструмент разработки для машин этой библиотеки: текст правил, фигура переходов, классическая диаграмма и прогон, связанные общей подсветкой. Он читает дамп схемы — [открыть инспектор](https://evgkch.github.io/machjs-inspector/) — или подключается к работающей машине одной строкой:
+
+```ts
+import { inspect } from "@evgkch/machjs-inspector";
+
+const cart = inspect(new StateMachine(schema, start), { name: "cart" });
+```
+
+Виджеты инспектора подключаются и по отдельности, не поднимая целый инспектор: примеры этого репозитория рисуют ими свои машины ([открыть примеры](https://evgkch.github.io/machjs/)).
+
+---
+
 ## Ограничения
 
+- Схема читается один раз, в конструкторе. Позднейшие изменения объекта схемы машина не читает — постройте новую машину.
 - **`when` должны быть чистыми.** Иначе ответы `can` и `dispatch` на один и тот же вопрос перестают совпадать.
 - **Безусловное правило, если оно есть, должно стоять последним.** Правила после него недостижимы; `validate` сообщает об этом ошибкой `dead-rule`.
 - **Функция контекста должна возвращать новый объект.** После перехода контекст замораживается, и попытка изменить его на месте приводит к ошибке. Заморозка включена, когда `process` недоступен или `NODE_ENV !== 'production'`; кроме того, она поверхностная и на вложенные объекты не распространяется. В продакшене мутация контекста ничем не пресекается, поэтому правило соблюдается разработчиком, а проверка лишь помогает найти нарушение при отладке.
@@ -725,12 +774,12 @@ node scripts/render.ts machine.json dot            # DOT
 node scripts/render.ts machine.json report idle    # отчёт
 ```
 
-На входе — результат `JSON.stringify(machine)`: метки и имена операций без исходного кода. Скрипт импортирует пакет по имени (`@evgkch/fsmjs/formatters`), поэтому в свежем клоне ему нужен собранный `dist`: сначала выполняется `npm run build`. Режим по умолчанию — `tree`; неизвестный режим также выводит дерево.
+На входе — результат `JSON.stringify(machine)`: метки и имена операций без исходного кода. Скрипт импортирует пакет по имени (`@evgkch/machjs/formatters`), поэтому в свежем клоне ему нужен собранный `dist`: сначала выполняется `npm run build`. Режим по умолчанию — `tree`; неизвестный режим также выводит дерево.
 
 ---
 
 <p align="center">
-  <a href="https://evgkch.github.io/fsmjs/">Примеры</a> ·
-  <a href="https://github.com/evgkch/channeljs">channeljs</a> ·
+  <a href="https://evgkch.github.io/machjs/">Примеры</a> ·
+  <a href="https://github.com/evgkch/chanjs">chanjs</a> ·
   <a href="LICENSE">MIT</a>
 </p>

@@ -1,34 +1,28 @@
 /**
- * Debug layer (opt-in via `fsmjs/debug`).
+ * Debug layer (opt-in via `machjs/debug`).
  *
  * Runtime observation built on the machine's reserved `Transition`, sent after every *fired*
- * dispatch (silent or observable): logging, runtime invariants and time-travel history.
- * Subscribing is what turns observation on — the machine builds the value only while
- * `TRANSITION` has a listener — so an unobserved machine pays nothing, and detaching every
- * helper turns it back off. A dispatch that fires nothing sends nothing, so nothing here sees it.
+ * dispatch: logging, runtime invariants, time-travel history. The machine builds the value only
+ * while `TRANSITION` has a listener, so an unobserved machine pays nothing; a dispatch that
+ * fires nothing sends nothing.
  *
- * Three exports, one per question: `log` — what is happening; `invariant` — has a property of the
- * context broken; `history` — how to go back. Anything else a caller wants from a transition is
- * a conditional in `log`'s sink, which receives the whole value and nothing else.
+ * Three exports, one per question: `log` — what is happening; `invariant` — has a property of
+ * the context broken; `history` — how to go back. Formatting is a separate concern — `rules`
+ * wraps a sink into one handed pre-formatted lines, and `log` takes any sink, with `rules()` as
+ * the default.
  *
- * Formatting is not one of the questions and so is not folded into any of them: `rules` wraps a
- * sink into one that is handed lines, and `log` takes any sink at all. A subscription that decided
- * the shape of what it hands over would leave a sink that wants the payloads parsing text back out
- * — so the rendering is an argument, and the default is only the argument a caller did not pass.
- *
- * Everything here watches transitions that *happened*. `can` is not one: it asks the guards a
- * question and answers the caller, so nothing observable took place and nothing appears here.
+ * `can` is not covered: it asks the guards a question and answers the caller, so nothing
+ * observable happens.
  */
-import Channel from "@evgkch/channeljs";
+import Channel from "@evgkch/chanjs";
 import { TRANSITION } from "../core/index.js";
 import { LABELS, writer } from "../formatters/words.js";
 /**
  * A transition read as a row of the transition relation — internal.
  *
- * Nothing is invented here: a transition already carries all four labels — where it came from,
- * on what event, where it went, what it emitted. Turning it into an `Edge` is renaming, and it
- * is what lets the same word writer print the schema and the run. Not exported: a formatter
- * takes a schema, so an `Edge` on its own has nowhere to go.
+ * A transition already carries all four labels (from, on, to, emit); this only renames them
+ * into an `Edge`, which lets the same word writer print both the schema and the run. Not
+ * exported: a formatter takes a schema, and an `Edge` on its own has nowhere to go.
  */
 function asEdge(t) {
     return {
@@ -41,23 +35,22 @@ function asEdge(t) {
 /**
  * Subscribe to a machine's transitions. Returns an unsubscribe handle.
  *
- * The `sink` gets the whole `Transition` and nothing else, which makes this the one subscription
- * the debug layer needs: print it, filter it, count it, ship it somewhere. Reacting to every output
- * whatever its type — the one thing `rx` cannot say, since `rx.on` wants one type — is a
- * conditional in the sink:
+ * `sink` gets the whole `Transition` and nothing else: print it, filter it, count it, ship it.
+ * Reacting to every output type at once — something `rx.on` cannot do, since it wants one type —
+ * is a conditional in the sink:
  *
  * ```ts
  * log(fsm, t => { if (t.output) send(t.output); });
  * ```
  *
- * A formatted log is a sink wrapped in a formatter, not a mode of the subscription:
+ * A formatted log is a sink wrapped in a formatter:
  *
  * ```ts
  * log(fsm, rules(line => file.write(line + '\n')));
  * ```
  *
- * The default sink is `rules()`, which is why `log(fsm)` still prints a line per transition —
- * but the formatting lives in an argument a caller can drop, replace or wrap.
+ * The default sink is `rules()`, so `log(fsm)` prints a line per transition unless a different
+ * sink is passed.
  */
 export function log(fsm, sink = rules()) {
     return fsm.rx.on(TRANSITION, sink);
@@ -65,14 +58,11 @@ export function log(fsm, sink = rules()) {
 /**
  * Wrap a sink so it is handed each transition already written as one line — a `log` sink.
  *
- * The line is a sentence in the same language `toRules` prints the schema in, four of its seven
- * words: the ones a transition can fill on its own. That is the whole reason this takes nothing
- * but the sink — a transition already carries every label the line says, so a formatter of one
- * needs no machine, no schema and no state, and the same wrapper works on any of them.
- *
- * The wrapped sink still gets the whole transition beside the line, so formatting costs nothing:
- * a sink that wants the payloads reads them off the value instead of parsing them back out of text.
- * With no sink of its own it prints, which makes `rules()` what plain `log(fsm)` runs.
+ * The line uses four of the seven words `toRules` prints for a schema — the ones a transition
+ * can fill on its own — so formatting a transition needs no machine or schema. The wrapped sink
+ * still gets the whole transition beside the line, so a sink that wants the payloads reads them
+ * off the value rather than parsing the text. With no sink of its own it prints, which is what
+ * `rules()` gives plain `log(fsm)`.
  */
 export function rules(sink = console.log) {
     return (t) => sink(formatTransition(t), t);
@@ -80,9 +70,9 @@ export function rules(sink = console.log) {
 /**
  * One transition as a rule — internal.
  *
- * The columns are sized by the row itself, so a line stands alone: it names its own transition and
- * nothing lines it up against the rest of the machine. Not exported — the two places a line is
- * wanted are `rules` and the message `invariant` hands its `onViolation`, and both are here.
+ * Columns are sized by the row itself, so a line stands alone rather than lining up against the
+ * rest of the machine. Not exported: the two callers that need a line, `rules` and `invariant`'s
+ * `onViolation` message, are both here.
  */
 function formatTransition(t) {
     const row = asEdge(t);
@@ -110,16 +100,14 @@ export function invariant(fsm, check, onViolation) {
 /**
  * Record a machine's states for undo/redo/jump.
  *
- * Records the state after every fired transition. Navigation replays nothing — a
- * `Transition` already carries its target, so recording is a push and restoring is one
- * `fsm.restore`, both O(1). Dispatching after an undo truncates the redo future, as usual.
- * Pass `{ maxSize }` (≥ 1) to cap the buffer: once full it drops the oldest entry, so a
- * long-running machine does not grow without bound (undo then reaches back only `maxSize`
- * transitions).
+ * Records the state after every fired transition; navigation replays nothing, since a
+ * `Transition` already carries its target — recording is a push, restoring is one `fsm.restore`,
+ * both O(1). Dispatching after an undo truncates the redo future. Pass `{ maxSize }` (≥ 1) to cap
+ * the buffer: once full it drops the oldest entry, so undo then reaches back only `maxSize`
+ * transitions.
  *
- * Moving says so on `rx`. `restore` publishes nothing — walking a run back is not a thing the
- * machine did — so without a word from here, everything drawing that machine would learn where it
- * went from whoever called `jump`, one caller at a time.
+ * `restore` itself publishes nothing, so `rx` is what tells every reader a move happened —
+ * without it, each caller of `jump` would have to announce the move itself.
  */
 export function history(fsm, opts) {
     const maxSize = opts?.maxSize !== undefined ? Math.max(1, opts.maxSize) : undefined;
