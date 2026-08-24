@@ -396,7 +396,9 @@ try {
   );
 
   console.log("— M14: the desk wires, switches and synchronizes —");
-  const { MachjsDesk } = await server.ssrLoadModule("/src/widgets/desk/desk.ts");
+  const { MachjsDesk } = await server.ssrLoadModule(
+    "/src/widgets/desk/desk.ts",
+  );
   const { MachjsHistory } = await server.ssrLoadModule(
     "/src/widgets/history/history.ts",
   );

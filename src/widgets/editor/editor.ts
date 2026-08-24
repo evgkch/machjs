@@ -398,7 +398,7 @@ export class MachjsEditor extends LitElement {
 
   #tell(kind: Exclude<keyof Typing, "drop">, e?: Event): boolean {
     // `write` finishes what it started, and its own `input` is not a keystroke.
-    return this.#ours ? false : this.#writing.dispatch(kind, this.#facts(e));
+    return this.#ours ? false : this.#writing.dispatch(kind, this.#facts(e)).ok;
   }
 
   /** The offer, drawn. Called when it changes, and again whenever the layer is rebuilt under it. */

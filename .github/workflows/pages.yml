@@ -33,13 +33,11 @@ jobs:
           repository: evgkch/machjs
           path: machjs
 
+      # No npm cache: neither repo commits a package-lock.json, so there is
+      # nothing to key a cache on, and `npm ci` has nothing to install from.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: |
-            machjs/package-lock.json
-            machjs-inspector/package-lock.json
 
       # A `file:` dependency is a symlink, and npm does not copy the target's own
       # dependencies into the consumer's tree — the library must carry them, and
@@ -47,7 +45,7 @@ jobs:
       - name: Build the library
         working-directory: machjs
         run: |
-          npm ci
+          npm install
           npm run build
 
       # `build` validates the machines and typechecks on its own; `matrix`
@@ -55,7 +53,7 @@ jobs:
       - name: Build the inspector
         working-directory: machjs-inspector
         run: |
-          npm ci
+          npm install
           npm run build
           npm run matrix
 

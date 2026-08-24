@@ -73,7 +73,7 @@ export function fromMachine(fsm: Any, opts: Options = {}): Subject {
         const { from, on } = partsOf(rule);
         if (fsm.state.type !== from) return false;
         try {
-          return fsm.can(on as never);
+          return fsm.can(on as never).ok;
         } catch {
           return true;
         }

@@ -88,7 +88,7 @@ export function fromText(graph: Graph, start: string): Text {
       // guard — which is what `can` answers and what `take` will then do.
       can: (rule) => {
         const { from, on } = partsOf(rule);
-        return fsm.state.type === from && fsm.can(on as never);
+        return fsm.state.type === from && fsm.can(on as never).ok;
       },
       take: (rule) => {
         const { on } = partsOf(rule);
