@@ -251,7 +251,7 @@ const here = (el) =>
     eq("sending — legend follows", here(leg), "sending");
     eq(
       "sending — the fields are locked",
-      form.can("input", { field: "name", value: "x" }),
+      form.can("input", { field: "name", value: "x" }).ok,
       false,
     );
     eq(

@@ -113,7 +113,7 @@ const walk = new StateMachine<Q, Σ, Λ>(draft, {
   type: "empty",
   context: undefined,
 });
-walk.dispatch("down", { x: 0, y: 0, area: { w: 400, h: 300 } }); // true
+walk.dispatch("down", { x: 0, y: 0, area: { w: 400, h: 300 } }); // { ok: true }
 walk.state.type; // 'drawing'
 ```
 
@@ -532,7 +532,7 @@ sel.rx.on("clear", () => {
 });
 ```
 
-There are no checks for the current state in the handlers. The `pointermove` handler always sends `move`, but the `ready` state has no such rule, so `dispatch` returns `false` without changing state (README, “Executing a transition: `dispatch` and `can`”).
+There are no checks for the current state in the handlers. The `pointermove` handler always sends `move`, but the `ready` state has no such rule, so `dispatch` answers `UNHANDLED` without changing state (README, “Executing a transition: `dispatch` and `can`”).
 
 ### 6.2. Cursor
 

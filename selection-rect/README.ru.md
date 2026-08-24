@@ -114,7 +114,7 @@ const walk = new StateMachine<Q, Σ, Λ>(draft, {
   type: "empty",
   context: undefined,
 });
-walk.dispatch("down", { x: 0, y: 0, area: { w: 400, h: 300 } }); // true
+walk.dispatch("down", { x: 0, y: 0, area: { w: 400, h: 300 } }); // { ok: true }
 walk.state.type; // 'drawing'
 ```
 
@@ -533,7 +533,7 @@ sel.rx.on("clear", () => {
 });
 ```
 
-Проверок текущего состояния в обработчиках нет. Обработчик `pointermove` всегда отправляет `move`, но в состоянии `ready` такого правила нет, и `dispatch` возвращает `false`, не изменяя состояния (README, «Выполнение перехода: `dispatch` и `can`»).
+Проверок текущего состояния в обработчиках нет. Обработчик `pointermove` всегда отправляет `move`, но в состоянии `ready` такого правила нет, и `dispatch` отвечает `UNHANDLED`, не изменяя состояния (README, «Выполнение перехода: `dispatch` и `can`»).
 
 ### 6.2. Курсор
 

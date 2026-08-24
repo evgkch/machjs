@@ -91,18 +91,18 @@ for (const [who, button] of signs)
     }),
   );
 
-// The reason box is cleared only if the dispatch was accepted — the returned boolean says so.
+// The reason box is cleared only if the dispatch was accepted — the verdict's `ok` says so.
 reject.addEventListener("click", () => {
   const sent = flow.dispatch("reject", {
     who: rev.value,
     why: why.value.trim() || "no reason given",
   });
-  if (sent) why.value = "";
+  if (sent.ok) why.value = "";
 });
 
 // ── the gate, driven by what the machine emits ──────────────────────────────
 
-// `setTimeout`, because a nested `dispatch` is forbidden; the 700 ms stand in for CI.
+// `setTimeout`, because a nested `dispatch` answers `BUSY`; the 700 ms stand in for CI.
 flow.rx.on("gate", ({ text }) => {
   setTimeout(() => flow.dispatch("checked", gate(text)), 700);
 });
@@ -152,7 +152,7 @@ function paint(): void {
   // The text comes from the machine, and the box is read-only whenever `write` cannot fire —
   // the same `can` the buttons use. An edit the schema refused never shows.
   if (doc.value !== s.context.doc.text) doc.value = s.context.doc.text;
-  doc.readOnly = !flow.can("write", doc.value);
+  doc.readOnly = !flow.can("write", doc.value).ok;
 
   // What is open right now, which is a fact about the phase and lasts as long as the phase does.
   faultsOut.replaceChildren(
@@ -187,18 +187,18 @@ function paint(): void {
 
   // Every control, from one question. `can` is answerable without moving the machine, because a
   // guard is the only thing that decides and guards are pure.
-  submit.disabled = !flow.can("submit");
-  ship.disabled = !flow.can("ship");
-  withdraw.disabled = !flow.can("withdraw");
+  submit.disabled = !flow.can("submit").ok;
+  ship.disabled = !flow.can("ship").ok;
+  withdraw.disabled = !flow.can("withdraw").ok;
   for (const [who, button] of signs)
-    button.disabled = !flow.can("sign", { who, sig: "" });
+    button.disabled = !flow.can("sign", { who, sig: "" }).ok;
   // A signer is disabled inside the dropdown by the same question; if the selected reviewer is
   // closed, the selection moves to an open one.
   for (const option of revOptions)
-    option.disabled = !flow.can("reject", { who: option.value, why: "" });
+    option.disabled = !flow.can("reject", { who: option.value, why: "" }).ok;
   const open = revOptions.find((o) => !o.disabled);
   if (rev.selectedOptions[0]?.disabled && open) rev.value = open.value;
-  reject.disabled = !flow.can("reject", { who: rev.value, why: "" });
+  reject.disabled = !flow.can("reject", { who: rev.value, why: "" }).ok;
 }
 
 flow.rx.on(TRANSITION, paint);

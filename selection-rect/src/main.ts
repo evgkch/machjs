@@ -3,7 +3,7 @@
  *
  * What matters here is what is *absent*: **no handler checks the phase**.
  * `pointermove` always sends `move`, and in `ready` the schema defines no such
- * transition, so `dispatch` returns `false` and changes nothing. That is the
+ * transition, so `dispatch` answers `UNHANDLED` and changes nothing. That is the
  * machine's partiality doing real work: the set of events acceptable right now
  * is held by the schema, not by a chain of `if`s in the view.
  */

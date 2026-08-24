@@ -140,7 +140,7 @@ const walk = new StateMachine<Q, Σ, Λ>(draft, {
   type: "draft",
   context: undefined,
 });
-walk.dispatch("submit"); // true
+walk.dispatch("submit"); // { ok: true }
 walk.state.type; // 'checking'
 ```
 
@@ -306,7 +306,7 @@ const guarded = {
 };
 ```
 
-The two dead-rule errors are gone. The cells are guarded differently, and this is deliberate. `checking` + `checked` ends in an unguarded rule: the gate's answer has an outcome either way. `review` + `sign` has no unguarded rule: a repeat signature satisfies neither guard, and `dispatch` returns `false`. `reject` is guarded too: a request for changes from a reviewer whose signature stands would contradict it. Refusing a transition is as ordinary an outcome as taking one (README, “validate”). Validation leaves one finding.
+The two dead-rule errors are gone. The cells are guarded differently, and this is deliberate. `checking` + `checked` ends in an unguarded rule: the gate's answer has an outcome either way. `review` + `sign` has no unguarded rule: a repeat signature satisfies neither guard, and `dispatch` answers `REJECTED`. `reject` is guarded too: a request for changes from a reviewer whose signature stands would contradict it. Refusing a transition is as ordinary an outcome as taking one (README, “validate”). Validation leaves one finding.
 
 ```ts
 formatIssues(validate(guarded, "draft"));
@@ -361,7 +361,7 @@ const given = (signs: readonly Sign[], who: string) =>
   signs.some((s) => s.who === who);
 ```
 
-`clean` reads the gate's answer: it returns `false` on a blocker, `true` on cautions alone. `last` is the quorum test: a signature that is not a repeat and brings the count to `QUORUM`. `unsigned` stands in two cells: on `sign` it admits a reviewer's first signature (the quorum case is handled by the first rule — guards are checked in order), on `reject` — a request for changes from a reviewer without a standing signature. A repeat signature satisfies no guard of its cell: `dispatch` returns `false`, `can("sign", …)` too, and the page disables the signer's button (section 7.3). The board is one larger than the quorum, so in `approved` `reject` is still available to at least one reviewer. Guards only read the context and event payload, never mutating them (README, “Limitations”).
+`clean` reads the gate's answer: it returns `false` on a blocker, `true` on cautions alone. `last` is the quorum test: a signature that is not a repeat and brings the count to `QUORUM`. `unsigned` stands in two cells: on `sign` it admits a reviewer's first signature (the quorum case is handled by the first rule — guards are checked in order), on `reject` — a request for changes from a reviewer without a standing signature. A repeat signature satisfies no guard of its cell: `dispatch` answers `REJECTED`, `can("sign", …)` too, and the page disables the signer's button (section 7.3). The board is one larger than the quorum, so in `approved` `reject` is still available to at least one reviewer. Guards only read the context and event payload, never mutating them (README, “Limitations”).
 
 ## 5. Operations
 
@@ -621,7 +621,7 @@ export const flow = new StateMachine<Q, Σ, Λ>(
 );
 ```
 
-The `sign` cell has no unguarded rule: a repeat signature satisfies neither guard, `dispatch` returns `false`, and the state does not move. `can("sign", …)` for a signer returns `false` as well, and the page disables that button (section 7.3). The same guard stands on `reject` in both phases: only a reviewer without a standing signature may request changes.
+The `sign` cell has no unguarded rule: a repeat signature satisfies neither guard, `dispatch` answers `REJECTED`, and the state does not move. `can("sign", …)` for a signer answers `REJECTED` as well, and the page disables that button (section 7.3). The same guard stands on `reject` in both phases: only a reviewer without a standing signature may request changes.
 
 The initial state is `draft` with a `Ticket` context; its `doc` is itself a schema — `START`, a turnstile written in the library's own language.
 
@@ -805,7 +805,7 @@ reject.addEventListener("click", () => {
 });
 ```
 
-No handler tests the phase. Every input is passed straight to `dispatch`; whether it is accepted, the schema's rules decide. A keystroke while the gate has the document is refused by the schema: there is no `write` rule in `checking`, `dispatch` returns `false`, the state does not change (README, “Executing a transition: `dispatch` and `can`”). The reason box is cleared only on an accepted request — visible in `dispatch`'s return value. The board is written once, in the markup: the `data-sign` buttons and the select beside the reason box.
+No handler tests the phase. Every input is passed straight to `dispatch`; whether it is accepted, the schema's rules decide. A keystroke while the gate has the document is refused by the schema: there is no `write` rule in `checking`, `dispatch` answers `UNHANDLED`, the state does not change (README, “Executing a transition: `dispatch` and `can`”). The reason box is cleared only on an accepted request — visible in the verdict's `ok`. The board is written once, in the markup: the `data-sign` buttons and the select beside the reason box.
 
 ### 7.2. The wait: gate as a listener
 
@@ -891,7 +891,7 @@ paint();
 
 `paint` runs after every transition and reads the machine and nothing else. The state is a discriminated union, so `s.type` narrows `s.context`: inside the `review` branch the signatures are in scope and the fault list is not, because a document in review has no fault list. The compiler checks the same thing the schema does.
 
-A button is enabled when `can(event)` — the same question the next `dispatch` will check — returns `true`; the set of available actions is written in the schema, not on this page. Delete a rule from the table and the button is disabled; add one and it is enabled. The question narrows by payload too: once anna has signed, `can("sign", { who: "anna", … })` returns `false` while the same question about boris returns `true`. The select's options are disabled by the same question; if the selected one is disabled, the page moves the selection to an available one.
+A button is enabled when `can(event)` — the same question the next `dispatch` will check — answers `OK`; the set of available actions is written in the schema, not on this page. Delete a rule from the table and the button is disabled; add one and it is enabled. The question narrows by payload too: once anna has signed, `can("sign", { who: "anna", … })` answers `REJECTED` while the same question about boris answers `OK`. The select's options are disabled by the same question; if the selected one is disabled, the page moves the selection to an available one.
 
 ## 8. Machine run
 
@@ -905,12 +905,12 @@ write (fixed)               draft     round 1   closed: 1
 submit                      checking  round 2
 checked · clean             review    round 2   signs: —
 sign anna                   review    round 2   signs: anna f2a1e345…
-sign anna — repeat          review    round 2   dispatch → false
+sign anna — repeat          review    round 2   dispatch → REJECTED
 sign boris                  approved  round 2   signs: anna, boris
 ship                        shipped   round 2   at: set
 ```
 
-`submit` is the only event that increments the round; the gate's answer comes back as `checked`, with a whole state in between. The first round was refused: the document was broken JSON, the gate returned one blocker, and the machine went to `blocked` with that blocker in the context. An edit returned the document to `draft`; `fixed` recorded the blocker in `closed` — one record there now. The second round passed clean; `sign` from anna added the first signature — ECDSA over the document text, its hex stored in the context. A repeat `sign` from anna satisfied no guard of the cell: `dispatch` returned `false`, the state did not change; anna's button on the page is disabled at this point. `sign` from boris fired the `last` guard and moved the machine to `approved` — without `notes`: `sealed` does not carry them. `ship` stamped the time and moved the machine to `shipped`, which has no rules.
+`submit` is the only event that increments the round; the gate's answer comes back as `checked`, with a whole state in between. The first round was refused: the document was broken JSON, the gate returned one blocker, and the machine went to `blocked` with that blocker in the context. An edit returned the document to `draft`; `fixed` recorded the blocker in `closed` — one record there now. The second round passed clean; `sign` from anna added the first signature — ECDSA over the document text, its hex stored in the context. A repeat `sign` from anna satisfied no guard of the cell: `dispatch` answered `REJECTED`, the state did not change; anna's button on the page is disabled at this point. `sign` from boris fired the `last` guard and moved the machine to `approved` — without `notes`: `sealed` does not carry them. `ship` stamped the time and moved the machine to `shipped`, which has no rules.
 
 The path not shown: `reject` is guarded by `unsigned` — in `review` only a reviewer without a standing signature can send it, and in `approved`, with two signatures out of a board of three, only the third reviewer, vera. An edit answers the request through `addressed` — the same way `fixed` closed the blocker. `withdraw` in `review` goes back to `draft` through `restarted`, which does not carry the signatures — a field a draft does not have.
 

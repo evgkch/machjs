@@ -5,7 +5,7 @@
  * there is no `input` rule, the boxes lock themselves. `submit` is enabled by the same
  * question. The send is the `send` output event: the page answers it the way a flaky server
  * would — late, and refusals twice. The wire journal prints every message with the machine's
- * own verdict: `dispatch` returns `false` for an answer no rule matches, and that is a drop.
+ * own verdict: `dispatch` answers `ok: false` for an answer no rule matches, and that is a drop.
  */
 import { TRANSITION } from "@evgkch/machjs";
 import { MachjsDesk, fromMachine } from "@evgkch/machjs-inspector/ui";
@@ -45,7 +45,7 @@ retry.addEventListener("click", () => form.dispatch("retry"));
 
 // ── the server, played by the page ───────────────────────────────────────────
 
-// One line per message on the wire; for an answer, the machine's own boolean says the rest.
+// One line per message on the wire; for an answer, the machine's own verdict says the rest.
 function line(text: string): void {
   const li = document.createElement("li");
   li.textContent = text;
@@ -54,24 +54,37 @@ function line(text: string): void {
 }
 
 // `send` comes out of the machine with its ticket; the answer carries the ticket back.
-// `setTimeout`, because a nested `dispatch` is forbidden; the delays stand in for the network.
+// `setTimeout`, because a nested `dispatch` answers `BUSY`; the delays stand in for the network.
 form.rx.on("send", ({ attempt, fields }) => {
   line(`▸ send #${attempt}`);
   const deliver = (ms: number, label: string, answer: () => boolean) =>
-    setTimeout(() => line(`◂ ${label} — ${answer() ? "taken" : "dropped"}`), ms);
+    setTimeout(
+      () => line(`◂ ${label} — ${answer() ? "taken" : "dropped"}`),
+      ms,
+    );
   if (+fields.amount > 900) {
     const why = `amounts over 900 are refused — got ${fields.amount}`;
     // The wire is flaky: every refusal is delivered twice. The copy arrives when the machine
     // may already be on the next attempt — no rule matches a foreign ticket.
-    deliver(700, `fail #${attempt}`, () =>
-      form.dispatch("fail", { attempt, why }),
+    deliver(
+      700,
+      `fail #${attempt}`,
+      () => form.dispatch("fail", { attempt, why }).ok,
     );
-    deliver(2100, `fail #${attempt} (copy)`, () =>
-      form.dispatch("fail", { attempt, why }),
+    deliver(
+      2100,
+      `fail #${attempt} (copy)`,
+      () => form.dispatch("fail", { attempt, why }).ok,
     );
   } else {
-    deliver(700, `ok #${attempt}`, () =>
-      form.dispatch("ok", { attempt, receipt: `ord-${fields.amount}-${attempt}` }),
+    deliver(
+      700,
+      `ok #${attempt}`,
+      () =>
+        form.dispatch("ok", {
+          attempt,
+          receipt: `ord-${fields.amount}-${attempt}`,
+        }).ok,
     );
   }
 });
@@ -89,7 +102,7 @@ function paint(): void {
   for (const [field, box] of boxes) {
     if (box.value !== fields[field]) box.value = fields[field];
     // Writable exactly while the machine has a rule for it.
-    box.readOnly = !form.can("input", { field, value: box.value });
+    box.readOnly = !form.can("input", { field, value: box.value }).ok;
     // A fault exists as soon as it is typed; it is said only for a field the reader has left.
     const fault = wrong.find((f) => f.field === field);
     const say = fault !== undefined && said !== null && said[field];
@@ -114,8 +127,8 @@ function paint(): void {
         ? "spent"
         : "—";
 
-  submit.disabled = !form.can("submit");
-  retry.disabled = !form.can("retry");
+  submit.disabled = !form.can("submit").ok;
+  retry.disabled = !form.can("retry").ok;
 
   // One slot, always there: the page's height does not jump with the verdict.
   verdict.textContent =

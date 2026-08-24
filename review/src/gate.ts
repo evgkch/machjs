@@ -53,7 +53,9 @@ const found = (graph: Graph, start: string): Fault[] =>
     .filter((issue) => issue.kind !== "terminal")
     .map((issue) => ({
       rank: issue.severity === "error" ? "blocker" : "caution",
-      where: issue.event ? `${issue.node} · ${String(issue.event)}` : issue.node,
+      where: issue.event
+        ? `${issue.node} · ${String(issue.event)}`
+        : issue.node,
       what: issue.message,
     }));
 

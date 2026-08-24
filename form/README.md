@@ -111,9 +111,9 @@ const walk = new StateMachine<Phase, Σ, Λ>(draft, {
   type: "editing",
   context: undefined,
 });
-walk.dispatch("submit"); // true
+walk.dispatch("submit"); // { ok: true }
 walk.state.type; // 'sending'
-walk.dispatch("fail", { attempt: 1, why: "refused" }); // true
+walk.dispatch("fail", { attempt: 1, why: "refused" }); // { ok: true }
 walk.state.type; // 'failed'
 ```
 
@@ -291,7 +291,7 @@ function spent(c: InFlight, p: { attempt: number }): boolean {
 
 `whole` reads the ready-made list from the context and computes nothing: the operations maintain the list (section 5). There is no separate “validate now” call on submit — the page and the panel's counter read the same `faults` field.
 
-`mine` and `spent` read both arguments — the context and the event's payload: a guard receives the two of them (README, “The transition schema”). Order matters in the `fail` pair: `spent` is the narrower case of `mine` and stands first. An answer that passes neither guard matches no rule: there is no transition, `dispatch` returns `false`, the state does not change. Declining a transition is as regular an outcome as taking one (README, “Formal definition”), and it is exactly how duplicates and stragglers are dropped.
+`mine` and `spent` read both arguments — the context and the event's payload: a guard receives the two of them (README, “The transition schema”). Order matters in the `fail` pair: `spent` is the narrower case of `mine` and stands first. An answer that passes neither guard matches no rule: `dispatch` answers `REJECTED`, the state does not change. Declining a transition is as regular an outcome as taking one (README, “Formal definition”), and it is exactly how duplicates and stragglers are dropped.
 
 Guards only read the context and the event payload, never mutating them (README, “Limitations”).
 
@@ -471,11 +471,11 @@ submit.addEventListener("click", () => form.dispatch("submit"));
 retry.addEventListener("click", () => form.dispatch("retry"));
 ```
 
-No handler checks the current state. In `sending` there is no `input` rule, and `dispatch` returns `false` without changing the state (README, “Running a transition: `dispatch` and `can`”).
+No handler checks the current state. In `sending` there is no `input` rule, and `dispatch` answers `UNHANDLED` without changing the state (README, “Running a transition: `dispatch` and `can`”).
 
 ### 6.2. The server
 
-There is no server in the example — the page itself is subscribed to `send`, and the page answers. Each line of the wire journal is one message on the line; the “taken” or “dropped” mark on an answer is the boolean of `dispatch`: it is `false` when no rule matched the message.
+There is no server in the example — the page itself is subscribed to `send`, and the page answers. Each line of the wire journal is one message on the line; the “taken” or “dropped” mark on an answer is the `ok` field of `dispatch`'s verdict: `ok: false` when no rule matched the message.
 
 ```ts
 /** One line per message on the wire; for an answer, the machine's own boolean says the rest. */
