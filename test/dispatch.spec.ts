@@ -1,4 +1,5 @@
 import { describe, it, expect, jest } from "@jest/globals";
+import { UNHANDLED, OK } from "../src/core/index.js";
 import { player } from "./core.spec.js";
 
 describe("dispatch — the machine as a process", () => {
@@ -7,9 +8,9 @@ describe("dispatch — the machine as a process", () => {
     const started = jest.fn();
     fsm.rx.on("started", started);
 
-    expect(fsm.dispatch("load")).toBe(true);
-    expect(fsm.dispatch("loaded")).toBe(true);
-    expect(fsm.dispatch("play")).toBe(true);
+    expect(fsm.dispatch("load")).toBe(OK);
+    expect(fsm.dispatch("loaded")).toBe(OK);
+    expect(fsm.dispatch("play")).toBe(OK);
     expect(fsm.state.type).toBe("playing");
     expect(started).toHaveBeenCalledTimes(1);
   });
@@ -28,9 +29,9 @@ describe("dispatch — the machine as a process", () => {
     expect(finished).toHaveBeenCalledWith({ at: 4 });
   });
 
-  it("returns false and changes nothing when the event is not accepted", () => {
+  it("names the reason and changes nothing when the event is not accepted", () => {
     const fsm = player();
-    expect(fsm.dispatch("tick", { dt: 1 })).toBe(false);
+    expect(fsm.dispatch("tick", { dt: 1 })).toBe(UNHANDLED);
     expect(fsm.state.type).toBe("idle");
     expect(fsm.state.context).toEqual({ t: 0 });
   });
@@ -38,7 +39,7 @@ describe("dispatch — the machine as a process", () => {
   it("leaves everything alone when an event arrives at a state without a cell for it", () => {
     const fsm = player();
     fsm.dispatch("load"); // idle → loading
-    expect(fsm.dispatch("play")).toBe(false); // no cell at 'loading'
+    expect(fsm.dispatch("play")).toBe(UNHANDLED); // no cell at 'loading'
     expect(fsm.state.type).toBe("loading");
   });
 
@@ -54,7 +55,7 @@ describe("dispatch — the machine as a process", () => {
 
   it("runs with no channel at all until someone subscribes", () => {
     const fsm = player();
-    expect(fsm.dispatch("load")).toBe(true); // nothing touched `rx`, nothing to send to
+    expect(fsm.dispatch("load")).toBe(OK); // nothing touched `rx`, nothing to send to
     expect(fsm.state.type).toBe("loading");
   });
 
@@ -62,7 +63,7 @@ describe("dispatch — the machine as a process", () => {
     const fsm = player();
     const started = jest.fn();
     fsm.rx.on("started", started);
-    expect(fsm.can("load")).toBe(true);
+    expect(fsm.can("load")).toBe(OK);
     expect(fsm.state.type).toBe("idle");
     expect(fsm.state.context).toEqual({ t: 0 });
     expect(started).not.toHaveBeenCalled();

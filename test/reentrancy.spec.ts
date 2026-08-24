@@ -1,10 +1,10 @@
 import { describe, it, expect } from "@jest/globals";
-import { StateMachine, DispatchInsideHandlerError } from "../src/core/index.js";
-import type { IEvent, IState, Merge } from "../src/core/index.js";
+import { StateMachine, BUSY, OK } from "../src/core/index.js";
+import type { Verdict, IEvent, IState, Merge } from "../src/core/index.js";
 import { history } from "../src/debug/index.js";
 
-// Synchronous dispatch inside an event handler is now forbidden.
-// The tests verify that it throws and that queueMicrotask keeps things ordered.
+// A synchronous dispatch inside an event handler is refused with the BUSY verdict: the inner
+// call does nothing and the outer transition completes. queueMicrotask keeps things ordered.
 
 type Node = "a" | "b" | "c";
 const chain = () =>
@@ -21,11 +21,16 @@ const chain = () =>
   );
 
 describe("a dispatch from a listener", () => {
-  it("throws DispatchInsideHandlerError when called synchronously inside a listener", () => {
+  it("answers BUSY and does nothing, while the outer transition completes", () => {
     const fsm = chain();
-    fsm.rx.on("out", () => fsm.dispatch("next"));
+    let inner: Verdict | undefined;
+    fsm.rx.on("out", () => {
+      inner = fsm.dispatch("next");
+    });
 
-    expect(() => fsm.dispatch("go")).toThrow(DispatchInsideHandlerError);
+    expect(fsm.dispatch("go")).toBe(OK);
+    expect(inner).toBe(BUSY);
+    expect(fsm.state.type).toBe("b"); // the outer move stood; the inner one never happened
   });
 
   it("is safe when deferred with queueMicrotask", async () => {
@@ -33,7 +38,7 @@ describe("a dispatch from a listener", () => {
     const past = history(fsm);
     fsm.rx.on("out", () => queueMicrotask(() => fsm.dispatch("next")));
 
-    expect(fsm.dispatch("go")).toBe(true);
+    expect(fsm.dispatch("go")).toBe(OK);
     expect(fsm.state.type).toBe("b"); // the deferred move has not happened yet
     await Promise.resolve();
     expect(fsm.state.type).toBe("c");
@@ -49,10 +54,10 @@ describe("a dispatch from a listener", () => {
     expect(() => fsm.dispatch("go")).toThrow("listener blew up");
     off();
 
-    // Without the `finally` the flag would still be raised here and this would throw
-    // `DispatchInsideHandlerError` — a live machine bricked by an unrelated bug.
+    // Without the `finally` the flag would still be raised here and every later dispatch
+    // would answer BUSY — a live machine bricked by an unrelated bug.
     expect(fsm.state.type).toBe("b");
-    expect(fsm.dispatch("next")).toBe(true);
+    expect(fsm.dispatch("next")).toBe(OK);
     expect(fsm.state.type).toBe("c");
   });
 });
@@ -65,6 +70,7 @@ describe("a dispatch from an operation of the rule itself", () => {
 
   /** The lock covers the whole transition, so `with` is as much inside it as a listener is. */
   const nesting = (slot: "when" | "with" | "by") => {
+    let inner: Verdict | undefined;
     const fsm: StateMachine<IState<Node, Ctx>, Σ, Λ> = new StateMachine<
       IState<Node, Ctx>,
       Σ,
@@ -76,18 +82,20 @@ describe("a dispatch from an operation of the rule itself", () => {
             {
               when:
                 slot === "when"
-                  ? () => (fsm.dispatch("other"), true)
+                  ? () => ((inner = fsm.dispatch("other")), true)
                   : undefined,
               to:
                 slot === "with"
                   ? ([
                       "b",
-                      (c) => (fsm.dispatch("other"), { n: c.n + 1 }),
+                      (c) => ((inner = fsm.dispatch("other")), { n: c.n + 1 }),
                     ] as const)
                   : "b",
               emit: [
                 "out",
-                slot === "by" ? (c) => (fsm.dispatch("other"), c) : (c) => c,
+                slot === "by"
+                  ? (c) => ((inner = fsm.dispatch("other")), c)
+                  : (c) => c,
               ] as const,
             },
           ],
@@ -96,17 +104,17 @@ describe("a dispatch from an operation of the rule itself", () => {
       },
       { type: "a", context: { n: 0 } },
     );
-    return fsm;
+    return { fsm, inner: () => inner };
   };
 
   it.each(["when", "with", "by"] as const)(
-    "refuses a nested dispatch from `%s` rather than losing the inner move",
+    "refuses a nested dispatch from `%s` with BUSY; the outer transition completes",
     (slot) => {
-      const fsm = nesting(slot);
-      expect(() => fsm.dispatch("go")).toThrow(DispatchInsideHandlerError);
-      // The inner transition to 'c' must not have been committed and then overwritten.
-      expect(fsm.state.type).toBe("a");
-      expect(fsm.state.context).toEqual({ n: 0 });
+      const { fsm, inner } = nesting(slot);
+      expect(fsm.dispatch("go")).toBe(OK);
+      expect(inner()).toBe(BUSY);
+      // The inner move to 'c' never happened: the outer transition to 'b' stood.
+      expect(fsm.state.type).toBe("b");
     },
   );
 
@@ -114,7 +122,7 @@ describe("a dispatch from an operation of the rule itself", () => {
     const fsm = chain();
     let answer: boolean | undefined;
     fsm.rx.on("out", () => {
-      answer = fsm.can("next");
+      answer = fsm.can("next").ok;
     });
     fsm.dispatch("go");
     expect(answer).toBe(true);

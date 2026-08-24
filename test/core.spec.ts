@@ -5,9 +5,14 @@ import {
   graph,
   TRANSITION,
   StateMachine,
+  OK,
+  UNHANDLED,
+  REJECTED,
+  TERMINAL,
 } from "../src/core/index.js";
 import type {
   Carrier,
+  Verdict,
   FsmEvent,
   IEvent,
   IState,
@@ -93,9 +98,9 @@ const fire = <Q extends Carrier, Σ extends Carrier, Λ extends Carrier>(
   const off = fsm.rx.on(TRANSITION, (t) => {
     output = t.output;
   });
-  const fired = (fsm.dispatch as (...a: unknown[]) => boolean)(...msg);
+  const fired = (fsm.dispatch as (...a: unknown[]) => Verdict)(...msg);
   off();
-  return fired ? [fsm.state.type, fsm.state.context, output] : undefined;
+  return fired.ok ? [fsm.state.type, fsm.state.context, output] : undefined;
 };
 
 describe("dispatch — one transition of the machine", () => {
@@ -151,7 +156,7 @@ describe("dispatch — one transition of the machine", () => {
       { locked: { coin: [{ to: "locked", when: () => false }] } },
       { type: "locked", context: { paid: 0 } },
     );
-    expect(shut.dispatch("coin")).toBe(false);
+    expect(shut.dispatch("coin")).toBe(REJECTED);
     expect(shut.state.type).toBe("locked");
     expect(shut.state.context).toEqual({ paid: 0 });
   });
@@ -195,8 +200,8 @@ describe("can — the question, not the move", () => {
 
   it("says no where the state has no cell for the event", () => {
     const p = player();
-    expect(p.can("play")).toBe(false); // sitting at 'idle', which takes 'load'
-    expect(p.can("load")).toBe(true);
+    expect(p.can("play")).toBe(UNHANDLED); // sitting at 'idle', which takes 'load'
+    expect(p.can("load")).toBe(OK);
   });
 
   it("says no when every rule is guarded and none passes", () => {
@@ -208,7 +213,7 @@ describe("can — the question, not the move", () => {
       { locked: { coin: [{ to: "locked", when: () => false }] } },
       { type: "locked", context: { paid: 0 } },
     );
-    expect(shut.can("coin")).toBe(false);
+    expect(shut.can("coin")).toBe(REJECTED);
   });
 
   it("weighs the payload it is given, not some other one", () => {
@@ -221,8 +226,8 @@ describe("can — the question, not the move", () => {
       },
       { type: "open", context: { limit: 10 } },
     );
-    expect(till.can("pay", 5)).toBe(true);
-    expect(till.can("pay", 50)).toBe(false);
+    expect(till.can("pay", 5)).toBe(OK);
+    expect(till.can("pay", 50)).toBe(REJECTED);
   });
 
   it("does not move the machine, and does not run `with` or `by`", () => {
@@ -236,11 +241,23 @@ describe("can — the question, not the move", () => {
       { a: { go: [{ to: ["b", bumped], emit: ["out", built] }] } },
       { type: "a", context: { n: 0 } },
     );
-    expect(m.can("go")).toBe(true);
+    expect(m.can("go")).toBe(OK);
     expect(m.state.type).toBe("a");
     expect(m.state.context).toEqual({ n: 0 });
     expect(bumped).not.toHaveBeenCalled();
     expect(built).not.toHaveBeenCalled();
+  });
+
+  it("tells a terminal state from a merely deaf one", () => {
+    const oneWay = new StateMachine<IState<"a" | "b">, IEvent<"go">>(
+      { a: { go: [{ to: "b" }] } },
+      { type: "a", context: undefined },
+    );
+    expect(oneWay.can("go")).toBe(OK);
+    expect(oneWay.dispatch("go")).toBe(OK);
+    // 'b' appears only as a target: no cells at all, so nothing will ever fire from it.
+    expect(oneWay.can("go")).toBe(TERMINAL);
+    expect(oneWay.dispatch("go")).toBe(TERMINAL);
   });
 });
 

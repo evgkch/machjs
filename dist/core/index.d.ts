@@ -1,48 +1,7 @@
-import type { Carrier, IState, Edge, Graph, FsmEvent, Nodes, Schema, FsmState } from "./types.js";
+import type { Carrier, Graph, FsmEvent, Schema, FsmState } from "./types.js";
+export * from "./errors.js";
+export { edges, graph, nameIn, nameOf, nodes, opIn } from "./utils.js";
 export type { Schema, Graph, FsmState, FsmEvent, Carrier, Nodes, Edge, Rule, When, With, By, IState, IEvent, Merge, } from "./types.js";
-/**
- * One rule as the kernel reads it — the precise `Rule<…>` lives at the edges. Contexts are
- * untyped here on purpose: the kernel walks a schema without knowing its states, so each
- * context is just a value passed along; narrowing already happened where the schema was written.
- */
-/** An operation as it may be found: code where the schema still has any, a name off a dump. */
-type Op = ((context: never, payload: never) => unknown) | string;
-/** A target or a letter: the name alone, or the name with what fills it. */
-type Slot = PropertyKey | readonly [PropertyKey, Op | null];
-export declare const nameIn: (slot: Slot | undefined) => PropertyKey | undefined;
-export declare const opIn: (slot: Slot | undefined) => Op | undefined;
-/**
- * Flatten a schema into the transition relation: one `Edge` per rule, in schema order, each row
- * the rule itself with its `from`/`on` coordinates in front. Operations ride along as functions,
- * or are absent on a schema loaded from JSON.
- */
-export declare function edges<T>(schema: T): Edge<Nodes<T>>[];
-/**
- * Every state the schema names: its own keys, plus every target some rule leads to.
- *
- * Reads the schema's keys directly rather than only `edges`, because a state written with an
- * empty cell (`ghost: {}`) has no rows and would otherwise be missed.
- */
-export declare function nodes<T>(schema: T): Nodes<T>[];
-/**
- * Name an operation: its own function name, or a name already read off a dump, passed through
- * unchanged. Falls back to `?` when there is nothing to show.
- *
- * `slot` discounts the property name JS assigns an anonymous arrow (`{ when: () => {} }.when.name`
- * is `"when"`, not `""`) — without it every anonymous guard would misreport as one named "when".
- * Exported for `machjs/formatters`, so the dump and the diagrams name operations the same way.
- */
-export declare function nameOf(operation: Function | string | null | undefined, slot: string): string | undefined;
-/**
- * The graph: the labels, and each operation's name where one was there.
- *
- * `with`, `by` and `when` become names instead of being dropped like `JSON.stringify` would drop
- * them — a name cannot run, but it still says a rule was guarded or transformed. `when`'s
- * presence must survive even unnamed: it decides whether a rule applies, so dropping it would
- * make a dumped machine read as nondeterministic instead of conditional, and `validate` would
- * misreport a sound cell's second rule as dead.
- */
-export declare function graph<T, Σ extends Carrier = Carrier, Λ extends Carrier = Carrier>(schema: T): Graph<IState<Nodes<T>, unknown>, Σ, Λ>;
 /**
  * The type behind `dispatch` and `can`: a variadic tuple union, `[type]` for an event with no
  * payload and `[type, payload]` for one that has it — one signature instead of two overloads, so
@@ -108,8 +67,8 @@ export type AnyMachine = {
     readonly rx: {
         on(msg: typeof TRANSITION, hear: (t: AnyTransition) => void): Off;
     };
-    can(type: PropertyKey, payload?: unknown): boolean;
-    dispatch(type: PropertyKey, payload?: unknown): boolean;
+    can(type: PropertyKey, payload?: unknown): Verdict;
+    dispatch(type: PropertyKey, payload?: unknown): Verdict;
     toJSON(): unknown;
 };
 /**
@@ -126,13 +85,28 @@ type Messages<Q extends Carrier, Σ extends Carrier, Λ extends Carrier> = {
 /** Unsubscribe handle. Returns true if the listener was removed. */
 export type Off = () => boolean;
 /**
- * Thrown when `dispatch` is re-entered: called synchronously from inside a transition already
- * in progress, whether from a listener or from a `when`/`with`/`by` of the rule itself. Defer
- * it with `queueMicrotask` to send the event after the current transition has finished.
+ * What `dispatch` and `can` answer: `ok: true` — the transition fired (for `can`: would fire);
+ * `ok: false` carries the systemic reason. Exactly five frozen instances exist — `OK`,
+ * `UNHANDLED`, `REJECTED`, `TERMINAL`, `BUSY` — so no call allocates, and a verdict may be
+ * compared by identity as well as read by field.
  */
-export declare class DispatchInsideHandlerError extends Error {
-    constructor();
-}
+export type Verdict = {
+    readonly ok: true;
+    readonly error?: undefined;
+} | {
+    readonly ok: false;
+    readonly error: Error;
+};
+/** The transition fired; for `can` — it would. */
+export declare const OK: Verdict;
+/** No cell for the event in the current state. */
+export declare const UNHANDLED: Verdict;
+/** Every guard refused the event with this payload. */
+export declare const REJECTED: Verdict;
+/** The state is terminal: nothing will ever fire from it. */
+export declare const TERMINAL: Verdict;
+/** A `dispatch` nested inside a running one: the outer transition is still executing. */
+export declare const BUSY: Verdict;
 /**
  * A state machine: the schema, where it currently is, and the output bus.
  *
@@ -165,24 +139,23 @@ export declare class StateMachine<Q extends Carrier, Σ extends Carrier, Λ exte
      * Would this message fire from here? Runs the guards and nothing else; the machine does not
      * move.
      *
-     * Equivalent to what the next `dispatch` of the same message would return, since `with`/`by`
+     * Answers the same verdict the next `dispatch` of the same message would, since `with`/`by`
      * cannot refuse a rule the guard admitted — which is why guards must be pure: asking twice must
      * give the same answer as asking once.
      */
-    can(...args: Args<Σ>): boolean;
+    can(...args: Args<Σ>): Verdict;
     /**
-     * Feed one event from wherever the machine now is. Returns `true` if a transition fired; a
-     * dispatch that fires nothing changes and sends nothing. Operations run in order: `when`
-     * decides, `with` folds the input into the context, `by` unfolds the reached context into the
-     * output.
+     * Feed one event from wherever the machine now is. Answers `OK` when a transition fired;
+     * otherwise the verdict names the reason (`UNHANDLED`, `REJECTED`, `TERMINAL`), and nothing
+     * changes and nothing is sent. Operations run in order: `when` decides, `with` folds the input
+     * into the context, `by` unfolds the reached context into the output.
      *
      * Synchronous throughout, including notifications, so a `dispatch` called from inside this one
      * (a listener, or the rule's own `when`/`with`/`by`) would nest one transition inside another.
-     * That throws `DispatchInsideHandlerError` instead of happening silently; defer with
-     * `queueMicrotask` to send an event after this call returns. `can` is unaffected and stays
-     * callable from inside a handler.
+     * The nested call answers `BUSY` and does nothing; defer with `queueMicrotask` to send an
+     * event after this call returns. `can` is unaffected and stays callable from inside a handler.
      */
-    dispatch(...args: Args<Σ>): boolean;
+    dispatch(...args: Args<Σ>): Verdict;
     /**
      * Move to a state directly (persistence, time travel). Sends nothing.
      *
