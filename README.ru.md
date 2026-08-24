@@ -123,10 +123,10 @@ const vm = new StateMachine<Q, Σ, Λ>(
 ```ts
 vm.rx.on("vend", () => console.log("Товар выдан"));
 
-vm.can("select");      // false — правила для этой пары нет
-vm.dispatch("select"); // false — в idle событие select не обрабатывается
-vm.dispatch("coin");   // true, переход idle → paid
-vm.dispatch("select"); // true, переход paid → idle + выдача
+vm.can("select");      // { ok: false, error } — правила для этой пары нет
+vm.dispatch("select"); // { ok: false, error } — в idle событие select не обрабатывается
+vm.dispatch("coin");   // { ok: true } — переход idle → paid
+vm.dispatch("select"); // { ok: true } — переход paid → idle + выдача
 vm.state.type;         // "idle"
 ```
 
@@ -313,31 +313,45 @@ type Σ = Merge<IEvent<"down" | "move", Point> | IEvent<"up">>;
 ### Выполнение перехода: `dispatch` и `can`
 
 ```ts
-dispatch(event, payload?) => boolean
+dispatch(event, payload?) => Verdict
+can(event, payload?)      => Verdict
+
+type Verdict = { ok: true } | { ok: false; error: Error };
 ```
 
-1. Ищет `schema[состояние][событие]`. Если ячейка отсутствует — `false`.
-2. Перебирает правила, проверяя `when`. Выбирает первое подходящее. Если ни одно не подошло — `false`.
+Ответ — один из пяти замороженных объектов-констант; вызов не создаёт объектов. Ответ читают по полю `ok` или сравнивают с константами по идентичности.
+
+| Константа | `error` | Значение |
+| --------- | ------- | -------- |
+| `OK` | — | переход выполнен; у `can` — выполнился бы |
+| `UNHANDLED` | `UnhandledError` | в текущем состоянии нет ячейки для события |
+| `REJECTED` | `RejectedError` | ячейка есть, все `when` отклонили событие с этими данными |
+| `TERMINAL` | `TerminalError` | состояние терминальное: исходящих переходов нет вообще |
+| `BUSY` | `BusyError` | вложенный вызов: внешний `dispatch` ещё выполняется |
+
+Порядок `dispatch`:
+
+1. Ищет `schema[состояние][событие]`. У состояния нет ни одной ячейки — `TERMINAL`; нет ячейки для события — `UNHANDLED`.
+2. Перебирает правила, проверяя `when`. Выбирает первое подходящее. Ни одно не подошло — `REJECTED`.
 3. Вычисляет новый контекст функцией из пары с `to`, если она там есть.
 4. Если есть `emit`, формирует выходное событие функцией из пары с ним, если она там есть.
 5. Атомарно фиксирует новое состояние.
 6. Публикует выходное событие в `rx`, затем `TRANSITION`.
-7. Возвращает `true`.
+7. Возвращает `OK`.
 
-Шаги 3–4 выполняются до фиксации, поэтому исключение в условии или в любой из двух функций оставляет автомат неизменным.
-
-```ts
-can(event, payload?) => boolean
-```
+Шаги 3–4 выполняются до фиксации, поэтому исключение в условии или в любой из двух функций оставляет автомат неизменным. Ошибки общие для всех вызовов и данных не содержат: событие, состояние и имя отклонившего условия известны вызывающему коду.
 
 `can` выполняет только шаги 1–2, без побочных эффектов.
 
 ```ts
-button.disabled = !vm.can("select");
+button.disabled = !vm.can("select").ok;
+
+const r = vm.dispatch("select");
+if (!r.ok) say(r.error);
 ```
 
 > [!WARNING]
-> Совпадение `can` и `dispatch` гарантировано, если `when` чисты.
+> Совпадение ответов `can` и `dispatch` гарантировано, если `when` чисты.
 
 ### Шина `rx` и `TRANSITION`
 
@@ -361,7 +375,7 @@ vm.rx.on(TRANSITION, (t) => console.log(t));
 
 Состояние фиксируется до отправки событий — обработчики выполняются уже при новом состоянии. Исключение в условии или в любой из двух функций оставляет автомат без изменений.
 
-Вложенный `dispatch` от того же экземпляра автомата **запрещён** — выбрасывается `DispatchInsideHandlerError`. Чтобы отправить следующее событие в ответ на переход, вызовите `dispatch` через `queueMicrotask` внутри подписки `rx.on / rx.once`.
+Вложенный `dispatch` от того же экземпляра — из подписки или из `when`/`with`/`by` текущего перехода — не выполняется: ответ `BUSY`, внешний переход завершается штатно. Чтобы отправить следующее событие в ответ на переход, вызовите `dispatch` через `queueMicrotask` внутри подписки `rx.on / rx.once`.
 
 ### Сериализация
 
@@ -448,8 +462,8 @@ class StateMachine<Q extends Carrier, Σ extends Carrier, Λ extends Carrier = �
     get state(): FsmState<Q>;
     get rx(): Rx<...>;
     // одна сигнатура: имя события, или имя и его данные
-    can(...args: Args<Σ>): boolean;
-    dispatch(...args: Args<Σ>): boolean;
+    can(...args: Args<Σ>): Verdict;
+    dispatch(...args: Args<Σ>): Verdict;
     restore(state: FsmState<Q>): void;
     toJSON(): Graph<Q, Σ, Λ>;
 }
@@ -472,18 +486,30 @@ function opIn(slot: Slot | undefined): Op | undefined;
 type AnyMachine = {
     readonly state: { readonly type: PropertyKey };
     readonly rx: { on(msg: typeof TRANSITION, hear: (t: AnyTransition) => void): Off };
-    can(type: PropertyKey, payload?: unknown): boolean;
-    dispatch(type: PropertyKey, payload?: unknown): boolean;
+    can(type: PropertyKey, payload?: unknown): Verdict;
+    dispatch(type: PropertyKey, payload?: unknown): Verdict;
     toJSON(): unknown;
 };
 
-class DispatchInsideHandlerError extends Error {}
+// ответ dispatch и can: пять констант, по одному экземпляру
+type Verdict = { ok: true } | { ok: false; error: Error };
+const OK: Verdict;
+const UNHANDLED: Verdict; // error: UnhandledError
+const REJECTED: Verdict;  // error: RejectedError
+const TERMINAL: Verdict;  // error: TerminalError
+const BUSY: Verdict;      // error: BusyError
+
+// файл core/errors: четыре ошибки-вердикта; не бросаются
+class UnhandledError extends Error {}
+class RejectedError extends Error {}
+class TerminalError extends Error {}
+class BusyError extends Error {}
 const TRANSITION: unique symbol;
 ```
 
 `Args<Σ>` в сигнатурах выше — внутренний тип, он не экспортируется. Один тип на оба вызова: где событие ничего не несёт — только имя, где несёт — имя вместе с данными; одно объединение кортежей вместо двух перегрузок.
 
-Экспортируемые типы: `Carrier`, `IState`, `IEvent`, `Merge`, `FsmState`, `FsmEvent`, `When`, `With`, `By`, `Rule`, `Schema`, `Graph`, `Edge`, `Nodes`, `Transition`, `AnyTransition`, `AnyMachine`, `Off`.
+Экспортируемые типы: `Carrier`, `IState`, `IEvent`, `Merge`, `FsmState`, `FsmEvent`, `When`, `With`, `By`, `Rule`, `Schema`, `Graph`, `Edge`, `Nodes`, `Transition`, `AnyTransition`, `AnyMachine`, `Off`, `Verdict`.
 
 ---
 
@@ -617,7 +643,7 @@ toTree(vm.schema, { at: "paid" });
 
 ## `@evgkch/machjs/debug`
 
-Наблюдение за работающим автоматом. Все четыре функции подписываются на `TRANSITION`, поэтому получают только состоявшиеся переходы. `dispatch`, вернувший `false`, и `restore` событий не публикуют и в наблюдение не попадают.
+Наблюдение за работающим автоматом. Все четыре функции подписываются на `TRANSITION`, поэтому получают только состоявшиеся переходы. `dispatch` с ответом `ok: false` и `restore` событий не публикуют и в наблюдение не попадают.
 
 ```ts
 function log(fsm, sink?: (t: Transition) => void): Off;
@@ -702,7 +728,7 @@ const cart = inspect(new StateMachine(schema, start), { name: "cart" });
 - **Безусловное правило, если оно есть, должно стоять последним.** Правила после него недостижимы; `validate` сообщает об этом ошибкой `dead-rule`.
 - **Функция контекста должна возвращать новый объект.** После перехода контекст замораживается, и попытка изменить его на месте приводит к ошибке. Заморозка включена, когда `process` недоступен или `NODE_ENV !== 'production'`; кроме того, она поверхностная и на вложенные объекты не распространяется. В продакшене мутация контекста ничем не пресекается, поэтому правило соблюдается разработчиком, а проверка лишь помогает найти нарушение при отладке.
 - **`restore` не является переходом.** Он не публикует событий, не замораживает контекст и не проверяет его на соответствие состоянию.
-- **Вложенный `dispatch` от того же экземпляра запрещён.** Используйте `queueMicrotask` внутри подписки.
+- **Вложенный `dispatch` от того же экземпляра не выполняется — ответ `BUSY`.** Используйте `queueMicrotask` внутри подписки.
 
 ---
 

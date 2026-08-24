@@ -123,10 +123,10 @@ Dispatch events and listen for outputs:
 ```ts
 vm.rx.on("vend", () => console.log("Item dispensed"));
 
-vm.can("select");      // false – no rule for this pair
-vm.dispatch("select"); // false – in idle, select is not handled
-vm.dispatch("coin");   // true, idle → paid
-vm.dispatch("select"); // true, paid → idle + dispense
+vm.can("select");      // { ok: false, error } – no rule for this pair
+vm.dispatch("select"); // { ok: false, error } – in idle, select is not handled
+vm.dispatch("coin");   // { ok: true } – idle → paid
+vm.dispatch("select"); // { ok: true } – paid → idle + dispense
 vm.state.type;         // "idle"
 ```
 
@@ -313,27 +313,41 @@ A dump keeps the pair: `JSON.stringify` writes `["idle", "toIdle"]`, the functio
 ### Executing a transition: `dispatch` and `can`
 
 ```ts
-dispatch(event, payload?) => boolean
+dispatch(event, payload?) => Verdict
+can(event, payload?)      => Verdict
+
+type Verdict = { ok: true } | { ok: false; error: Error };
 ```
 
-1. Looks up `schema[state][event]`. If absent – `false`.
-2. Iterates over the rules, evaluating `when`. Picks the first match. If none match – `false`.
+The answer is one of five frozen constant objects. No call allocates; read the `ok` field, or compare against the constants by identity.
+
+| Constant | `error` | Meaning |
+| -------- | ------- | ------- |
+| `OK` | — | the transition fired; for `can` — it would |
+| `UNHANDLED` | `UnhandledError` | the current state has no cell for this event |
+| `REJECTED` | `RejectedError` | the cell exists, every `when` refused the event with this payload |
+| `TERMINAL` | `TerminalError` | the state is terminal: no outgoing transitions at all |
+| `BUSY` | `BusyError` | a nested call: the outer `dispatch` is still executing |
+
+The order of `dispatch`:
+
+1. Looks up `schema[state][event]`. A state with no cells at all – `TERMINAL`; no cell for this event – `UNHANDLED`.
+2. Iterates over the rules, evaluating `when`. Picks the first match. If none match – `REJECTED`.
 3. Computes the new context with the function paired to `to`, if there is one.
 4. If `emit` is present, constructs the output event with the packer paired to it, if there is one.
 5. Atomically commits the new state.
 6. Publishes the output event to `rx`, then `TRANSITION`.
-7. Returns `true`.
+7. Returns `OK`.
 
-Steps 3–4 run before the commit, so an exception in a guard, a context function or a packer leaves the machine unchanged.
-
-```ts
-can(event, payload?) => boolean
-```
+Steps 3–4 run before the commit, so an exception in a guard, a context function or a packer leaves the machine unchanged. The errors are shared by all calls and carry no call data: the caller already knows the event, the state and the refusing guard's name.
 
 `can` performs only steps 1–2, without side effects.
 
 ```ts
-button.disabled = !vm.can("select");
+button.disabled = !vm.can("select").ok;
+
+const r = vm.dispatch("select");
+if (!r.ok) say(r.error);
 ```
 
 > [!WARNING]
@@ -361,7 +375,7 @@ vm.rx.on(TRANSITION, (t) => console.log(t));
 
 The state is committed before events are sent – handlers run with the new state already in place. An exception in a guard, a context function or a packer leaves the machine unchanged.
 
-A nested `dispatch` on the same machine instance is **forbidden** – it throws `DispatchInsideHandlerError`. To feed an event back through `dispatch`, use `queueMicrotask` inside the `rx.on / rx.once` subscription.
+A nested `dispatch` on the same instance — from a subscription, or from the current transition's `when`/`with`/`by` — does nothing: the answer is `BUSY`, and the outer transition completes normally. To feed an event back through `dispatch`, use `queueMicrotask` inside the `rx.on / rx.once` subscription.
 
 ### Serialization
 
@@ -448,8 +462,8 @@ class StateMachine<Q extends Carrier, Σ extends Carrier, Λ extends Carrier = �
     get state(): FsmState<Q>;
     get rx(): Rx<...>;
     // one signature: the event's name alone, or the name and its payload
-    can(...args: Args<Σ>): boolean;
-    dispatch(...args: Args<Σ>): boolean;
+    can(...args: Args<Σ>): Verdict;
+    dispatch(...args: Args<Σ>): Verdict;
     restore(state: FsmState<Q>): void;
     toJSON(): Graph<Q, Σ, Λ>;
 }
@@ -472,18 +486,30 @@ function opIn(slot: Slot | undefined): Op | undefined;
 type AnyMachine = {
     readonly state: { readonly type: PropertyKey };
     readonly rx: { on(msg: typeof TRANSITION, hear: (t: AnyTransition) => void): Off };
-    can(type: PropertyKey, payload?: unknown): boolean;
-    dispatch(type: PropertyKey, payload?: unknown): boolean;
+    can(type: PropertyKey, payload?: unknown): Verdict;
+    dispatch(type: PropertyKey, payload?: unknown): Verdict;
     toJSON(): unknown;
 };
 
-class DispatchInsideHandlerError extends Error {}
+// the verdict of dispatch and can: five constants, one instance each
+type Verdict = { ok: true } | { ok: false; error: Error };
+const OK: Verdict;
+const UNHANDLED: Verdict; // error: UnhandledError
+const REJECTED: Verdict;  // error: RejectedError
+const TERMINAL: Verdict;  // error: TerminalError
+const BUSY: Verdict;      // error: BusyError
+
+// core/errors: four verdict errors; none are thrown
+class UnhandledError extends Error {}
+class RejectedError extends Error {}
+class TerminalError extends Error {}
+class BusyError extends Error {}
 const TRANSITION: unique symbol;
 ```
 
 `Args<Σ>` in the signatures above is an internal type and is not exported. It is the one type behind both calls — the event's name alone where it carries nothing, the name and its payload where it does — a single tuple union instead of two overloads.
 
-Exported types: `Carrier`, `IState`, `IEvent`, `Merge`, `FsmState`, `FsmEvent`, `When`, `With`, `By`, `Rule`, `Schema`, `Graph`, `Edge`, `Nodes`, `Transition`, `AnyTransition`, `AnyMachine`, `Off`.
+Exported types: `Carrier`, `IState`, `IEvent`, `Merge`, `FsmState`, `FsmEvent`, `When`, `With`, `By`, `Rule`, `Schema`, `Graph`, `Edge`, `Nodes`, `Transition`, `AnyTransition`, `AnyMachine`, `Off`, `Verdict`.
 
 ---
 
@@ -617,7 +643,7 @@ Column widths are computed over the whole schema at once, so lines are aligned w
 
 ## `@evgkch/machjs/debug`
 
-Observing a running machine. All four functions subscribe to `TRANSITION`, so they receive only transitions that actually happened. A `dispatch` that returned `false`, and `restore`, publish no events and do not show up here.
+Observing a running machine. All four functions subscribe to `TRANSITION`, so they receive only transitions that actually happened. A `dispatch` that answered `ok: false`, and `restore`, publish no events and do not show up here.
 
 ```ts
 function log(fsm, sink?: (t: Transition) => void): Off;
@@ -702,7 +728,7 @@ The inspector's widgets also attach one at a time, without raising the whole ins
 - **An unconditional rule, if present, must be last.** Rules after it are unreachable; `validate` reports this as a `dead-rule` error.
 - **The context function must return a new object.** The context is frozen after the transition, and changing it in place raises an error. Freezing is on when `process` is unavailable or `NODE_ENV !== 'production'`; it is also shallow and does not extend to nested objects. In production nothing prevents a mutation of the context, so the rule is kept by the developer and the check merely helps catch a violation while debugging.
 - **`restore` is not a transition.** It publishes no events, does not freeze the context and does not check it against the state.
-- **A nested `dispatch` on the same instance is forbidden.** Use `queueMicrotask` inside the subscription.
+- **A nested `dispatch` on the same instance is refused with `BUSY`.** Use `queueMicrotask` inside the subscription.
 
 ---
 
