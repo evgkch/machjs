@@ -1,0 +1,378 @@
+@import "../../shell.css";
+
+/*
+ * Two-machines example. The shell beside this file holds the bar, the dock and the deck; what is
+ * left here is the stage — a machine at each end, and the wire across the bottom.
+ */
+@layer subject {
+    :root {
+        --dock: clamp(20rem, 27vw, 30rem);
+    }
+
+    .stage {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+        gap: var(--step-3);
+        padding: var(--step-3);
+    }
+
+    /* ── the two ends ───────────────────────────────────────────────────────── */
+
+    .end {
+        display: grid;
+        grid-auto-rows: max-content;
+        gap: var(--step-3);
+        min-height: 0;
+        padding: var(--step-4);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: auto;
+        scrollbar-width: thin;
+    }
+
+    .end-bar {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--step-3);
+    }
+
+    .pan {
+        font: 500 var(--ui-sm) / 1 var(--mono-font);
+        color: var(--faint);
+        letter-spacing: 0.08em;
+    }
+
+    /* The little screen: the amount, and one line about where the machine stands. */
+    .face {
+        display: grid;
+        gap: var(--step-1);
+        padding: var(--step-3) var(--step-4);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        background: var(--bg);
+    }
+
+    .amount {
+        font: 600 1.6rem/1.1 var(--mono-font);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .says {
+        font-size: var(--ui-sm);
+        color: var(--muted);
+    }
+
+    /* The phase says what the screen means, and the stylesheet is the only place that is written. */
+    body[data-term="waiting"] .term .says {
+        color: var(--emit);
+    }
+
+    body[data-term="approved"] .term .amount {
+        color: var(--lane-1);
+    }
+
+    body[data-term="declined"] .term .amount,
+    body[data-term="declined"] .term .says {
+        color: var(--warn);
+    }
+
+    /* ── the keypad ─────────────────────────────────────────────────────────── */
+
+    .keypad {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--step-2);
+        max-width: 20rem;
+    }
+
+    .keypad button {
+        height: calc(var(--control) + var(--step-2));
+        font: 500 var(--ui) / 1 var(--mono-font);
+    }
+
+    /*
+     * What the machine will take, shown as what to press. Nothing here reads the phase: `can()`
+     * enables a control, and these two rules say that an enabled one is the thing to do — so the
+     * screen answers "what now" at every step without a word of copy about it.
+     */
+    .keypad .go:not(:disabled) {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: var(--accent-in);
+    }
+
+    .acts button:not(:disabled) {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .hint {
+        max-width: 30rem;
+    }
+
+    /* ── the host's file ────────────────────────────────────────────────────── */
+
+    .seen {
+        display: grid;
+        gap: var(--step-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .seen:empty::after {
+        content: "nothing yet";
+        font-size: var(--ui-sm);
+        color: var(--faint);
+    }
+
+    .seen li {
+        display: flex;
+        align-items: baseline;
+        gap: var(--step-3);
+        padding-left: var(--step-3);
+        border-left: 2px solid var(--line-firm);
+    }
+
+    .seen li.yes {
+        border-left-color: var(--lane-1);
+    }
+
+    .seen li.no {
+        border-left-color: var(--warn);
+    }
+
+    .seen .no- {
+        font: 500 var(--ui-sm) / 1.5 var(--mono-font);
+        color: var(--faint);
+    }
+
+    .seen .why {
+        font-size: var(--ui-sm);
+        color: var(--muted);
+    }
+
+    /* Each machine's own states, under the machine they belong to. */
+    .legend-row {
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    /* ── the wire ───────────────────────────────────────────────────────────── */
+
+    /*
+     * The wire, across the bottom of both ends: the lane over the whole width, and under it what
+     * the reader does to the wire beside what the wire did.
+     */
+    .wire {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(15rem, 21rem);
+        gap: var(--step-2) var(--step-4);
+    }
+
+    /*
+     * The lane a message crosses, over the whole width. The rail runs the length of it, and every
+     * parcel is animated from one end to the other over its own crossing time — so what the
+     * reader sees moving is what the wire is actually holding.
+     */
+    .lane {
+        grid-column: 1 / -1;
+        position: relative;
+        height: calc(var(--control) * 2 + var(--step-2));
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        overflow: hidden;
+    }
+
+    .rail {
+        position: absolute;
+        left: var(--step-4);
+        right: var(--step-4);
+        top: 50%;
+        height: 1px;
+        background: repeating-linear-gradient(
+            to right,
+            var(--line-firm) 0 6px,
+            transparent 6px 12px
+        );
+    }
+
+    /* Cut: the rail is broken, and what was crossing is not delivered. */
+    body[data-cut="true"] .rail {
+        background: repeating-linear-gradient(
+            to right,
+            var(--warn) 0 6px,
+            transparent 6px 12px
+        );
+        opacity: var(--quiet);
+    }
+
+    .parcel {
+        position: absolute;
+        top: 50%;
+        padding: 0 var(--step-3);
+        height: var(--control-sm);
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--line-firm);
+        border-radius: var(--control-sm);
+        background: var(--surface);
+        font: 500 var(--ui-sm) / 1 var(--mono-font);
+        white-space: nowrap;
+        animation: cross var(--takes) linear forwards;
+    }
+
+    /* Down is the terminal's question; up is the host's answer, in the colour Λ is drawn in. */
+    .parcel.down {
+        color: var(--accent);
+        border-color: color-mix(in oklab, var(--accent) 45%, var(--line-firm));
+    }
+
+    .parcel.up {
+        color: var(--emit);
+        border-color: color-mix(in oklab, var(--emit) 45%, var(--line-firm));
+        animation-name: back;
+    }
+
+    /* A copy the wire made: the same message, drawn as the duplicate it is. */
+    .parcel.copy {
+        border-style: dashed;
+        opacity: var(--quiet);
+    }
+
+    @keyframes cross {
+        from {
+            left: var(--step-4);
+            transform: translate(0, -50%);
+        }
+        to {
+            left: calc(100% - var(--step-4));
+            transform: translate(-100%, -50%);
+        }
+    }
+
+    @keyframes back {
+        from {
+            left: calc(100% - var(--step-4));
+            transform: translate(-100%, -50%);
+        }
+        to {
+            left: var(--step-4);
+            transform: translate(0, -50%);
+        }
+    }
+
+    /* A reader who asked for stillness gets the message standing in the middle of the wire. */
+    @media (prefers-reduced-motion: reduce) {
+        .parcel {
+            animation: none;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    }
+
+    /* ── what the reader does to the wire ───────────────────────────────────── */
+
+    .weather {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--step-2) var(--step-4);
+    }
+
+    .switch,
+    .slider {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--step-2);
+        font-size: var(--ui-sm);
+        color: var(--muted);
+    }
+
+    .switch input {
+        width: var(--step-4);
+        height: var(--step-4);
+        accent-color: var(--warn);
+    }
+
+    .slider input[type="range"] {
+        width: 9rem;
+        height: auto;
+        padding: 0;
+        border: 0;
+        background: none;
+        accent-color: var(--accent);
+    }
+
+    /* Armed: it stays lit until the next message spends it. */
+    .weather button[aria-pressed="true"] {
+        border-color: var(--emit);
+        color: var(--emit);
+        background: color-mix(
+            in oklab,
+            var(--emit) var(--wash),
+            var(--surface)
+        );
+    }
+
+    /* ── the wire's journal, on the deck ────────────────────────────────────── */
+
+    .journal {
+        display: grid;
+        gap: var(--step-1);
+        align-content: start;
+    }
+
+    .journal ol {
+        display: grid;
+        gap: var(--step-1);
+        max-height: calc(var(--control) * 2 + var(--step-2));
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        list-style: none;
+        font: 400 var(--ui-sm) / 1.5 var(--mono-font);
+        color: var(--muted);
+    }
+
+    .journal li:first-child {
+        color: var(--ink);
+    }
+
+    /* ── narrow: the two ends stack, the wire stays across the bottom ───────── */
+
+    /*
+     * Narrow: the two ends and the wire stand one under another, each as tall as it is, and the
+     * stage scrolls. Squeezing them into the height instead would cut the keypad in half — a
+     * terminal is a tall thing, and there is no arrangement of it that is short.
+     */
+    @media (max-width: 60rem) {
+        .stage {
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: auto;
+            grid-auto-rows: auto;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        /*
+         * `min-height: 0` is what lets a card give way inside a full-height row; here the rows
+         * are the content's, so it has to go — an `auto` track whose item may shrink to nothing
+         * shrinks to nothing, and the card is cut in half instead of the stage scrolling.
+         */
+        .end {
+            min-height: auto;
+            overflow: visible;
+        }
+
+        .wire {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+}

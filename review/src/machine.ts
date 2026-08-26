@@ -14,16 +14,12 @@ import type { Closed, Doc, Fault, Q, Sign, Ticket, Σ, Λ } from "./types.js";
 export const QUORUM = 2;
 
 const START: Doc = {
-  name: "turnstile.json",
-  text: `{
-  "locked": {
-    "coin": [{ "to": ["open", "reset"], "emit": "opened" }],
-    "push": [{ "to": "locked", "emit": "denied" }]
-  },
-  "open": {
-    "push": [{ "to": "locked" }]
-  }
-}`,
+  name: "turnstile.rules",
+  text: `# turnstile — one coin, one pass
+FROM locked ON coin TO open   WITH reset EMIT opened
+FROM locked ON push TO locked            EMIT denied
+FROM open   ON push TO locked
+`,
 };
 
 // ── the schema ──────────────────────────────────────────────────────────────

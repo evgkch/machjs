@@ -565,16 +565,12 @@ The packers are the `by` half: they read the context _after_ the transition and 
 import { StateMachine } from "@evgkch/machjs";
 
 const START: Doc = {
-  name: "turnstile.json",
-  text: `{
-  "locked": {
-    "coin": [{ "to": ["open", "reset"], "emit": "opened" }],
-    "push": [{ "to": "locked", "emit": "denied" }]
-  },
-  "open": {
-    "push": [{ "to": "locked" }]
-  }
-}`,
+  name: "turnstile.rules",
+  text: `# turnstile — one coin, one pass
+FROM locked ON coin TO open   WITH reset EMIT opened
+FROM locked ON push TO locked            EMIT denied
+FROM open   ON push TO locked
+`,
 };
 
 export const flow = new StateMachine<Q, Σ, Λ>(
@@ -634,7 +630,7 @@ import { analyze, validate } from "@evgkch/machjs/analysis";
 import { edges, nodes } from "@evgkch/machjs";
 import type { Fault } from "./types.js";
 
-/** A schema as a text box can hand one over: keyed by state, holding anything. */
+/** A schema as the editor hands one over: keyed by state, holding anything. */
 export type Graph = Record<string, unknown>;
 ```
 
@@ -643,23 +639,23 @@ export type Graph = Record<string, unknown>;
 ### 6.1. Reading the document
 
 ```ts
-export function readGraph(text: string): Graph | string {
-  let read: unknown;
-  try {
-    read = JSON.parse(text);
-  } catch (e) {
-    return (e as Error).message;
-  }
-  if (read === null || typeof read !== "object" || Array.isArray(read))
-    return "a schema is an object keyed by state";
-  if (Object.keys(read).length === 0) return "the schema names no states";
-  return read as Graph;
+export function read(text: string): Reading {
+  const got = readSchema(text);
+  if (!got.ok) return { ok: false, say: got.say, line: got.line };
+  if (Object.keys(got.graph).length === 0)
+    return { ok: false, say: "the schema names no states", line: null };
+  return {
+    ok: true,
+    graph: got.graph as Graph,
+    start: got.start,
+    rules: got.rules,
+  };
 }
-
-export const startOf = (graph: Graph): string => Object.keys(graph)[0] ?? "";
 ```
 
-The gate takes text, not a schema: what an author submits is a document, and “it is not valid JSON” is one of the gate's answers. `readGraph` is exported: the page parses the same document for the drawing (section 7.3) with the same code. The start state is the first one named in the schema, as in the inspector's widgets.
+The gate takes text, not a schema: what an author submits is a document, and “it does not read” is one of the gate's answers. The reading is the inspector's `readSchema`, which throws nothing and takes both forms the tools write — the rule language and a `JSON.stringify(machine)` dump — so a reviewer may paste either into the editor.
+
+`read` is exported, and the page calls it for the drawing too (section 7.3). One reader for the check and for the picture: what the gate refuses is what the reviewer sees drawn, down to the line it was written on. `rules` carries that line for every rule, which is the join between the editor's gutter and the diagram's arcs.
 
 ### 6.2. What the library says
 
@@ -726,10 +722,9 @@ const unreadable = (what: string): Fault[] => [
 ];
 
 export function gate(text: string): readonly Fault[] {
-  const graph = readGraph(text);
-  if (typeof graph === "string") return unreadable(graph);
-  const start = startOf(graph);
-  return [...found(graph, start), ...policy(graph, start)];
+  const got = read(text);
+  if (!got.ok) return unreadable(got.say);
+  return [...found(got.graph, got.start), ...policy(got.graph, got.start)];
 }
 ```
 
@@ -739,22 +734,33 @@ The gate's answer is only the fault list: the library's findings, then the polic
 
 ### 7.1. Markup and dispatch
 
-The page is a queue of one submission: a textarea for the document, the drawing under it, a row of phase chips, the open findings, the settled items, the signatures, and the buttons.
+The page is a queue of one submission. The stage is the document twice over: the inspector's `<machjs-editor>` on the left, colouring every state by its lane and marking the lines that could fire, and a `<machjs-diagram>` on the right built from the same reading. Beside them stands the review sheet — the round, the sign-offs, one row per board member, the open findings and the settled ones.
 
 ```ts
 const el = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 
-const doc = el<HTMLTextAreaElement>("doc");
-const rev = el<HTMLSelectElement>("rev");
-const revOptions = [...rev.querySelectorAll("option")];
+// Built here rather than written in the markup: a widget class that appears only where a type
+// is expected is dropped by the transform, and the tag would be left unupgraded.
+const editor = new MachjsEditor();
+el<HTMLElement>("paper").append(editor);
+
 const why = el<HTMLInputElement>("why");
 // … the rest of the element refs …
 
-/** Who may sign: one button per board member, the name in `data-sign`. */
-const signs = [
-  ...document.querySelectorAll<HTMLButtonElement>("[data-sign]"),
-].map((button) => [button.dataset["sign"]!, button] as const);
+/** The board: one row per member, the name in `data-who`. Nothing else lists the members. */
+const members = [...document.querySelectorAll<HTMLLIElement>("[data-who]")].map(
+  (row) => {
+    const who = row.dataset["who"]!;
+    return {
+      who,
+      row,
+      mark: row.querySelector<HTMLElement>(".mark")!,
+      sign: row.querySelector<HTMLButtonElement>("[data-sign]")!,
+      ask: row.querySelector<HTMLButtonElement>("[data-ask]")!,
+    };
+  },
+);
 ```
 
 The signature is real: ECDSA P-256 via WebCrypto over the document text. Keys are generated on load; WebCrypto is asynchronous and `dispatch` is not, so the signature is computed in the handler, before the event is dispatched.
@@ -784,7 +790,19 @@ async function autograph(who: string, text: string): Promise<string> {
     .join("");
 }
 
-doc.addEventListener("input", () => flow.dispatch("write", doc.value));
+// The editor's own edit hook, straight to the machine. Where `write` has no rule the machine
+// refuses and the text is put back.
+editor.wiring = {
+  focus,
+  onEdit: () => {
+    if (!flow.dispatch("write", editor.text()).ok) editor.set(text());
+    later();
+  },
+  fires: (r) => subject?.drive?.can(idOfWritten(r)) ?? false,
+  here: () => subject?.at ?? "",
+  fire: (r) => shown?.fire(idOfWritten(r)),
+};
+
 submit.addEventListener("click", () => flow.dispatch("submit"));
 ship.addEventListener("click", () => flow.dispatch("ship"));
 withdraw.addEventListener("click", () => flow.dispatch("withdraw"));
@@ -853,10 +871,12 @@ function paint(): void {
   document.body.dataset["phase"] = s.type;
   phaseOut.textContent = s.type;
 
-  // The text comes from the machine, and the box is read-only whenever `write` cannot fire —
-  // the same `can` the buttons use.
-  if (doc.value !== s.context.doc.text) doc.value = s.context.doc.text;
-  doc.readOnly = !flow.can("write", doc.value);
+  // The text comes from the machine. It is written back only when the two have actually parted
+  // — an edit the schema refused — because writing it resets the caret.
+  if (editor.text() !== s.context.doc.text) {
+    editor.set(s.context.doc.text);
+    later();
+  }
 
   faultsOut.replaceChildren(
     ...(s.type === "blocked"

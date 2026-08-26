@@ -1,37 +1,12 @@
-@import "./tokens/tokens.css";
-
-@layer tokens, page;
-
-/* Examples index — light and dark, same palette as the examples themselves. */
+@import "./page.css";
 
 /*
- * The palette, the type, the spacings and the corners are the set's, out of `tokens.css` beside
- * this file. Two examples a shade apart read as two projects, and a reader moving between them
- * should be looking at the subject rather than at the furniture.
- *
- * What stays here is what that file has no opinion about, because it belongs to this page and to
- * nothing else: the graph paper behind the drawing area, and the lift the panels sit on.
+ * The examples index. The palette, the type, the spacings and the corners come out of the tokens;
+ * the running text, the two properties the tokens have no opinion about, and the link and code
+ * styling come out of `page.css` beside this file. What is left here belongs to this page and to
+ * nothing else: the column it is set in, the cards, and the three thumbnails.
  */
 @layer page {
-    :root {
-        /* The examples' frames are smaller than the inspector's. */
-        --radius: 18px;
-
-        --grid: color-mix(in oklab, var(--line) 70%, transparent);
-        --accent-in: var(--surface);
-        --shadow:
-            0 1px 2px oklch(22% 0.012 264 / 0.05),
-            0 8px 24px -12px oklch(22% 0.012 264 / 0.18);
-    }
-
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --shadow:
-                0 1px 2px oklch(0% 0 0 / 0.4),
-                0 12px 32px -14px oklch(0% 0 0 / 0.7);
-        }
-    }
-
     body {
         margin: 0;
         padding: clamp(1.5rem, 5vw, 3.5rem) 1.25rem 4rem;
@@ -54,27 +29,11 @@
         gap: 0.4rem;
     }
 
-    .eyebrow {
-        margin: 0;
-        font-size: 0.72rem;
-        font-weight: 600;
-        letter-spacing: 0.09em;
-        text-transform: uppercase;
-        color: var(--accent);
-    }
-
     h1 {
         margin: 0;
         font-size: clamp(1.5rem, 4vw, 1.9rem);
         font-weight: 620;
         letter-spacing: -0.021em;
-    }
-
-    .lede {
-        margin: 0;
-        max-width: 38rem;
-        color: var(--muted);
-        text-wrap: pretty;
     }
 
     .links {
@@ -98,20 +57,6 @@
 
     .alt:hover {
         color: var(--accent);
-    }
-
-    a {
-        color: var(--accent);
-        text-decoration-color: color-mix(
-            in srgb,
-            var(--accent) 35%,
-            transparent
-        );
-        text-underline-offset: 0.18em;
-    }
-
-    a:hover {
-        text-decoration-color: currentColor;
     }
 
     /* ── cards ───────────────────────────────────────────────────────────────── */
@@ -210,22 +155,54 @@
         background: color-mix(in srgb, var(--accent) 12%, transparent);
     }
 
-    /* The third thumbnail: two field lines and a button, which is the shape of a form. */
-    .form {
-        width: 56%;
+    /* The third thumbnail: two boxes and a message between them, which is the shape of a wire. */
+    .link {
+        width: 74%;
         color: var(--faint);
     }
 
-    .form .line {
-        fill: transparent;
-        stroke: currentColor;
-        stroke-width: 1.5;
-    }
-
-    .form .go {
+    .link rect {
         fill: color-mix(in srgb, var(--accent) 12%, transparent);
         stroke: var(--accent);
         stroke-width: 1.5;
+    }
+
+    .link .rail {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.5;
+        stroke-dasharray: 4 4;
+    }
+
+    .link .msg {
+        fill: var(--surface);
+        stroke: var(--emit);
+    }
+
+    /* The fourth thumbnail: four callers, one key, one wire — the shape of a queue behind one
+       refresh. */
+    .queue {
+        width: 78%;
+        color: var(--faint);
+    }
+
+    .queue .q {
+        fill: color-mix(in srgb, var(--accent) 12%, transparent);
+        stroke: var(--accent);
+        stroke-width: 1.2;
+    }
+
+    .queue .key {
+        fill: var(--surface);
+        stroke: var(--emit);
+        stroke-width: 1.5;
+    }
+
+    .queue .rail {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.5;
+        stroke-dasharray: 4 4;
     }
 
     /* The second thumbnail: three nodes and the way back, which is the shape of a review. */
@@ -287,9 +264,5 @@
 
     footer p {
         margin: 0;
-    }
-
-    code {
-        font: 400 0.9em/1 var(--mono-font);
     }
 }

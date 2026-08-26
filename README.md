@@ -10,7 +10,8 @@ Examples for [`@evgkch/machjs`](https://github.com/evgkch/machjs), a small typed
 | ---------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | [`selection-rect`](selection-rect)       | [open](https://evgkch.github.io/machjs/selection-rect/)     | [English](selection-rect/README.md) · [Русский](selection-rect/README.ru.md)       |
 | [`review`](review)                       | [open](https://evgkch.github.io/machjs/review/)             | [English](review/README.md) · [Русский](review/README.ru.md)                       |
-| [`form`](form)                           | [open](https://evgkch.github.io/machjs/form/)               | [English](form/README.md) · [Русский](form/README.ru.md)                           |
+| [`wire`](wire)                           | [open](https://evgkch.github.io/machjs/wire/)               | [English](wire/README.md) · [Русский](wire/README.ru.md)                           |
+| [`token`](token)                         | [open](https://evgkch.github.io/machjs/token/)              | [English](token/README.md) · [Русский](token/README.ru.md)                         |
 
 ## Running locally
 
@@ -29,6 +30,24 @@ The examples depend on the package from npm, so nothing has to be built in the l
 npm run build && npm link      # in machjs
 npm link @evgkch/machjs         # here
 ```
+
+## The shell
+
+Three files at the root are shared by every example page:
+
+| File                           | What it holds                                                                |
+| ------------------------------ | ---------------------------------------------------------------------------- |
+| [`page.css`](page.css)         | The running text and the two properties the tokens have no opinion about      |
+| [`shell.css`](shell.css)       | The full-screen frame: the bar, the stage, the dock, the deck — and the skin  |
+| [`shell.ts`](shell.ts)         | `dockEdge` — the switch that moves the panels between the side and the bottom |
+
+An example writes `@import "../../shell.css";` and then `@layer subject { … }`, and styles what is on the stage. The furniture is not its business.
+
+**The tool is Gruvbox.** A region marked `class="tool"` — the dock, the bar's switches, a legend standing under a machine — is painted in Gruvbox in both schemes, while the page keeps the tokens' own palette. A reader never has to ask whether what is in front of them is the application or the instrument watching it.
+
+It is a region and not a widget, on purpose: some of what the inspector draws *is* the subject. The schema under review in `review` is edited in `machjs-editor` and drawn in `machjs-diagram`, and it is the document, not the instrument — so it stands outside a marked region and keeps the page's colours, while the pipeline reviewing it sits in the dock, in the tool's.
+
+The skin is a block of custom properties and nothing more: the widgets read the palette as custom properties, and custom properties inherit through a shadow root.
 
 ## Adding an example
 

@@ -13,122 +13,129 @@
         <link rel="stylesheet" href="./src/style.css" />
     </head>
     <body data-phase="draft">
-        <main>
-            <header>
-                <p class="eyebrow">@evgkch/machjs example</p>
+        <header class="bar">
+            <span class="who">
+                <a class="eyebrow" href="../">machjs</a>
                 <h1>Schema review</h1>
-                <p class="lede">
-                    The document under review is itself a state-machine schema.
-                    The gate is the library's own <code>validate</code> and
-                    <code>analyze</code>; the machine that runs the review is
-                    drawn at the bottom by the inspector's widgets. Every button
-                    is enabled by asking the machine <code>can()</code>
-                    — nothing here tests the phase.
-                </p>
-            </header>
+            </span>
+            <machjs-legend kind="states" class="tool"></machjs-legend>
+            <div class="board tool" id="board"></div>
+        </header>
 
-            <!-- The machine's states, drawn by the inspector's legend: the current one filled,
-                 every capsule in its lane colour. -->
-            <machjs-legend kind="states"></machjs-legend>
+        <!--
+            The stage is the submission: the document on the left, the same document drawn on the
+            right. Both are the inspector's — the editor reads the rule language and colours every
+            state by its lane, the diagram is built from the same reading. Break a line and the
+            drawing goes with it.
 
-            <div class="work">
-                <section class="paper">
-                    <h2 class="label">The submission</h2>
-                    <textarea
-                        id="doc"
-                        spellcheck="false"
-                        autocapitalize="off"
-                        autocomplete="off"
-                        aria-label="The schema under review"
-                    ></textarea>
-
-                    <!-- The same document, as `toTree` renders it. The inspector's figure widget
-                         is planned for this spot. -->
-
-                    <p class="hint">
-                        Break it and submit again. Delete a comma; add a state
-                        no rule leads to; put a second rule behind an unguarded
-                        one. Those block. Upper-case a state name — or leave a
-                        guard nameless, <code>"when": "?"</code>, the way a dump
-                        leaves one — and the gate lets it through with a caution
-                        for the reviewers.
-                    </p>
-                </section>
-
-                <div class="side">
-                    <section class="panel">
-                        <div class="stat">
-                            <span class="label">Phase</span>
-                            <span class="value" id="phase">draft</span>
-                        </div>
-                        <div class="stat">
-                            <span class="label">Round</span>
-                            <span class="value" id="round">—</span>
-                        </div>
-                        <div class="stat">
-                            <span class="label">Sign-offs</span>
-                            <span class="value" id="signs">—</span>
-                        </div>
-
-                        <ul class="faults" id="faults" aria-live="polite"></ul>
-
-                        <!-- What has been raised and answered. It stays for the life of the
-                         submission: answered is not the same as never asked. -->
-                        <div class="settled" id="settled" hidden>
-                            <h2 class="label">Settled</h2>
-                            <ul id="closed"></ul>
-                        </div>
-
-                        <!-- The board: one button per member, the name in `data-sign`.
-                         Nothing else lists the members. -->
-                        <div class="acts">
-                            <button id="submit">Submit</button>
-                            <button data-sign="anna">Sign · anna</button>
-                            <button data-sign="boris">Sign · boris</button>
-                            <button data-sign="vera">Sign · vera</button>
-                            <button id="ship">Ship</button>
-                            <button id="withdraw">Withdraw</button>
-                        </div>
-
-                        <div class="ask">
-                            <span class="picker">
-                                <select
-                                    id="rev"
-                                    aria-label="Who requests the changes"
-                                >
-                                    <option>anna</option>
-                                    <option>boris</option>
-                                    <option>vera</option>
-                                </select>
-                            </span>
-                            <input
-                                id="why"
-                                type="text"
-                                placeholder="what needs changing"
-                                aria-label="Reason for requesting changes"
-                            />
-                            <button id="reject">Request changes</button>
-                        </div>
-                    </section>
-
-                    <section class="trace">
-                        <h2>Activity</h2>
-                        <ol id="feed" aria-live="polite"></ol>
-                    </section>
-                </div>
+            Neither is marked `tool`: what stands here is the document under review, so it is
+            drawn in the page's own colours. The instrument watching the review — the pipeline's
+            diagram and its run — is in the dock, in the tool's.
+        -->
+        <main class="stage clears-dock">
+            <div class="sheets" id="sheets">
+                <!-- placed by the script -->
             </div>
-
-            <!-- The same machine, drawn by the inspector's widgets. The desk wires them to one
-                 subject and gives each a switch. -->
-            <section class="machine">
-                <div class="machine-bar">
-                    <h2>The machine</h2>
-                    <div id="board"></div>
+            <section class="paper">
+                <div class="paper-bar">
+                    <h2 class="label">The submission</h2>
+                    <span class="file" id="file">turnstile.rules</span>
                 </div>
-                <machjs-diagram></machjs-diagram>
-                <machjs-history></machjs-history>
+                <!-- The editor is built by the script: it needs its wiring before it
+                     can draw, and naming the class is what registers the element. -->
+                <div class="paper-body" id="paper"></div>
+            </section>
+            <section class="drawn">
+                <h2 class="label">As it reads</h2>
+                <div class="pane" id="drawn"></div>
+                <p class="say" id="say" aria-live="polite"></p>
             </section>
         </main>
+
+        <!-- The dock: the review pipeline itself — the machine this example is about. -->
+        <aside class="dock tool">
+            <div class="pane" id="flow"></div>
+            <div class="pane"><machjs-history></machjs-history></div>
+        </aside>
+
+        <!--
+            The review sheet, the notes and the feed. Not the shell's floating deck: on this page
+            they are the application's own controls rather than a look at the machine, so they
+            stand in a column of the stage. Each still takes a switch on the desk.
+        -->
+        <template id="panels">
+            <section class="card sheet" id="sheet">
+                <div class="sheet-bar">
+                    <div class="stat">
+                        <span class="label">Round</span>
+                        <span class="value" id="round">—</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Sign-offs</span>
+                        <span class="value" id="signs">—</span>
+                    </div>
+                </div>
+
+                <!-- One row per member of the board: the name, what they have done, the act. -->
+                <ul class="board-list" id="members">
+                    <li data-who="anna">
+                        <span class="name">anna</span>
+                        <span class="mark"></span>
+                        <button data-sign="anna">Sign</button>
+                        <button data-ask="anna">Ask</button>
+                    </li>
+                    <li data-who="boris">
+                        <span class="name">boris</span>
+                        <span class="mark"></span>
+                        <button data-sign="boris">Sign</button>
+                        <button data-ask="boris">Ask</button>
+                    </li>
+                    <li data-who="vera">
+                        <span class="name">vera</span>
+                        <span class="mark"></span>
+                        <button data-sign="vera">Sign</button>
+                        <button data-ask="vera">Ask</button>
+                    </li>
+                </ul>
+
+                <div class="ask">
+                    <input
+                        id="why"
+                        type="text"
+                        placeholder="what needs changing"
+                        aria-label="Reason for requesting changes"
+                    />
+                </div>
+
+                <div class="acts">
+                    <button id="submit">Submit</button>
+                    <button id="ship">Ship</button>
+                    <button id="withdraw">Withdraw</button>
+                </div>
+            </section>
+
+            <section class="card notes" id="notes">
+                <ul class="faults" id="faults" aria-live="polite"></ul>
+                <!-- What has been raised and answered. It stays for the life of the submission:
+                     answered is not the same as never asked. -->
+                <div class="settled" id="settled" hidden>
+                    <h2 class="label">Settled</h2>
+                    <ul id="closed"></ul>
+                </div>
+                <ul class="hint">
+                    <li>Drop a <code>TO</code> — it will not read.</li>
+                    <li>Add a state no rule leads to — the gate blocks it.</li>
+                    <li>
+                        Upper-case a state name — it passes, with a caution.
+                    </li>
+                </ul>
+            </section>
+
+            <section class="card trace" id="trace">
+                <h2 class="label">Activity</h2>
+                <ol id="feed" aria-live="polite"></ol>
+            </section>
+        </template>
 
         <script type="module" src="./src/main.ts"></script>
     </body>

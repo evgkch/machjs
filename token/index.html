@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>machjs — refreshing a token</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Onest:wght@200..900&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="./src/style.css" />
+    </head>
+    <body data-phase="ok">
+        <header class="bar">
+            <span class="who">
+                <a class="eyebrow" href="../">machjs</a>
+                <h1>Refreshing a token</h1>
+            </span>
+            <machjs-legend kind="states" class="tool"></machjs-legend>
+            <div class="board tool" id="board"></div>
+        </header>
+
+        <!--
+            The stage: the callers on the left, the token on the right. Five callers refused at
+            once are five rows here and one event to the machine — the split the schema is built
+            on.
+        -->
+        <main class="stage clears-dock">
+            <section class="side callers">
+                <div class="side-bar">
+                    <h2 class="label">The callers</h2>
+                    <span class="stat">
+                        <span class="label">Waiting</span>
+                        <span class="value" id="waiting">0</span>
+                    </span>
+                </div>
+                <div class="acts">
+                    <button id="one">One request</button>
+                    <button id="five" class="go">Five at once</button>
+                </div>
+                <ol class="asks" id="asks"></ol>
+            </section>
+
+            <section class="side vault">
+                <div class="side-bar">
+                    <h2 class="label">The token</h2>
+                    <span class="value" id="token">—</span>
+                </div>
+                <div class="face">
+                    <span class="phase" id="phase">ok</span>
+                    <span class="says" id="says">A usable token is held.</span>
+                </div>
+
+                <h3 class="label">The server, as the reader sets it</h3>
+                <div class="weather">
+                    <button id="expire">Expire the token</button>
+                    <label class="switch">
+                        <input type="checkbox" id="broken" />
+                        <span>Refresh fails</span>
+                    </label>
+                    <button id="retry">Try the refresh again</button>
+                </div>
+
+                <ul class="hint" id="about">
+                    <li>
+                        Press <b>Expire the token</b>, then <b>Five at once</b>.
+                    </li>
+                    <li>
+                        Five callers are refused; the token is fetched
+                        <b>once</b> — <code>emit refresh</code> stands in one
+                        cell, and all five come back with the same one.
+                    </li>
+                    <li>
+                        Tick <b>Refresh fails</b> first and all five are refused
+                        at once. None of them waits.
+                    </li>
+                </ul>
+            </section>
+        </main>
+
+        <aside class="dock tool">
+            <div class="pane" id="dia"></div>
+            <div class="pane"><machjs-history></machjs-history></div>
+        </aside>
+
+        <script type="module" src="./src/main.ts"></script>
+    </body>
+</html>

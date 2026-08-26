@@ -168,69 +168,153 @@
                 <li class="card">
                     <a
                         class="thumb"
-                        href="./form/"
+                        href="./wire/"
                         aria-hidden="true"
                         tabindex="-1"
                     >
                         <svg
-                            class="form"
-                            viewBox="0 0 120 64"
+                            class="link"
+                            viewBox="0 0 132 46"
                             role="presentation"
                         >
+                            <rect x="1" y="13" width="30" height="20" rx="4" />
                             <rect
-                                class="line"
-                                x="10"
-                                y="6"
-                                width="100"
-                                height="11"
-                                rx="3"
+                                x="101"
+                                y="13"
+                                width="30"
+                                height="20"
+                                rx="4"
                             />
+                            <path class="rail" d="M33 23 H99" />
                             <rect
-                                class="line"
-                                x="10"
-                                y="25"
-                                width="100"
-                                height="11"
-                                rx="3"
-                            />
-                            <rect
-                                class="go"
-                                x="10"
-                                y="46"
-                                width="46"
-                                height="12"
-                                rx="3"
+                                class="msg"
+                                x="56"
+                                y="18"
+                                width="20"
+                                height="10"
+                                rx="5"
                             />
                         </svg>
                     </a>
                     <div class="body">
-                        <h2><a href="./form/">A form over a flaky wire</a></h2>
+                        <h2><a href="./wire/">Two machines over a wire</a></h2>
                         <p class="about">
-                            Typing folds into the context and the send is a
-                            phase rather than a flag: where there is no
-                            <code>input</code> rule, the form locks itself.
-                            Every send carries its attempt number — an answer to
-                            a bygone attempt matches no rule and is dropped, and
-                            three refusals spend the budget.
+                            A card terminal and a host, each a machine of its
+                            own: the terminal's Λ is the host's Σ and back
+                            again. The wire between them can be cut, slowed, or
+                            made to deliver twice — and every delivery the
+                            machine at the far end refuses is written down with
+                            the reason it gave.
                         </p>
                         <p class="tags">
-                            <span>validation</span><span>retries</span
-                            ><span>async</span>
+                            <span>two machines</span><span>output events</span
+                            ><span>idempotency</span>
                         </p>
                         <p class="links">
-                            <a href="./form/">Open demo</a>
+                            <a href="./wire/">Open demo</a>
                             <a
-                                href="https://github.com/evgkch/machjs-examples/tree/master/form"
+                                href="https://github.com/evgkch/machjs-examples/tree/master/wire"
                                 >Source</a
                             >
                             <span
                                 ><a
-                                    href="https://github.com/evgkch/machjs-examples/blob/master/form/README.md"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/wire/README.md"
                                     >Walkthrough</a
                                 >
                                 <a
                                     class="alt"
-                                    href="https://github.com/evgkch/machjs-examples/blob/master/form/README.ru.md"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/wire/README.ru.md"
+                                    hreflang="ru"
+                                    >[ru]</a
+                                ></span
+                            >
+                        </p>
+                    </div>
+                </li>
+                <li class="card">
+                    <a
+                        class="thumb"
+                        href="./token/"
+                        aria-hidden="true"
+                        tabindex="-1"
+                    >
+                        <svg
+                            class="queue"
+                            viewBox="0 0 132 46"
+                            role="presentation"
+                        >
+                            <rect
+                                class="q"
+                                x="1"
+                                y="4"
+                                width="26"
+                                height="7"
+                                rx="3.5"
+                            />
+                            <rect
+                                class="q"
+                                x="1"
+                                y="14"
+                                width="26"
+                                height="7"
+                                rx="3.5"
+                            />
+                            <rect
+                                class="q"
+                                x="1"
+                                y="24"
+                                width="26"
+                                height="7"
+                                rx="3.5"
+                            />
+                            <rect
+                                class="q"
+                                x="1"
+                                y="34"
+                                width="26"
+                                height="7"
+                                rx="3.5"
+                            />
+                            <path class="rail" d="M29 22 H61" />
+                            <rect
+                                class="key"
+                                x="63"
+                                y="15"
+                                width="30"
+                                height="16"
+                                rx="5"
+                            />
+                            <path class="rail" d="M95 22 H129" />
+                        </svg>
+                    </a>
+                    <div class="body">
+                        <h2><a href="./token/">Refreshing a token</a></h2>
+                        <p class="about">
+                            Five callers get a 401 at once and the token is
+                            fetched exactly once — not by a flag, but because
+                            <code>emit refresh</code> stands in one cell of the
+                            schema. Break the refresh and all five are refused
+                            together; none of them waits.
+                        </p>
+                        <p class="tags">
+                            <span>one output, once</span
+                            ><span>waiting as a phase</span
+                            ><span>dependent context</span>
+                        </p>
+                        <p class="links">
+                            <a href="./token/">Open demo</a>
+                            <a
+                                href="https://github.com/evgkch/machjs-examples/tree/master/token"
+                                >Source</a
+                            >
+                            <span
+                                ><a
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/token/README.md"
+                                    >Walkthrough</a
+                                >
+                                <a
+                                    class="alt"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/token/README.ru.md"
                                     hreflang="ru"
                                     >[ru]</a
                                 ></span

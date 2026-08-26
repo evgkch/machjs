@@ -1,0 +1,190 @@
+@import "../../shell.css";
+
+/*
+ * Token-refresh example. The shell beside this file holds the bar, the dock and the deck; what is
+ * left here is the stage — the callers on one side, the token on the other.
+ */
+@layer subject {
+    .stage {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        gap: var(--step-3);
+        padding: var(--step-3);
+    }
+
+    .side {
+        display: grid;
+        grid-auto-rows: max-content;
+        gap: var(--step-3);
+        min-height: 0;
+        padding: var(--step-4);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: auto;
+        scrollbar-width: thin;
+    }
+
+    .side-bar {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--step-3);
+    }
+
+    /* ── the token ──────────────────────────────────────────────────────────── */
+
+    .face {
+        display: grid;
+        gap: var(--step-1);
+        padding: var(--step-3) var(--step-4);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        background: var(--bg);
+    }
+
+    .phase {
+        font: 600 1.3rem/1.1 var(--mono-font);
+    }
+
+    .says {
+        font-size: var(--ui-sm);
+        color: var(--muted);
+    }
+
+    /* The phase says what the panel means, and the stylesheet is the only place that is written. */
+    body[data-phase="refreshing"] .phase {
+        color: var(--emit);
+    }
+
+    body[data-phase="dead"] .phase,
+    body[data-phase="dead"] .says {
+        color: var(--warn);
+    }
+
+    #token {
+        font: 500 var(--ui) / 1 var(--mono-font);
+        color: var(--faint);
+    }
+
+    /* ── what the reader does to the server ─────────────────────────────────── */
+
+    .weather {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--step-2) var(--step-3);
+    }
+
+    .switch {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--step-2);
+        font-size: var(--ui-sm);
+        color: var(--muted);
+    }
+
+    .switch input {
+        width: var(--step-4);
+        height: var(--step-4);
+        accent-color: var(--warn);
+    }
+
+    /*
+     * What the machine will take, shown as what to press. Nothing here reads the phase: `can()`
+     * enables a control, and this rule says an enabled one is the thing to do.
+     */
+    .acts button:not(:disabled),
+    .weather button:not(:disabled) {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .acts .go:not(:disabled) {
+        background: var(--accent);
+        color: var(--accent-in);
+    }
+
+    /* ── the callers ────────────────────────────────────────────────────────── */
+
+    .asks {
+        display: grid;
+        gap: var(--step-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        min-height: 0;
+    }
+
+    .asks:empty::after {
+        content: "nothing asked yet";
+        font-size: var(--ui-sm);
+        color: var(--faint);
+    }
+
+    .ask {
+        display: flex;
+        align-items: baseline;
+        gap: var(--step-3);
+        padding-left: var(--step-3);
+        border-left: 2px solid var(--line-firm);
+        transition: border-color var(--quick) var(--ease);
+    }
+
+    .ask .no {
+        font: 500 var(--ui-sm) / 1.6 var(--mono-font);
+        color: var(--faint);
+    }
+
+    .ask .what {
+        font-size: var(--ui-sm);
+        color: var(--muted);
+    }
+
+    /* One colour per outcome: in flight, held up, answered, refused. */
+    .ask.sent {
+        border-left-color: var(--accent);
+    }
+
+    .ask.waiting {
+        border-left-color: var(--emit);
+    }
+
+    .ask.waiting .what {
+        color: var(--emit);
+    }
+
+    .ask.done {
+        border-left-color: var(--lane-1);
+    }
+
+    .ask.refused {
+        border-left-color: var(--warn);
+    }
+
+    .ask.refused .what {
+        color: var(--warn);
+    }
+
+    .hint {
+        max-width: 28rem;
+    }
+
+    /* ── narrow: the two sides stand one under another, and the stage scrolls ── */
+
+    @media (max-width: 60rem) {
+        .stage {
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: auto;
+            grid-auto-rows: auto;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .side {
+            min-height: auto;
+            overflow: visible;
+        }
+    }
+}

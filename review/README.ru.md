@@ -22,7 +22,7 @@ npm run build     # tsc --noEmit + сборка в dist/
 | [`src/machine.ts`](src/machine.ts) | 4, 5 — условия, операции, схема                  |
 | [`src/gate.ts`](src/gate.ts)       | 6 — чтение документа, автоматическая проверка    |
 | [`src/main.ts`](src/main.ts)       | 7 — страница, кнопки, рисунок, ожидание          |
-| [`index.html`](index.html)         | 7.1 — разметка: кнопки подписантов, поле причины |
+| [`index.html`](index.html)         | 7.1 — разметка: строки совета, поле причины      |
 | [`src/style.css`](src/style.css)   | оформление; правил поведения в нём нет           |
 
 **Содержание**
@@ -565,16 +565,12 @@ function shipped(c: Ticket) {
 import { StateMachine } from "@evgkch/machjs";
 
 const START: Doc = {
-  name: "turnstile.json",
-  text: `{
-  "locked": {
-    "coin": [{ "to": ["open", "reset"], "emit": "opened" }],
-    "push": [{ "to": "locked", "emit": "denied" }]
-  },
-  "open": {
-    "push": [{ "to": "locked" }]
-  }
-}`,
+  name: "turnstile.rules",
+  text: `# turnstile — one coin, one pass
+FROM locked ON coin TO open   WITH reset EMIT opened
+FROM locked ON push TO locked            EMIT denied
+FROM open   ON push TO locked
+`,
 };
 
 export const flow = new StateMachine<Q, Σ, Λ>(
@@ -632,7 +628,7 @@ import { analyze, validate } from "@evgkch/machjs/analysis";
 import { edges, nodes } from "@evgkch/machjs";
 import type { Fault } from "./types.js";
 
-/** Схема в том виде, в каком её отдаёт текстовое поле: ключи — состояния, значения — что угодно. */
+/** Схема в том виде, в каком её отдаёт редактор: ключи — состояния, значения — что угодно. */
 export type Graph = Record<string, unknown>;
 ```
 
@@ -641,23 +637,23 @@ export type Graph = Record<string, unknown>;
 ### 6.1. Чтение документа
 
 ```ts
-export function readGraph(text: string): Graph | string {
-  let read: unknown;
-  try {
-    read = JSON.parse(text);
-  } catch (e) {
-    return (e as Error).message;
-  }
-  if (read === null || typeof read !== "object" || Array.isArray(read))
-    return "a schema is an object keyed by state";
-  if (Object.keys(read).length === 0) return "the schema names no states";
-  return read as Graph;
+export function read(text: string): Reading {
+  const got = readSchema(text);
+  if (!got.ok) return { ok: false, say: got.say, line: got.line };
+  if (Object.keys(got.graph).length === 0)
+    return { ok: false, say: "the schema names no states", line: null };
+  return {
+    ok: true,
+    graph: got.graph as Graph,
+    start: got.start,
+    rules: got.rules,
+  };
 }
-
-export const startOf = (graph: Graph): string => Object.keys(graph)[0] ?? "";
 ```
 
-Гейт принимает текст, а не схему: автор отправляет документ, и «это не валидный JSON» — один из ответов гейта. `readGraph` экспортируется: страница разбирает тот же документ для рисунка (п. 7.3) тем же кодом. Стартовое состояние — первое названное в схеме, как в виджетах инспектора.
+Гейт принимает текст, а не схему: автор отправляет документ, и «текст не читается» — один из ответов гейта. Чтение выполняет `readSchema` инспектора: он ничего не бросает и принимает обе формы, которые пишут инструменты, — язык правил и дамп `JSON.stringify(machine)`, — так что рецензент может вставить в редактор любую из них.
+
+`read` экспортируется, и страница вызывает его же для рисунка (п. 7.3). Один читатель на проверку и на картинку: то, на чём гейт останавливает документ, рецензент видит нарисованным, вплоть до строки, в которой это написано. Поле `rules` несёт номер строки для каждого правила — это и есть связь между полем редактора и дугами диаграммы.
 
 ### 6.2. Что возвращает библиотека
 
@@ -724,10 +720,9 @@ const unreadable = (what: string): Fault[] => [
 ];
 
 export function gate(text: string): readonly Fault[] {
-  const graph = readGraph(text);
-  if (typeof graph === "string") return unreadable(graph);
-  const start = startOf(graph);
-  return [...found(graph, start), ...policy(graph, start)];
+  const got = read(text);
+  if (!got.ok) return unreadable(got.say);
+  return [...found(got.graph, got.start), ...policy(got.graph, got.start)];
 }
 ```
 
@@ -737,15 +732,15 @@ export function gate(text: string): readonly Fault[] {
 
 ### 7.1. Разметка и отправка
 
-Страница показывает одну подачу: текстовое поле для документа, рисунок документа под ним, строка меток фаз, открытые замечания, закрытые пункты, подписи и кнопки.
+Страница показывает одну подачу. На сцене документ дважды: слева редактор инспектора `<machjs-editor>` — он красит каждое состояние в его полосу и отмечает строки правил, которые могут сработать, — справа `<machjs-diagram>`, построенная по тому же чтению. Рядом стоит лист рецензии: раунд, число подписей, по строке на каждого члена совета, открытые замечания и закрытые пункты.
 
 ```ts
 const el = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 
-const doc = el<HTMLTextAreaElement>("doc");
-const rev = el<HTMLSelectElement>("rev");
-const revOptions = [...rev.querySelectorAll("option")];
+const editor = new MachjsEditor();
+el<HTMLElement>("paper").append(editor);
+
 const why = el<HTMLInputElement>("why");
 // … остальные ссылки на элементы …
 
@@ -782,7 +777,16 @@ async function autograph(who: string, text: string): Promise<string> {
     .join("");
 }
 
-doc.addEventListener("input", () => flow.dispatch("write", doc.value));
+editor.wiring = {
+  focus,
+  onEdit: () => {
+    if (!flow.dispatch("write", editor.text()).ok) editor.set(text());
+    later();
+  },
+  fires: (r) => subject?.drive?.can(idOfWritten(r)) ?? false,
+  here: () => subject?.at ?? "",
+  fire: (r) => shown?.fire(idOfWritten(r)),
+};
 submit.addEventListener("click", () => flow.dispatch("submit"));
 ship.addEventListener("click", () => flow.dispatch("ship"));
 withdraw.addEventListener("click", () => flow.dispatch("withdraw"));
@@ -853,8 +857,10 @@ function paint(): void {
 
   // Текст берётся из машины, а поле закрыто на чтение всякий раз, когда `write` не может
   // сработать, — тот же `can`, что и у кнопок.
-  if (doc.value !== s.context.doc.text) doc.value = s.context.doc.text;
-  doc.readOnly = !flow.can("write", doc.value);
+  if (editor.text() !== s.context.doc.text) {
+    editor.set(s.context.doc.text);
+    later();
+  }
 
   faultsOut.replaceChildren(
     ...(s.type === "blocked"

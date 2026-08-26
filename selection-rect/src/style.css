@@ -1,97 +1,19 @@
-@import "../../tokens/tokens.css";
-
-@layer tokens, page;
-
-/* Selection-rectangle example — light and dark, no framework. */
+@import "../../shell.css";
 
 /*
- * The palette, the type, the spacings and the corners are the set's, out of `tokens.css` beside
- * this file. Two examples a shade apart read as two projects, and a reader moving between them
- * should be looking at the subject rather than at the furniture.
- *
- * What stays here is what that file has no opinion about, because it belongs to this page and to
- * nothing else: the graph paper behind the drawing area, and the lift the panels sit on.
+ * Selection-rectangle example. The shell beside this file holds the bar, the dock and the deck;
+ * what is left here is the drawing surface and the box on it — the only two things this example
+ * does not share with the others.
  */
-@layer page {
-    :root {
-        /* The examples' frames are smaller than the inspector's. */
-        --radius: 18px;
-
-        --grid: color-mix(in oklab, var(--line) 70%, transparent);
-        --accent-in: var(--surface);
-        --shadow:
-            0 1px 2px oklch(22% 0.012 264 / 0.05),
-            0 8px 24px -12px oklch(22% 0.012 264 / 0.18);
-    }
-
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --shadow:
-                0 1px 2px oklch(0% 0 0 / 0.4),
-                0 12px 32px -14px oklch(0% 0 0 / 0.7);
-        }
-    }
-
-    body {
-        margin: 0;
-        padding: clamp(1.5rem, 5vw, 3.5rem) 1.25rem 4rem;
-        background: var(--bg);
-        color: var(--ink);
-        font: 400 15px/1.6 var(--main-font);
-    }
-
-    main {
-        max-width: 44rem;
-        margin: 0 auto;
-        display: grid;
-        gap: 1.5rem;
-    }
-
-    /* ── header ──────────────────────────────────────────────────────────────── */
-
-    header {
-        display: grid;
-        gap: 0.4rem;
-    }
-
-    .eyebrow {
-        margin: 0;
-        font-size: 0.72rem;
-        font-weight: 600;
-        letter-spacing: 0.09em;
-        text-transform: uppercase;
-        color: var(--accent);
-    }
-
-    h1 {
-        margin: 0;
-        font-size: clamp(1.5rem, 4vw, 1.9rem);
-        font-weight: 620;
-        letter-spacing: -0.021em;
-    }
-
-    .lede {
-        margin: 0;
-        max-width: 38rem;
-        color: var(--muted);
-        text-wrap: pretty;
-    }
-
-    /* ── drawing surface ─────────────────────────────────────────────────────── */
-
+@layer subject {
+    /* The stage itself is the surface: graph paper edge to edge, no frame around it. */
     #area {
-        position: relative;
-        height: clamp(260px, 45vh, 380px);
-        border: 1px solid var(--line-firm);
-        border-radius: var(--radius);
         background:
             radial-gradient(circle at 1px 1px, var(--grid) 1px, transparent 0) 0
-                0 / 16px 16px,
-            var(--surface);
-        box-shadow: var(--shadow);
+                0 / var(--cell) var(--cell),
+            var(--bg);
         cursor: crosshair;
         touch-action: none;
-        overflow: hidden;
         user-select: none;
     }
 
@@ -105,10 +27,10 @@
     }
 
     /*
- * The eight handles, drawn where `handleAt` actually looks for them — one square
- * background layer per anchor point. Hidden while a fresh rectangle is being
- * dragged out: there is nothing to grab yet.
- */
+     * The eight handles, drawn where `handleAt` actually looks for them — one square background
+     * layer per anchor point. Hidden while a fresh rectangle is being dragged out: there is
+     * nothing to grab yet.
+     */
     #box::after {
         content: "";
         position: absolute;
@@ -134,7 +56,7 @@
             center bottom,
             right bottom;
         opacity: 0;
-        transition: opacity 0.12s;
+        transition: opacity var(--quick) var(--ease);
     }
 
     body[data-phase="ready"] #box::after,
@@ -143,116 +65,23 @@
         opacity: 1;
     }
 
-    /* ── readout ─────────────────────────────────────────────────────────────── */
+    /* ── the deck's two panels ──────────────────────────────────────────────── */
 
-    /* The readout stands on the machine's bar: label — value pairs, no card of their own. */
-    .readout {
-        display: inline-flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        gap: 0.4rem 1.25rem;
-    }
-
-    .stat {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 0.4rem;
-    }
-
-    .stat .label {
-        font-size: 0.72rem;
-        font-weight: 500;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: var(--faint);
-    }
-
-    .stat .value {
-        font: 500 0.92rem/1.5 var(--mono-font);
-        font-variant-numeric: tabular-nums;
-    }
-
-    .stat.keys {
-        grid-column: span 2;
-    }
-    .stat.keys .value {
-        color: var(--muted);
-        font-weight: 400;
-    }
-
-    kbd {
-        display: inline-block;
-        padding: 0 0.32em;
-        border: 1px solid var(--line-firm);
-        border-bottom-width: 2px;
-        border-radius: var(--step-1);
-        background: var(--bg);
-        color: var(--ink);
-        font: inherit;
-        font-size: 0.85em;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        * {
-            transition: none !important;
-        }
-    }
-
-    /* The machine block: the widgets bring their own frames; the section spaces them. On a
-   wide screen the diagram stands beside the run, as in the inspector; a widget switched off
-   yields the row to its neighbour. */
-    .machine {
+    #about {
         display: grid;
-        gap: 0.75rem;
+        gap: var(--step-2);
+        max-width: 26rem;
     }
 
-    @media (min-width: 60rem) {
-        .machine {
-            grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-            align-items: stretch;
-        }
-
-        .machine-bar,
-        .machine machjs-legend {
-            grid-column: 1 / -1;
-        }
-
-        .machine machjs-diagram[hidden] ~ machjs-history {
-            grid-column: 1 / -1;
-        }
-
-        .machine machjs-diagram:has(~ machjs-history[hidden]) {
-            grid-column: 1 / -1;
-        }
-
-        /* Fixed height on the floor: a growing run scrolls inside its frame instead of pushing
-       the page. */
-        .machine machjs-diagram,
-        .machine machjs-history {
-            height: 17rem;
-        }
+    .keys {
+        margin: 0;
+        font-size: var(--ui-sm);
+        color: var(--muted);
     }
 
-    /* Stacked on a narrow screen, the frames still keep the page still. */
-    .machine machjs-diagram,
-    .machine machjs-history {
-        max-height: 17rem;
-    }
-
-    .machine-bar {
+    .readout {
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-    }
-
-    .machine-bar h2 {
-        margin: 0;
-        font-size: 0.72rem;
-        font-weight: 500;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: var(--muted);
+        gap: var(--step-2) var(--step-5);
     }
 }

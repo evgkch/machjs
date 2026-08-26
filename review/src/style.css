@@ -1,175 +1,190 @@
-@import "../../tokens/tokens.css";
-
-@layer tokens, page;
-
-/* Schema-review example — light and dark, no framework. */
+@import "../../shell.css";
 
 /*
- * What the shared vocabulary has no opinion about, because it belongs to this page and to nothing
- * else: the lift the panels sit on, and the ink a phase chip takes when it is the current one.
+ * Schema-review example. The shell beside this file holds the bar, the dock and the deck; what is
+ * left here is the stage — the submission as text and the same submission drawn — and the review
+ * sheet that stands on the deck.
  */
-@layer page {
+@layer subject {
     :root {
-        /* The examples' frames are smaller than the inspector's. */
-        --radius: 18px;
-
-        --accent-in: var(--surface);
-        --shadow:
-            0 1px 2px oklch(22% 0.012 264 / 0.05),
-            0 8px 24px -12px oklch(22% 0.012 264 / 0.18);
+        /* Seven states in a row: the pipeline's diagram opens wider than the shell's default. */
+        --dock: clamp(22rem, 30vw, 34rem);
     }
 
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --shadow:
-                0 1px 2px oklch(0% 0 0 / 0.4),
-                0 12px 32px -14px oklch(0% 0 0 / 0.7);
-        }
-    }
+    /* ── the stage: the document, twice ─────────────────────────────────────── */
 
-    body {
-        margin: 0;
-        padding: clamp(1.5rem, 5vw, 3.5rem) 1.25rem 4rem;
-        background: var(--bg);
-        color: var(--ink);
-        font: 400 15px/1.6 var(--main-font);
-    }
-
-    main {
-        max-width: 52rem;
-        margin: 0 auto;
+    .stage {
         display: grid;
-        gap: 1.5rem;
+        grid-template-columns: 19rem minmax(0, 1.5fr) minmax(0, 1fr);
+        gap: var(--step-3);
+        padding: var(--step-3);
     }
 
-    /* ── header ──────────────────────────────────────────────────────────────── */
-
-    header {
+    /*
+     * The review sheet's column. Not the shell's deck: these are the controls of the application
+     * rather than a look at the machine, so they take room instead of floating over the document.
+     * Every panel switched off, the column goes with them.
+     */
+    .sheets {
         display: grid;
-        gap: 0.4rem;
+        grid-auto-rows: max-content;
+        gap: var(--step-3);
+        min-height: 0;
+        overflow: auto;
+        scrollbar-width: thin;
     }
 
-    .eyebrow {
-        margin: 0;
-        font-size: 0.72rem;
-        font-weight: 600;
-        letter-spacing: 0.09em;
-        text-transform: uppercase;
-        color: var(--accent);
+    .stage:not(:has(.sheets > *:not([hidden]))) {
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
     }
 
-    h1 {
-        margin: 0;
-        font-size: clamp(1.5rem, 4vw, 1.9rem);
-        font-weight: 620;
-        letter-spacing: -0.021em;
-    }
-
-    .lede {
-        margin: 0;
-        max-width: 40rem;
-        color: var(--muted);
-        text-wrap: pretty;
-    }
-
-    code {
-        font: 500 0.9em/1 var(--mono-font);
-        color: var(--ink);
-    }
-
-    /* ── the work: the document, and the pipeline beside it ──────────────────── */
-
-    .work {
-        display: grid;
-        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-        gap: var(--step-4);
-        align-items: start;
-    }
-
-    @media (max-width: 46rem) {
-        .work {
-            grid-template-columns: minmax(0, 1fr);
-        }
+    .stage:not(:has(.sheets > *:not([hidden]))) .sheets {
+        display: none;
     }
 
     .paper,
-    .panel {
+    .drawn {
         display: grid;
-        gap: var(--step-3);
-        padding: var(--step-4);
-        border: 1px solid var(--line-firm);
-        border-radius: var(--radius);
-        background: var(--surface);
-        box-shadow: var(--shadow);
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: var(--step-2);
+        min-height: 0;
+        min-width: 0;
     }
 
-    h2.label,
-    .stat .label {
-        margin: 0;
-        font-size: 0.72rem;
-        font-weight: 500;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: var(--faint);
-    }
-
-    textarea {
-        display: block;
-        width: 100%;
-        min-height: 15rem;
-        padding: var(--step-3);
-        border: 1px solid var(--line);
-        border-radius: var(--radius-sm);
-        background: var(--bg);
-        color: var(--ink);
-        font: 400 13px/1.55 var(--mono-font);
-        tab-size: 2;
-        resize: vertical;
-        white-space: pre;
-        overflow-wrap: normal;
-    }
-
-    textarea:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
-    }
-
-    /* While the gate has it, the document is not editable — and that is a fact about the schema, not
-   about this rule: there is no `write` in `checking`, and the box is read-only by the same
-   question the buttons ask. This only dims it. */
-    body[data-phase="checking"] textarea,
-    body[data-phase="shipped"] textarea {
-        opacity: 0.62;
-    }
-
-    .hint {
-        margin: 0;
-        color: var(--muted);
-        font-size: 0.85rem;
-        text-wrap: pretty;
-    }
-
-    /* ── the panel's readout ─────────────────────────────────────────────────── */
-
-    .stat {
+    .paper-bar {
         display: flex;
         align-items: baseline;
         justify-content: space-between;
         gap: var(--step-3);
     }
 
-    /* Signature snippets are long; they wrap inside the panel instead of running out of it. */
-    .stat .value {
-        min-width: 0;
-        font: 500 0.92rem/1.5 var(--mono-font);
-        font-variant-numeric: tabular-nums;
-        text-align: right;
-        overflow-wrap: anywhere;
+    .file {
+        font: 500 var(--ui-sm) / 1 var(--mono-font);
+        color: var(--faint);
     }
 
-    /* ── what the gate found ─────────────────────────────────────────────────── */
+    /* The editor brings its own frame; it only has to be told how much room it has. */
+    .paper-body {
+        display: flex;
+        min-height: 0;
+    }
 
-    .faults {
+    machjs-editor {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+
+    /*
+     * The drawing sits under a caption and over the reader's complaint, so its row is what is
+     * left of the column. The `.pane` is the shell's: a grip on its left edge.
+     */
+    .drawn {
+        grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .drawn .pane {
+        min-height: 0;
+        display: flex;
+    }
+
+    /* What the reader could not read, and the line it is about. Empty while the text reads. */
+    .say {
+        margin: 0;
+        min-height: 1.2em;
+        font: 400 var(--ui-sm) / 1.4 var(--mono-font);
+        color: var(--warn);
+    }
+
+    /*
+     * The document cannot be edited while the gate has it, and cannot be edited in review at all
+     * — there is no `write` rule in those phases, and the signatures are over this text. The
+     * editor is left legible and marked as untouchable rather than hidden.
+     */
+    body[data-phase="checking"] machjs-editor,
+    body[data-phase="review"] machjs-editor,
+    body[data-phase="approved"] machjs-editor,
+    body[data-phase="shipped"] machjs-editor {
+        opacity: var(--quiet);
+    }
+
+    /* ── the review sheet ───────────────────────────────────────────────────── */
+
+    .sheet {
+        display: grid;
+        gap: var(--step-3);
+    }
+
+    .sheet-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--step-2) var(--step-4);
+    }
+
+    /* One row per member: the name, what they have done, and the two acts open to them. */
+    .board-list {
+        display: grid;
+        gap: var(--step-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .board-list li {
+        display: grid;
+        grid-template-columns: 1fr auto auto auto;
+        align-items: center;
+        gap: var(--step-2);
+    }
+
+    .board-list .name {
+        font: 500 var(--ui) / 1 var(--mono-font);
+    }
+
+    /* The signature, or the request this member raised — eight hex digits is enough to compare. */
+    .board-list .mark {
+        font: 400 var(--micro) / 1 var(--mono-font);
+        color: var(--faint);
+        white-space: nowrap;
+    }
+
+    .board-list li[data-signed] .mark {
+        color: var(--emit);
+    }
+
+    .board-list button {
+        height: var(--control-sm);
+        padding: 0 var(--step-3);
+        font-size: var(--ui-sm);
+    }
+
+    /*
+     * What the machine will take, shown as what to press. Nothing here reads the phase: `can()`
+     * enables a control, and this rule says that an enabled one is the thing to do — so the sheet
+     * answers "what now" at every step without a word of copy about it.
+     */
+    .acts button:not(:disabled),
+    .board-list button:not(:disabled) {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .ask input {
+        width: 100%;
+    }
+
+    /* ── what is open, and what was settled ─────────────────────────────────── */
+
+    .notes {
+        display: grid;
+        gap: var(--step-3);
+    }
+
+    .faults,
+    .settled ul,
+    .trace ol {
         display: grid;
         gap: var(--step-2);
         margin: 0;
@@ -181,291 +196,116 @@
         display: none;
     }
 
-    .faults li {
+    .faults li,
+    .settled li {
         display: grid;
-        gap: 0.1rem;
-        padding: var(--step-2) var(--step-3);
+        gap: 2px;
+        padding-left: var(--step-3);
         border-left: 2px solid var(--line-firm);
-        border-radius: var(--step-1);
-        background: var(--bg);
     }
 
-    /* Two ranks, two colours, and the difference between them is whether it stops the pipeline. */
-    .faults .blocker {
+    .faults li.blocker {
         border-left-color: var(--warn);
     }
 
-    .faults .caution {
+    .faults li.caution {
         border-left-color: var(--emit);
     }
 
-    .faults .where {
-        font: 500 0.75rem/1.4 var(--mono-font);
+    .settled li.done {
+        opacity: var(--quiet);
+    }
+
+    .where {
+        font: 500 var(--micro) / 1.4 var(--mono-font);
+        letter-spacing: 0.04em;
         color: var(--faint);
     }
 
-    .faults .what {
-        font-size: 0.88rem;
-        color: var(--ink);
+    .what {
+        font-size: var(--ui-sm);
+        line-height: 1.4;
         text-wrap: pretty;
     }
 
-    /* ── what has been settled ───────────────────────────────────────────────── */
-
-    /*
- * Answered, and still on the record.
- *
- * It is drawn as the open items are drawn and quieter — the same two lines, the same rail down the
- * left, at the presence of something that is there and is not the subject. Not struck through: a
- * closed item is not a mistake, it is a question that was asked and got an answer, and the reason
- * to keep it is that the answer only makes sense beside it.
- */
-    .settled {
-        display: grid;
-        gap: var(--step-2);
-    }
-
-    .settled[hidden] {
-        display: none;
-    }
-
-    .settled ul {
-        display: grid;
-        gap: var(--step-2);
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-
-    .settled li {
-        display: grid;
-        gap: 0.1rem;
-        padding: var(--step-2) var(--step-3);
-        border-left: 2px solid var(--line-firm);
-        border-radius: var(--step-1);
-        background: var(--bg);
-        opacity: 0.618;
-    }
-
-    .settled .where {
-        font: 500 0.75rem/1.4 var(--mono-font);
-        color: var(--faint);
-    }
-
-    .settled .what {
-        font-size: 0.88rem;
-        color: var(--ink);
-        text-wrap: pretty;
-    }
-
-    /* ── the controls ────────────────────────────────────────────────────────── */
-
-    .acts,
-    .ask {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--step-2);
-    }
-
-    button {
-        padding: 0 var(--step-3);
-        height: var(--step-5);
-        border: 1px solid var(--line-firm);
-        border-radius: var(--radius-sm);
-        background: var(--surface);
-        color: var(--ink);
-        font: 500 0.82rem/1 var(--main-font);
-        cursor: pointer;
-        transition:
-            border-color var(--quick),
-            background-color var(--quick),
-            color var(--quick);
-    }
-
-    button:hover:not(:disabled) {
-        border-color: var(--accent);
-        color: var(--accent);
-    }
-
-    /*
- * Off, because the machine says so.
- *
- * Every one of these is disabled by `can()` and nothing else, so what is grey here is exactly what
- * the schema has no rule for from where the machine stands. It is worth leaving them on the page
- * rather than hiding them: the row of controls *is* the alphabet, and watching it light up as the
- * document moves is the shortest description of what a partial transition function means.
- */
-    button:disabled {
-        opacity: 0.38;
-        cursor: not-allowed;
-    }
-
-    input[type="text"] {
-        flex: 1 1 10rem;
-        min-width: 0;
-        height: var(--step-5);
-        padding: 0 var(--step-3);
-        border: 1px solid var(--line);
-        border-radius: var(--radius-sm);
-        background: var(--bg);
-        color: var(--ink);
-        font: 400 0.85rem/1 var(--main-font);
-    }
-
-    input[type="text"]:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
-    }
-
-    /* The requester. The platform look is taken off; the corners come from the global superellipse
-   in tokens.css, the caret is drawn below. */
-    .picker {
-        position: relative;
-    }
-
-    select {
-        appearance: none;
-        field-sizing: content;
-        height: var(--step-5);
-        padding: 0 var(--step-5) 0 var(--step-3);
-        border: 1px solid var(--line);
-        border-radius: var(--radius-sm);
-        background: var(--bg);
-        color: var(--ink);
-        font: 400 0.85rem/1 var(--main-font);
-        cursor: pointer;
-        transition: border-color var(--quick);
-    }
-
-    select:hover {
-        border-color: var(--accent);
-    }
-
-    select:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
-    }
-
-    .picker::after {
-        content: "";
-        position: absolute;
-        right: var(--step-2);
-        top: 50%;
-        translate: 0 -50%;
-        border: var(--step-1) solid transparent;
-        border-bottom: 0;
-        border-top-color: var(--faint);
-        pointer-events: none;
-    }
-
-    /* ── the activity feed ───────────────────────────────────────────────────── */
-
-    /* The right column: the pipeline's readout, and the activity under it. */
-    .side {
-        display: grid;
-        gap: var(--step-4);
-        min-width: 0;
-        align-content: start;
-    }
+    /* ── the activity feed ──────────────────────────────────────────────────── */
 
     .trace {
         display: grid;
-        gap: 0.5rem;
-        padding: var(--step-4);
-        border: 1px solid var(--line-firm);
-        border-radius: var(--radius);
-        background: var(--surface);
-        box-shadow: var(--shadow);
+        gap: var(--step-2);
     }
 
     .trace ol {
-        max-height: 14rem;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-    }
-
-    /* The machine block: the widgets bring their own frames; the section spaces them. On a
-   wide screen the diagram stands beside the run, as in the inspector; a widget switched off
-   yields the row to its neighbour. */
-    .machine {
-        display: grid;
-        gap: 0.75rem;
-    }
-
-    @media (min-width: 60rem) {
-        .machine {
-            grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-            align-items: stretch;
-        }
-
-        .machine-bar,
-        .machine machjs-legend {
-            grid-column: 1 / -1;
-        }
-
-        .machine machjs-diagram[hidden] ~ machjs-history {
-            grid-column: 1 / -1;
-        }
-
-        .machine machjs-diagram:has(~ machjs-history[hidden]) {
-            grid-column: 1 / -1;
-        }
-
-        /* Fixed height on the floor: a growing run scrolls inside its frame instead of pushing
-       the page. */
-        .machine machjs-diagram,
-        .machine machjs-history {
-            height: 17rem;
-        }
-    }
-
-    /* Stacked on a narrow screen, the frames still keep the page still. */
-    .machine machjs-diagram,
-    .machine machjs-history {
-        max-height: 17rem;
-    }
-
-    .machine-bar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-    }
-
-    .machine-bar h2 {
-        margin: 0;
-        font-size: 0.72rem;
-        font-weight: 500;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: var(--muted);
-    }
-
-    .trace h2 {
-        margin: 0;
-        font-size: 0.72rem;
-        font-weight: 500;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: var(--faint);
-    }
-
-    /* Newest first, and every line of it came out of the machine as an output event — the page keeps
-   no log of its own, because a second record of what happened is a second thing to be wrong. */
-    #feed {
-        display: grid;
-        gap: var(--step-1);
-        margin: 0;
-        padding: 0;
-        list-style: none;
         max-height: 11rem;
-        overflow-y: auto;
-        font: 400 0.82rem/1.6 var(--mono-font);
+        overflow: auto;
+    }
+
+    .trace li {
+        font: 400 var(--ui-sm) / 1.4 var(--mono-font);
         color: var(--muted);
     }
 
-    #feed li:first-child {
+    /* The newest line is the one being read; the older ones stand back. */
+    .trace li:first-child {
         color: var(--ink);
+    }
+
+    /* ── narrow: the document above its drawing ─────────────────────────────── */
+
+    /*
+     * Not wide enough for three columns: the sheet keeps its own, and the document stands above
+     * its drawing in the other. Every row is as tall as its content and the stage scrolls —
+     * squeezing them into the height instead cuts the document in half, and half a document is
+     * not something to review.
+     */
+    @media (max-width: 78rem) {
+        .stage,
+        .stage:not(:has(.sheets > *:not([hidden]))) {
+            grid-template-columns: 19rem minmax(0, 1fr);
+            grid-template-rows: auto auto;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        /*
+         * `min-height: 0` is what lets a column give way inside a full-height row; here the rows
+         * are the content's, so it has to go — an `auto` track whose item may shrink to nothing
+         * shrinks to nothing, and everything in it is cut off instead of the stage scrolling.
+         */
+        .sheets {
+            grid-column: 1;
+            grid-row: 1 / span 2;
+            min-height: auto;
+            overflow: visible;
+        }
+
+        .paper {
+            grid-column: 2;
+            grid-row: 1;
+            min-height: 22rem;
+        }
+
+        .drawn {
+            grid-column: 2;
+            grid-row: 2;
+            min-height: 16rem;
+        }
+    }
+
+    /* Narrower still: one column, everything under everything. */
+    @media (max-width: 52rem) {
+        .stage,
+        .stage:not(:has(.sheets > *:not([hidden]))) {
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: auto;
+            grid-auto-rows: auto;
+        }
+
+        .sheets,
+        .paper,
+        .drawn {
+            grid-column: 1;
+            grid-row: auto;
+        }
     }
 }

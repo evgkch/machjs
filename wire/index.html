@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>machjs — two machines over a wire</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Onest:wght@200..900&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="./src/style.css" />
+    </head>
+    <body data-term="idle" data-host="listening">
+        <header class="bar">
+            <span class="who">
+                <a class="eyebrow" href="../">machjs</a>
+                <h1>Two machines over a wire</h1>
+            </span>
+            <div class="board tool" id="board"></div>
+        </header>
+
+        <!--
+            The stage: a machine at each end and the wire across the bottom. The terminal's Λ is
+            the host's Σ and the host's Λ is the terminal's Σ; the wire is the only thing either
+            of them shares, and neither has a rule about it.
+        -->
+        <main class="stage clears-dock">
+            <section class="end term">
+                <div class="end-bar">
+                    <h2 class="label">The terminal</h2>
+                    <span class="pan" id="pan"></span>
+                </div>
+                <div class="face">
+                    <span class="amount" id="amount">0.00 €</span>
+                    <span class="says" id="says">Type an amount.</span>
+                </div>
+                <div class="keypad" id="keypad">
+                    <button data-key="1">1</button>
+                    <button data-key="2">2</button>
+                    <button data-key="3">3</button>
+                    <button data-key="4">4</button>
+                    <button data-key="5">5</button>
+                    <button data-key="6">6</button>
+                    <button data-key="7">7</button>
+                    <button data-key="8">8</button>
+                    <button data-key="9">9</button>
+                    <button data-key="0">0</button>
+                    <button id="rub" title="Backspace">⌫</button>
+                    <button id="send" class="go">Send</button>
+                </div>
+                <div class="acts">
+                    <button id="giveUp">Give up</button>
+                    <button id="again">Again</button>
+                </div>
+                <div class="legend-row tool" id="term-legend"></div>
+                <ul class="hint" id="about">
+                    <li>Type an amount, then Send.</li>
+                    <li><b>Cut</b> — nothing arrives; the terminal waits.</li>
+                    <li>
+                        <b>Duplicate next</b> — the copy moves no money, and the
+                        journal says why.
+                    </li>
+                </ul>
+            </section>
+
+            <section class="end host">
+                <div class="end-bar">
+                    <h2 class="label">The host</h2>
+                    <span class="stat">
+                        <span class="label">Balance</span>
+                        <span class="value" id="balance">—</span>
+                    </span>
+                </div>
+                <div class="face">
+                    <span class="says" id="doing">Listening.</span>
+                </div>
+                <h3 class="label">Tickets answered</h3>
+                <ul class="seen" id="seen"></ul>
+                <div class="legend-row tool" id="host-legend"></div>
+            </section>
+
+            <!-- The wire itself: what is crossing right now, and what the reader does to it. -->
+            <section class="wire">
+                <div class="lane" id="lane" aria-hidden="true">
+                    <span class="rail"></span>
+                </div>
+                <div class="weather">
+                    <label class="switch">
+                        <input type="checkbox" id="cut" />
+                        <span>Cut</span>
+                    </label>
+                    <label class="slider">
+                        <span class="label">Delay</span>
+                        <input
+                            type="range"
+                            id="takes"
+                            min="200"
+                            max="3000"
+                            step="100"
+                            value="900"
+                        />
+                        <span class="value" id="takes-out">0.9 s</span>
+                    </label>
+                    <button id="twice">Duplicate next</button>
+                    <button id="lose">Drop next</button>
+                </div>
+                <!-- Everything the wire did, including what it lost. -->
+                <div class="journal" id="journal">
+                    <h2 class="label">The wire</h2>
+                    <ol id="log"></ol>
+                </div>
+            </section>
+        </main>
+
+        <aside class="dock tool">
+            <div class="pane" id="term-dia"></div>
+            <div class="pane" id="host-dia"></div>
+            <div class="pane"><machjs-history></machjs-history></div>
+        </aside>
+
+        <script type="module" src="./src/main.ts"></script>
+    </body>
+</html>

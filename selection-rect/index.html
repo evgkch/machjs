@@ -13,55 +13,54 @@
         <link rel="stylesheet" href="./src/style.css" />
     </head>
     <body data-phase="empty">
-        <main>
-            <header>
-                <p class="eyebrow">@evgkch/machjs example</p>
+        <!-- The bar: what this is, where the machine stands, and what is switched on. The legend
+             is the inspector's — the current state filled, every capsule in its lane colour. -->
+        <header class="bar">
+            <span class="who">
+                <a class="eyebrow" href="../">machjs</a>
                 <h1>Selection rectangle</h1>
-                <p class="lede">
-                    Drag to draw. Grab the middle to move it, a corner or an
-                    edge to resize. Every pointer event goes straight to the
-                    machine — no handler here tests the phase.
-                </p>
-            </header>
+            </span>
+            <machjs-legend kind="states" class="tool"></machjs-legend>
+            <div class="board tool" id="board"></div>
+        </header>
 
-            <!-- The machine's states, drawn by the inspector's legend: the current one filled,
-                 every capsule in its lane colour. -->
-            <machjs-legend kind="states"></machjs-legend>
-
-            <div id="area">
-                <div id="box"></div>
-            </div>
-
-            <!-- The same machine, drawn by the inspector's widgets. The desk wires them to one
-                 subject and gives each a switch; the readout stands on the same bar. -->
-            <section class="machine">
-                <div class="machine-bar">
-                    <h2>The machine</h2>
-                    <div class="readout">
-                        <div class="stat">
-                            <span class="label">Rectangle</span>
-                            <span class="value" id="rect">—</span>
-                        </div>
-                        <div class="stat">
-                            <span class="label">Undo</span>
-                            <span class="value" id="undo">0</span>
-                        </div>
-                        <div class="stat keys">
-                            <span class="label">Keys</span>
-                            <span class="value"
-                                ><kbd>Esc</kbd> cancel · <kbd>⌘/Ctrl</kbd>+<kbd
-                                    >Z</kbd
-                                >
-                                undo</span
-                            >
-                        </div>
-                    </div>
-                    <div id="board"></div>
-                </div>
-                <machjs-diagram></machjs-diagram>
-                <machjs-history></machjs-history>
-            </section>
+        <!-- The stage is the drawing area: the whole viewport under the bar. -->
+        <main class="stage" id="area">
+            <div id="box"></div>
         </main>
+
+        <!-- The dock: the inspector's widgets over the drawing, down the right edge. Each is a
+             switch on the desk; turned off, the screen is the subject and nothing else. -->
+        <aside class="dock tool">
+            <div class="pane"><machjs-diagram></machjs-diagram></div>
+            <div class="pane"><machjs-history></machjs-history></div>
+        </aside>
+
+        <!-- The deck: what the page says about itself. Switched from the same row — `desk.seat`
+             gives a panel the page lays out itself a switch beside the widgets'. -->
+        <div class="deck">
+            <section class="card" id="about">
+                <ul class="hint">
+                    <li>Drag to draw.</li>
+                    <li>
+                        Grab the middle to move, an edge or corner to resize.
+                    </li>
+                </ul>
+                <p class="keys">
+                    <kbd>Esc</kbd> cancel · <kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> undo
+                </p>
+            </section>
+            <section class="card readout" id="readout">
+                <div class="stat">
+                    <span class="label">Rectangle</span>
+                    <span class="value" id="rect">—</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Undo</span>
+                    <span class="value" id="undo">0</span>
+                </div>
+            </section>
+        </div>
 
         <script type="module" src="./src/main.ts"></script>
     </body>
