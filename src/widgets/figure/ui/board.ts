@@ -56,10 +56,12 @@ export function board(d: Draw, w: Wiring): TemplateResult {
 
   const { fixed, shown, open } = look();
 
+  // What the reader has already fixed still narrows every block: a held half rules out the rules
+  // it does not hold for, wherever they are drawn.
+  const matches = (r: Row) => fixed.every((k) => holds(k, r));
   // Reach is the plan's answer, not the mode's: a watched machine is running but cannot be
   // driven, and dimming its cells would misreport the run.
-  const play = (r: Row) =>
-    (!d.acting || d.fires(r)) && fixed.every((k) => holds(k, r));
+  const play = (r: Row) => (!d.acting || d.fires(r)) && matches(r);
   const lit = (r: Row) => shows(shown, r);
 
   // A name is one coordinate, so it lights for every lit rule that uses it.
@@ -170,14 +172,23 @@ export function board(d: Draw, w: Wiring): TemplateResult {
    * whether it is what the next press asks for, and the handlers those two decide.
    */
   const spot = (key: Key, list: Row[]) => {
-    const alive = list.some(play);
+    const corner = kindOf(key) === CORNER;
+    /*
+     * A crossing is a display and never a control, and the two are dimmed by different questions.
+     *
+     * Blocks 1 and 3 are pressed, so theirs is "could this be taken from where the machine
+     * stands" — an offer, and an offer that cannot be met is greyed. Block 2 answers "does this
+     * transition exist", and existence does not move when the machine does. Dimming it by reach
+     * left one cell of seventeen in its lane colour and made a rule that exists look like a rule
+     * that does not.
+     */
+    const alive = list.some(corner ? matches : play);
     const hot = fixed.includes(key) || (open.includes(kindOf(key)) && alive);
     const on = () =>
       pointer.dispatch("enter", { keys: [key], offer: true, alive });
     const off = () => pointer.dispatch("leave");
     // A press is one dispatch; the choice machine's guards decide what it meant. A crossing is
     // never held; no press is offered.
-    const corner = kindOf(key) === CORNER;
     const take = corner
       ? undefined
       : () => choice.dispatch("press", { key, alive });
