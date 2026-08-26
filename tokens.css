@@ -8,8 +8,13 @@
  * not), the examples import it beside their own stylesheets.
  */
 
-/* The lowest layer: any unlayered rule of the page wins over these. */
-@layer tokens;
+/*
+ * Two layers, in this order: `tokens` holds the custom properties, `controls` the pressable and
+ * typable boxes built out of them. A page that adds a layer of its own — `@layer tokens, page;`
+ * — appends it after these, because the order is fixed here, at the first mention, and this file
+ * is imported before any rule of the page.
+ */
+@layer tokens, controls;
 
 @layer tokens {
   :root {
@@ -38,8 +43,21 @@
      */
     --cell: 24px;
 
-    /* One height for every pressable box, so a line of controls has no height wobble. */
-    --control: calc(var(--cell) + var(--step-2));
+    /*
+     * One height for every pressable and typable box, so a line of controls has no height
+     * wobble. The module and a half: a control is taller than a row of the figure because a
+     * finger lands on it and a row does not. `--control-sm` is the module and a quarter, for a
+     * dense strip standing inside another control.
+     */
+    --control: var(--step-6);
+    --control-sm: calc(var(--cell) + var(--step-2));
+
+    /*
+     * The text inside a control, and the smaller one beside it. Off the monospace ladder above:
+     * that ladder is for the figure, this size is read as prose in a button or a field.
+     */
+    --ui: 0.875rem;
+    --ui-sm: 0.8125rem;
 
     /*
      * All spacing is the module halved and doubled: 3 6 12 18 24 36 — no two distances close
@@ -174,5 +192,126 @@
     * {
       transition: none !important;
     }
+  }
+}
+
+/*
+ * The controls: the pressable and typable boxes, out of the properties above. Here rather than in
+ * every page, because a button of one height beside a field of another is the one flaw a shared
+ * palette cannot hide — and three pages that each wrote their own had drifted to three.
+ *
+ * A page overrides any of this from its own layer; `@layer tokens, controls;` at the head of this
+ * file puts both below whatever the page declares after them.
+ */
+@layer controls {
+  /*
+   * One box, two roles. `--control` is the height of all of them, so a row of mixed controls has
+   * a single baseline and a single top edge.
+   */
+  :where(button, .button, input, select, textarea) {
+    height: var(--control);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font: 400 var(--ui) / 1 var(--main-font);
+    transition:
+      border-color var(--quick) var(--ease),
+      background-color var(--quick) var(--ease),
+      color var(--quick) var(--ease);
+  }
+
+  /* Pressed rather than typed into: a firmer edge, wider sides, and the weight of a word. */
+  :where(button, .button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--step-2);
+    padding: 0 var(--step-4);
+    border-color: var(--line-firm);
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  :where(button, .button):hover:not(:disabled, [aria-disabled="true"]) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /*
+   * Off because the machine says so. On the example pages every control is enabled by `can()`
+   * and by nothing else, so what is faded here is exactly what the schema has no rule for from
+   * where the machine stands.
+   */
+  :where(button, .button):disabled,
+  :where(button, .button)[aria-disabled="true"] {
+    opacity: var(--dim);
+    cursor: not-allowed;
+  }
+
+  /* Typed into: the ground of the page rather than the surface, so the well reads as a well. */
+  :where(input, select, textarea) {
+    min-width: 0;
+    padding: 0 var(--step-3);
+    background: var(--bg);
+  }
+
+  /* The one control whose height is its content's. */
+  :where(textarea) {
+    height: auto;
+    padding: var(--step-3);
+    line-height: 1.55;
+    resize: vertical;
+  }
+
+  /* Room on the right for the arrow the browser draws. */
+  :where(select) {
+    padding-right: var(--step-5);
+    cursor: pointer;
+  }
+
+  :where(input, textarea)::placeholder {
+    color: var(--faint);
+  }
+
+  /* Locked because the machine says so — the field is still read, so it is faded and not hidden. */
+  :where(input, textarea):read-only {
+    opacity: var(--quiet);
+  }
+
+  :where(input, select, textarea):hover:not(:disabled, :read-only) {
+    border-color: var(--line-firm);
+  }
+
+  :where(input, select, textarea):focus-visible,
+  :where(button, .button):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: var(--step-1);
+  }
+
+  /* What a check found, on the control it found it on. */
+  :where(input, select, textarea)[aria-invalid="true"] {
+    border-color: var(--warn);
+  }
+
+  /* A dense strip inside another control — a segmented switch, a stepper. */
+  :where(.dense) :where(button, .button, input, select) {
+    height: var(--control-sm);
+    padding: 0 var(--step-3);
+    font-size: var(--ui-sm);
+  }
+
+  /* A key of the keyboard, named in running text. Pressable in look only. */
+  :where(kbd) {
+    display: inline-block;
+    padding: 0 0.32em;
+    border: 1px solid var(--line-firm);
+    border-bottom-width: 2px;
+    border-radius: var(--step-1);
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.85em;
   }
 }
