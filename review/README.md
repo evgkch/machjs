@@ -795,7 +795,7 @@ async function autograph(who: string, text: string): Promise<string> {
 editor.wiring = {
   focus,
   onEdit: () => {
-    if (!flow.dispatch("write", editor.text()).ok) editor.set(text());
+    if (!flow.dispatch("write", editor.text()).isOk()) editor.set(text());
     later();
   },
   fires: (r) => subject?.drive?.can(idOfWritten(r)) ?? false,
@@ -823,7 +823,7 @@ reject.addEventListener("click", () => {
 });
 ```
 
-No handler tests the phase. Every input is passed straight to `dispatch`; whether it is accepted, the schema's rules decide. A keystroke while the gate has the document is refused by the schema: there is no `write` rule in `checking`, `dispatch` answers `UNHANDLED`, the state does not change (README, “Executing a transition: `dispatch` and `can`”). The reason box is cleared only on an accepted request — visible in the verdict's `ok`. The board is written once, in the markup: the `data-sign` buttons and the select beside the reason box.
+No handler tests the phase. Every input is passed straight to `dispatch`; whether it is accepted, the schema's rules decide. A keystroke while the gate has the document is refused by the schema: there is no `write` rule in `checking`, `dispatch` answers `UNHANDLED`, the state does not change (README, “Executing a transition: `dispatch` and `can`”). The reason box is cleared only on an accepted request — the verdict's `Ok` branch is the test. The board is written once, in the markup: the `data-sign` buttons and the select beside the reason box.
 
 ### 7.2. The wait: gate as a listener
 

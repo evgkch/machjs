@@ -313,7 +313,7 @@ export type Wire = {
 ```ts
 const took = arrive();
 const said = `${label}${copy ? " (a copy)" : ""}`;
-note(took.ok ? `▸ ${said}` : `⊘ ${said} — ${because(took)}`);
+note(took.isOk() ? `▸ ${said}` : `⊘ ${said} — ${because(took)}`);
 ```
 
 `because` reads the verdict's error, which is one of the library's five (README, “The verdict”): `UnhandledError` — no rule for it where the machine stands; `RejectedError` — no guard admitted it; `TerminalError`; `BusyError`.
@@ -344,11 +344,11 @@ And every control is offered by asking the machine the same question the next di
 
 ```ts
 for (const key of keys)
-  key.disabled = !terminal.can("key", { digit: key.dataset["key"]! }).ok;
-rub.disabled = !terminal.can("rub").ok;
-send.disabled = !terminal.can("send").ok;
-giveUp.disabled = !terminal.can("giveUp").ok;
-again.disabled = !terminal.can("again").ok;
+  key.disabled = !terminal.can("key", { digit: key.dataset["key"]! }).isOk();
+rub.disabled = !terminal.can("rub").isOk();
+send.disabled = !terminal.can("send").isOk();
+giveUp.disabled = !terminal.can("giveUp").isOk();
+again.disabled = !terminal.can("again").isOk();
 ```
 
 The keypad greys out in `waiting` because the schema has no `key` rule there — not because a line of code disables it. Delete a rule from the table and the key goes grey; add one and it lights up. The row of controls is the alphabet, drawn.

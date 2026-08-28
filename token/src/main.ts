@@ -178,7 +178,7 @@ function paint(): void {
         ? `Fetching one. ${s.context.waiting} caller(s) waiting.`
         : s.context.why;
   // Every control, from one question — the same one the next dispatch would answer.
-  retry.disabled = !auth.can("retry").ok;
+  retry.disabled = !auth.can("retry").isOk();
   // The server's own switch is not the machine's business: it is offered while there is a token
   // to spoil, and says so.
   expire.disabled = s.type !== "ok" || s.context.token === stale;

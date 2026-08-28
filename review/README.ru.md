@@ -780,7 +780,7 @@ async function autograph(who: string, text: string): Promise<string> {
 editor.wiring = {
   focus,
   onEdit: () => {
-    if (!flow.dispatch("write", editor.text()).ok) editor.set(text());
+    if (!flow.dispatch("write", editor.text()).isOk()) editor.set(text());
     later();
   },
   fires: (r) => subject?.drive?.can(idOfWritten(r)) ?? false,
@@ -807,7 +807,7 @@ reject.addEventListener("click", () => {
 });
 ```
 
-Обработчики не проверяют состояние: каждый ввод передаётся в `dispatch`, и схема принимает или отклоняет его по своим правилам. Пока документ у гейта, нажатия отклоняются: правила `write` в `checking` нет, `dispatch` отвечает `UNHANDLED`, состояние не меняется (README, «Выполнение перехода: `dispatch` и `can`»). Поле причины очищается только при принятом запросе — по полю `ok` ответа `dispatch`. Список подписантов записан один раз, в разметке: кнопки с `data-sign` и селектор возле поля причины.
+Обработчики не проверяют состояние: каждый ввод передаётся в `dispatch`, и схема принимает или отклоняет его по своим правилам. Пока документ у гейта, нажатия отклоняются: правила `write` в `checking` нет, `dispatch` отвечает `UNHANDLED`, состояние не меняется (README, «Выполнение перехода: `dispatch` и `can`»). Поле причины очищается только при принятом запросе — по ветви `Ok` ответа `dispatch`. Список подписантов записан один раз, в разметке: кнопки с `data-sign` и селектор возле поля причины.
 
 ### 7.2. Ожидание: гейт как слушатель
 

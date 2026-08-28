@@ -218,11 +218,11 @@ function paintTerm(): void {
 
   // Every control, from one question — the same one the next dispatch would answer.
   for (const key of keys)
-    key.disabled = !terminal.can("key", { digit: key.dataset["key"]! }).ok;
-  rub.disabled = !terminal.can("rub").ok;
-  send.disabled = !terminal.can("send").ok;
-  giveUp.disabled = !terminal.can("giveUp").ok;
-  again.disabled = !terminal.can("again").ok;
+    key.disabled = !terminal.can("key", { digit: key.dataset["key"]! }).isOk();
+  rub.disabled = !terminal.can("rub").isOk();
+  send.disabled = !terminal.can("send").isOk();
+  giveUp.disabled = !terminal.can("giveUp").isOk();
+  again.disabled = !terminal.can("again").isOk();
 }
 
 /** The host, the same way. */

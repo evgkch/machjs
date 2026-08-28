@@ -241,26 +241,30 @@ const here = (el) =>
       win.document.getElementById("amount").textContent,
       money(500),
     );
-    eq("send is open", terminal.can("send").ok, true);
+    eq("send is open", terminal.can("send").isOk(), true);
 
     terminal.dispatch("send");
     await tick();
     eq("waiting — the terminal follows", here(legends[0]), "waiting");
     // The keypad is dead because `waiting` has no `key` rule, and nothing was disabled to do it.
-    eq("the keypad is dead", terminal.can("key", { digit: "1" }).ok, false);
+    eq("the keypad is dead", terminal.can("key", { digit: "1" }).isOk(), false);
 
     // The wire, by hand: the question crosses, the host checks, the answer crosses back.
     const ask = { ticket: 1, pan: terminal.state.context.pan, amount: 500 };
-    eq("the host takes the question", host.dispatch("auth", ask).ok, true);
+    eq("the host takes the question", host.dispatch("auth", ask).isOk(), true);
     await tick();
     eq("checking — the host follows", here(legends[1]), "working");
-    eq("the host answers it", host.dispatch("ready", { ticket: 1 }).ok, true);
+    eq(
+      "the host answers it",
+      host.dispatch("ready", { ticket: 1 }).isOk(),
+      true,
+    );
     await tick();
     eq("the balance moved once", host.state.context.balance, FLOAT - 500);
 
     // The same question again, the way a wire that copies delivers it: answered off the file,
     // and the balance does not move a second time.
-    eq("a repeat is taken", host.dispatch("auth", ask).ok, true);
+    eq("a repeat is taken", host.dispatch("auth", ask).isOk(), true);
     eq("and the balance is unchanged", host.state.context.balance, FLOAT - 500);
     eq("still listening", here(legends[1]), "listening");
 
@@ -268,7 +272,7 @@ const here = (el) =>
     eq("the answer is on file", said.ok, true);
     eq(
       "approved — the terminal follows",
-      terminal.dispatch("said", said).ok,
+      terminal.dispatch("said", said).isOk(),
       true,
     );
     await tick();
@@ -276,7 +280,7 @@ const here = (el) =>
 
     // The copy of that answer, arriving after the terminal has left `waiting`: no rule for it.
     const late = terminal.dispatch("said", said);
-    eq("a straggler is refused", late.ok, false);
+    eq("a straggler is refused", late.isOk(), false);
     eq("and says why", late.error.name, "UnhandledError");
 
     eq("uncaught errors", caught.length, 0);
@@ -337,13 +341,13 @@ const here = (el) =>
     eq("the waiting were refused", gaveUp, 1);
     eq(
       "and a later caller is refused at once",
-      auth.dispatch("denied").ok,
+      auth.dispatch("denied").isOk(),
       true,
     );
     eq("refused, not queued", gaveUp, 2);
 
     // `dead` is not a dead end: `validate` would say so, and the schema has the way back.
-    eq("the way back is offered", auth.can("retry").ok, true);
+    eq("the way back is offered", auth.can("retry").isOk(), true);
     auth.dispatch("retry");
     await tick();
     eq("refreshing again", here(leg), "refreshing");

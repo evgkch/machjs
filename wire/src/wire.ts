@@ -108,7 +108,7 @@ export function newWire(): Wire {
         // and its verdict is the one place this page learns that a message changed nothing.
         const took = arrive();
         const said = `${label}${copy ? " (a copy)" : ""}`;
-        note(took.ok ? `▸ ${said}` : `⊘ ${said} — ${because(took)}`);
+        note(took.isOk() ? `▸ ${said}` : `⊘ ${said} — ${because(took)}`);
       }
       told();
     }, parcel.takes);

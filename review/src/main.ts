@@ -143,7 +143,7 @@ editor.wiring = {
   onEdit: () => {
     // Straight to the machine: a keystroke folds into the context, and the reading below is what
     // is slower. Where `write` has no rule, the machine refuses and the text is put back.
-    if (!flow.dispatch("write", editor.text()).ok) editor.set(text());
+    if (!flow.dispatch("write", editor.text()).isOk()) editor.set(text());
     later();
   },
   fires: (r) => subject?.drive?.can(idOfWritten(r)) ?? false,
@@ -214,7 +214,7 @@ for (const { who, sign, ask } of members) {
       who,
       why: why.value.trim() || "no reason given",
     });
-    if (sent.ok) why.value = "";
+    if (sent.isOk()) why.value = "";
   });
 }
 
@@ -306,12 +306,12 @@ function paint(): void {
 
   // Every control, from one question. `can` is answerable without moving the machine, because a
   // guard is the only thing that decides and guards are pure.
-  submit.disabled = !flow.can("submit").ok;
-  ship.disabled = !flow.can("ship").ok;
-  withdraw.disabled = !flow.can("withdraw").ok;
+  submit.disabled = !flow.can("submit").isOk();
+  ship.disabled = !flow.can("ship").isOk();
+  withdraw.disabled = !flow.can("withdraw").isOk();
   for (const { who, row, mark, sign, ask } of members) {
-    sign.disabled = !flow.can("sign", { who, sig: "" }).ok;
-    ask.disabled = !flow.can("reject", { who, why: "" }).ok;
+    sign.disabled = !flow.can("sign", { who, sig: "" }).isOk();
+    ask.disabled = !flow.can("reject", { who, why: "" }).isOk();
     const given = held.find((x) => x.who === who);
     // The signature is the mark, eight hex digits of it — enough to see that two are not one.
     mark.textContent = given ? `${given.sig.slice(0, 8)}…` : "";

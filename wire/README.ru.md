@@ -313,7 +313,7 @@ export type Wire = {
 ```ts
 const took = arrive();
 const said = `${label}${copy ? " (a copy)" : ""}`;
-note(took.ok ? `▸ ${said}` : `⊘ ${said} — ${because(took)}`);
+note(took.isOk() ? `▸ ${said}` : `⊘ ${said} — ${because(took)}`);
 ```
 
 `because` читает ошибку вердикта — одну из пяти библиотечных (README, «Вердикт»): `UnhandledError` — правила для события там, где стоит машина, нет; `RejectedError` — ни одно условие не пропустило; `TerminalError`; `BusyError`.
@@ -344,11 +344,11 @@ send.addEventListener("click", () => terminal.dispatch("send"));
 
 ```ts
 for (const key of keys)
-  key.disabled = !terminal.can("key", { digit: key.dataset["key"]! }).ok;
-rub.disabled = !terminal.can("rub").ok;
-send.disabled = !terminal.can("send").ok;
-giveUp.disabled = !terminal.can("giveUp").ok;
-again.disabled = !terminal.can("again").ok;
+  key.disabled = !terminal.can("key", { digit: key.dataset["key"]! }).isOk();
+rub.disabled = !terminal.can("rub").isOk();
+send.disabled = !terminal.can("send").isOk();
+giveUp.disabled = !terminal.can("giveUp").isOk();
+again.disabled = !terminal.can("again").isOk();
 ```
 
 Клавиатура гаснет в `waiting` потому, что в схеме там нет правила на `key`, а не потому, что её отключает строка кода. Уберите правило из таблицы — клавиша погаснет; добавьте — загорится. Ряд элементов управления и есть нарисованный алфавит.
