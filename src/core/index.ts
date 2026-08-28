@@ -13,11 +13,14 @@ import {
   RejectedError,
   TerminalError,
 } from "./errors.js";
+import type { MachineError } from "./errors.js";
+import { Result } from "./result.js";
 import { graph, nameIn, opIn } from "./utils.js";
 import type { LooseRule, LooseSchema } from "./utils.js";
 import type { Carrier, Graph, FsmEvent, Schema, FsmState } from "./types.js";
 
 export * from "./errors.js";
+export { Result } from "./result.js";
 export { edges, graph, nameIn, nameOf, nodes, opIn } from "./utils.js";
 export type {
   Schema,
@@ -164,37 +167,35 @@ export type Off = () => boolean;
 // ── the dispatch verdict ─────────────────────────────────────────────────────
 
 /**
- * What `dispatch` and `can` answer: `ok: true` — the transition fired (for `can`: would fire);
- * `ok: false` carries the systemic reason. Exactly five frozen instances exist — `OK`,
- * `UNHANDLED`, `REJECTED`, `TERMINAL`, `BUSY` — so no call allocates, and a verdict may be
- * compared by identity as well as read by field.
+ * What `dispatch` and `can` answer: the `Ok` branch — the transition fired (for `can`: would
+ * fire) — or the `Err` branch carrying the systemic reason. `true` rather than a target state or
+ * a transition on the `Ok` branch: `can` runs the guards and nothing else, so the only thing both
+ * asks can honestly report is that the answer is yes.
+ *
+ * Exactly five instances exist — `OK`, `UNHANDLED`, `REJECTED`, `TERMINAL`, `BUSY` — so no call
+ * allocates, and a verdict may be compared by identity as well as read by branch. Each is typed
+ * as the branch it is, so `UNHANDLED.error` is reachable without a guard.
  */
-export type Verdict =
-  | { readonly ok: true; readonly error?: undefined }
-  | { readonly ok: false; readonly error: Error };
+export type Verdict = Result<true, MachineError>;
 
 /** The transition fired; for `can` — it would. */
-export const OK: Verdict = Object.freeze({ ok: true });
+export const OK = Result.ok<true, MachineError>(true);
 /** No cell for the event in the current state. */
-export const UNHANDLED: Verdict = Object.freeze({
-  ok: false,
-  error: Object.freeze(new UnhandledError()),
-});
+export const UNHANDLED = Result.error<MachineError, true>(
+  Object.freeze(new UnhandledError()),
+);
 /** Every guard refused the event with this payload. */
-export const REJECTED: Verdict = Object.freeze({
-  ok: false,
-  error: Object.freeze(new RejectedError()),
-});
+export const REJECTED = Result.error<MachineError, true>(
+  Object.freeze(new RejectedError()),
+);
 /** The state is terminal: nothing will ever fire from it. */
-export const TERMINAL: Verdict = Object.freeze({
-  ok: false,
-  error: Object.freeze(new TerminalError()),
-});
+export const TERMINAL = Result.error<MachineError, true>(
+  Object.freeze(new TerminalError()),
+);
 /** A `dispatch` nested inside a running one: the outer transition is still executing. */
-export const BUSY: Verdict = Object.freeze({
-  ok: false,
-  error: Object.freeze(new BusyError()),
-});
+export const BUSY = Result.error<MachineError, true>(
+  Object.freeze(new BusyError()),
+);
 
 /**
  * A state machine: the schema, where it currently is, and the output bus.

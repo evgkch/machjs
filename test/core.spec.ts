@@ -100,7 +100,7 @@ const fire = <Q extends Carrier, Σ extends Carrier, Λ extends Carrier>(
   });
   const fired = (fsm.dispatch as (...a: unknown[]) => Verdict)(...msg);
   off();
-  return fired.ok ? [fsm.state.type, fsm.state.context, output] : undefined;
+  return fired.isOk() ? [fsm.state.type, fsm.state.context, output] : undefined;
 };
 
 describe("dispatch — one transition of the machine", () => {

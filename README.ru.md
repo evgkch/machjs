@@ -123,10 +123,10 @@ const vm = new StateMachine<Q, Σ, Λ>(
 ```ts
 vm.rx.on("vend", () => console.log("Товар выдан"));
 
-vm.can("select");      // { ok: false, error } — правила для этой пары нет
-vm.dispatch("select"); // { ok: false, error } — в idle событие select не обрабатывается
-vm.dispatch("coin");   // { ok: true } — переход idle → paid
-vm.dispatch("select"); // { ok: true } — переход paid → idle + выдача
+vm.can("select");      // UNHANDLED — правила для этой пары нет
+vm.dispatch("select"); // UNHANDLED — в idle событие select не обрабатывается
+vm.dispatch("coin");   // OK — переход idle → paid
+vm.dispatch("select"); // OK — переход paid → idle + выдача
 vm.state.type;         // "idle"
 ```
 
@@ -316,10 +316,12 @@ type Σ = Merge<IEvent<"down" | "move", Point> | IEvent<"up">>;
 dispatch(event, payload?) => Verdict
 can(event, payload?)      => Verdict
 
-type Verdict = { ok: true } | { ok: false; error: Error };
+type Verdict = Result<true, MachineError>;
 ```
 
-Ответ — один из пяти замороженных объектов-констант; вызов не создаёт объектов. Ответ читают по полю `ok` или сравнивают с константами по идентичности.
+`Result<T, E>` — контейнер из двух ветвей: `Result.Ok<T>` несёт `result`, `Result.Err<E>` несёт `error`, заполнено ровно одно поле из двух. Ветвь сужают `isOk()` и `isError()`, `unwrap()` возвращает значение либо бросает ошибку, `toJSON()` записывает ветвь данными. На успешной ветви вердикт несёт `true`: `can` выполняет только гварды, поэтому оба вопроса сообщают лишь то, что ответ положительный.
+
+Ответ — один из пяти объектов-констант, по одному экземпляру на каждый; вызов не создаёт объектов. Ветвь читают через `isOk`, либо константу сравнивают по идентичности.
 
 | Константа | `error` | Значение |
 | --------- | ------- | -------- |
@@ -344,10 +346,10 @@ type Verdict = { ok: true } | { ok: false; error: Error };
 `can` выполняет только шаги 1–2, без побочных эффектов.
 
 ```ts
-button.disabled = !vm.can("select").ok;
+button.disabled = !vm.can("select").isOk();
 
 const r = vm.dispatch("select");
-if (!r.ok) say(r.error);
+if (r.isError()) say(r.error);
 ```
 
 > [!WARNING]
@@ -491,13 +493,34 @@ type AnyMachine = {
     toJSON(): unknown;
 };
 
+// core/result: ответ из двух ветвей — Ok либо Err, никогда обе
+type Result<T, E extends Error = Error> = Result.Ok<T, E> | Result.Err<T, E>;
+namespace Result {
+    class Ok<T, E extends Error = Error> {
+        readonly result: T;
+        readonly error: undefined;
+    }
+    class Err<T, E extends Error = Error> {
+        readonly result: undefined;
+        readonly error: E;
+    }
+    const ok: <T, E extends Error = Error>(result: T) => Result.Ok<T, E>;
+    const error: <E extends Error, T = never>(error: E) => Result.Err<T, E>;
+}
+// на обеих ветвях
+isOk(): this is Result.Ok<T, E>;
+isError(): this is Result.Err<T, E>;
+unwrap(): T;                        // значение либо брошенная ошибка
+toJSON(): { result: T } | { error: { name: string; message: string } };
+
 // ответ dispatch и can: пять констант, по одному экземпляру
-type Verdict = { ok: true } | { ok: false; error: Error };
-const OK: Verdict;
-const UNHANDLED: Verdict; // error: UnhandledError
-const REJECTED: Verdict;  // error: RejectedError
-const TERMINAL: Verdict;  // error: TerminalError
-const BUSY: Verdict;      // error: BusyError
+type Verdict = Result<true, MachineError>;
+type MachineError = UnhandledError | RejectedError | TerminalError | BusyError;
+const OK: Result.Ok<true, MachineError>;
+const UNHANDLED: Result.Err<true, MachineError>; // error: UnhandledError
+const REJECTED: Result.Err<true, MachineError>;  // error: RejectedError
+const TERMINAL: Result.Err<true, MachineError>;  // error: TerminalError
+const BUSY: Result.Err<true, MachineError>;      // error: BusyError
 
 // файл core/errors: четыре ошибки-вердикта; не бросаются
 class UnhandledError extends Error {}
@@ -643,7 +666,7 @@ toTree(vm.schema, { at: "paid" });
 
 ## `@evgkch/machjs/debug`
 
-Наблюдение за работающим автоматом. Все четыре функции подписываются на `TRANSITION`, поэтому получают только состоявшиеся переходы. `dispatch` с ответом `ok: false` и `restore` событий не публикуют и в наблюдение не попадают.
+Наблюдение за работающим автоматом. Все четыре функции подписываются на `TRANSITION`, поэтому получают только состоявшиеся переходы. `dispatch` с ответом на ветви `Err` и `restore` событий не публикуют и в наблюдение не попадают.
 
 ```ts
 function log(fsm, sink?: (t: Transition) => void): Off;
@@ -768,7 +791,7 @@ const cart = inspect(new StateMachine(schema, start), { name: "cart" });
 
 $$\mathrm{step}: \mathrm{FsmState}\langle Q \rangle \times \mathrm{Msg}(\Sigma) \rightharpoonup \mathrm{FsmState}\langle Q \rangle \times \mathrm{Msg}(\Lambda)$$
 
-Шаг принимает и возвращает состояние целиком — по одному имени контекст не восстановить. Частичность существенна: отказ (возврат `false`) такой же законный исход, как переход.
+Шаг принимает и возвращает состояние целиком — по одному имени контекст не восстановить. Частичность существенна: отказ (`UNHANDLED`, `REJECTED`, `TERMINAL` или `BUSY`) такой же законный исход, как переход.
 
 ### Обозначения
 

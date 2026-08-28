@@ -8,8 +8,10 @@
  */
 import Channel from "@evgkch/chanjs";
 import { BusyError, UnhandledError, RejectedError, TerminalError, } from "./errors.js";
+import { Result } from "./result.js";
 import { graph, nameIn, opIn } from "./utils.js";
 export * from "./errors.js";
+export { Result } from "./result.js";
 export { edges, graph, nameIn, nameOf, nodes, opIn } from "./utils.js";
 // Freezes every context outside production: `Readonly<Q[q]>` is compile-time only and `when`
 // runs speculatively, so an in-place mutation could corrupt live state — including the
@@ -41,27 +43,15 @@ class TightRule {
 /** The reserved channel key a `Transition` rides on. */
 export const TRANSITION = Symbol("transition");
 /** The transition fired; for `can` — it would. */
-export const OK = Object.freeze({ ok: true });
+export const OK = Result.ok(true);
 /** No cell for the event in the current state. */
-export const UNHANDLED = Object.freeze({
-    ok: false,
-    error: Object.freeze(new UnhandledError()),
-});
+export const UNHANDLED = Result.error(Object.freeze(new UnhandledError()));
 /** Every guard refused the event with this payload. */
-export const REJECTED = Object.freeze({
-    ok: false,
-    error: Object.freeze(new RejectedError()),
-});
+export const REJECTED = Result.error(Object.freeze(new RejectedError()));
 /** The state is terminal: nothing will ever fire from it. */
-export const TERMINAL = Object.freeze({
-    ok: false,
-    error: Object.freeze(new TerminalError()),
-});
+export const TERMINAL = Result.error(Object.freeze(new TerminalError()));
 /** A `dispatch` nested inside a running one: the outer transition is still executing. */
-export const BUSY = Object.freeze({
-    ok: false,
-    error: Object.freeze(new BusyError()),
-});
+export const BUSY = Result.error(Object.freeze(new BusyError()));
 /**
  * A state machine: the schema, where it currently is, and the output bus.
  *

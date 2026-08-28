@@ -1,5 +1,8 @@
+import type { MachineError } from "./errors.js";
+import { Result } from "./result.js";
 import type { Carrier, Graph, FsmEvent, Schema, FsmState } from "./types.js";
 export * from "./errors.js";
+export { Result } from "./result.js";
 export { edges, graph, nameIn, nameOf, nodes, opIn } from "./utils.js";
 export type { Schema, Graph, FsmState, FsmEvent, Carrier, Nodes, Edge, Rule, When, With, By, IState, IEvent, Merge, } from "./types.js";
 /**
@@ -85,28 +88,26 @@ type Messages<Q extends Carrier, Σ extends Carrier, Λ extends Carrier> = {
 /** Unsubscribe handle. Returns true if the listener was removed. */
 export type Off = () => boolean;
 /**
- * What `dispatch` and `can` answer: `ok: true` — the transition fired (for `can`: would fire);
- * `ok: false` carries the systemic reason. Exactly five frozen instances exist — `OK`,
- * `UNHANDLED`, `REJECTED`, `TERMINAL`, `BUSY` — so no call allocates, and a verdict may be
- * compared by identity as well as read by field.
+ * What `dispatch` and `can` answer: the `Ok` branch — the transition fired (for `can`: would
+ * fire) — or the `Err` branch carrying the systemic reason. `true` rather than a target state or
+ * a transition on the `Ok` branch: `can` runs the guards and nothing else, so the only thing both
+ * asks can honestly report is that the answer is yes.
+ *
+ * Exactly five instances exist — `OK`, `UNHANDLED`, `REJECTED`, `TERMINAL`, `BUSY` — so no call
+ * allocates, and a verdict may be compared by identity as well as read by branch. Each is typed
+ * as the branch it is, so `UNHANDLED.error` is reachable without a guard.
  */
-export type Verdict = {
-    readonly ok: true;
-    readonly error?: undefined;
-} | {
-    readonly ok: false;
-    readonly error: Error;
-};
+export type Verdict = Result<true, MachineError>;
 /** The transition fired; for `can` — it would. */
-export declare const OK: Verdict;
+export declare const OK: Result.Ok<true, MachineError>;
 /** No cell for the event in the current state. */
-export declare const UNHANDLED: Verdict;
+export declare const UNHANDLED: Result.Err<true, MachineError>;
 /** Every guard refused the event with this payload. */
-export declare const REJECTED: Verdict;
+export declare const REJECTED: Result.Err<true, MachineError>;
 /** The state is terminal: nothing will ever fire from it. */
-export declare const TERMINAL: Verdict;
+export declare const TERMINAL: Result.Err<true, MachineError>;
 /** A `dispatch` nested inside a running one: the outer transition is still executing. */
-export declare const BUSY: Verdict;
+export declare const BUSY: Result.Err<true, MachineError>;
 /**
  * A state machine: the schema, where it currently is, and the output bus.
  *

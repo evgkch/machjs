@@ -123,10 +123,10 @@ Dispatch events and listen for outputs:
 ```ts
 vm.rx.on("vend", () => console.log("Item dispensed"));
 
-vm.can("select");      // { ok: false, error } – no rule for this pair
-vm.dispatch("select"); // { ok: false, error } – in idle, select is not handled
-vm.dispatch("coin");   // { ok: true } – idle → paid
-vm.dispatch("select"); // { ok: true } – paid → idle + dispense
+vm.can("select");      // UNHANDLED – no rule for this pair
+vm.dispatch("select"); // UNHANDLED – in idle, select is not handled
+vm.dispatch("coin");   // OK – idle → paid
+vm.dispatch("select"); // OK – paid → idle + dispense
 vm.state.type;         // "idle"
 ```
 
@@ -316,10 +316,12 @@ A dump keeps the pair: `JSON.stringify` writes `["idle", "toIdle"]`, the functio
 dispatch(event, payload?) => Verdict
 can(event, payload?)      => Verdict
 
-type Verdict = { ok: true } | { ok: false; error: Error };
+type Verdict = Result<true, MachineError>;
 ```
 
-The answer is one of five frozen constant objects. No call allocates; read the `ok` field, or compare against the constants by identity.
+`Result<T, E>` is the two-branch container — `Result.Ok<T>` carries `result`, `Result.Err<E>` carries `error`, and exactly one of the two fields is set. `isOk()` and `isError()` narrow the branch, `unwrap()` returns the value or throws the error, `toJSON()` writes the branch out as data. A verdict carries `true` on the `Ok` branch: `can` runs the guards and nothing else, so the only thing both asks report is that the answer is yes.
+
+The answer is one of five constant objects, one instance each. No call allocates; read the branch through `isOk`, or compare against the constants by identity.
 
 | Constant | `error` | Meaning |
 | -------- | ------- | ------- |
@@ -344,10 +346,10 @@ Steps 3–4 run before the commit, so an exception in a guard, a context functio
 `can` performs only steps 1–2, without side effects.
 
 ```ts
-button.disabled = !vm.can("select").ok;
+button.disabled = !vm.can("select").isOk();
 
 const r = vm.dispatch("select");
-if (!r.ok) say(r.error);
+if (r.isError()) say(r.error);
 ```
 
 > [!WARNING]
@@ -491,13 +493,34 @@ type AnyMachine = {
     toJSON(): unknown;
 };
 
+// core/result: the two-branch answer — one of Ok and Err, never both
+type Result<T, E extends Error = Error> = Result.Ok<T, E> | Result.Err<T, E>;
+namespace Result {
+    class Ok<T, E extends Error = Error> {
+        readonly result: T;
+        readonly error: undefined;
+    }
+    class Err<T, E extends Error = Error> {
+        readonly result: undefined;
+        readonly error: E;
+    }
+    const ok: <T, E extends Error = Error>(result: T) => Result.Ok<T, E>;
+    const error: <E extends Error, T = never>(error: E) => Result.Err<T, E>;
+}
+// on both branches
+isOk(): this is Result.Ok<T, E>;
+isError(): this is Result.Err<T, E>;
+unwrap(): T;                        // the value, or the error thrown
+toJSON(): { result: T } | { error: { name: string; message: string } };
+
 // the verdict of dispatch and can: five constants, one instance each
-type Verdict = { ok: true } | { ok: false; error: Error };
-const OK: Verdict;
-const UNHANDLED: Verdict; // error: UnhandledError
-const REJECTED: Verdict;  // error: RejectedError
-const TERMINAL: Verdict;  // error: TerminalError
-const BUSY: Verdict;      // error: BusyError
+type Verdict = Result<true, MachineError>;
+type MachineError = UnhandledError | RejectedError | TerminalError | BusyError;
+const OK: Result.Ok<true, MachineError>;
+const UNHANDLED: Result.Err<true, MachineError>; // error: UnhandledError
+const REJECTED: Result.Err<true, MachineError>;  // error: RejectedError
+const TERMINAL: Result.Err<true, MachineError>;  // error: TerminalError
+const BUSY: Result.Err<true, MachineError>;      // error: BusyError
 
 // core/errors: four verdict errors; none are thrown
 class UnhandledError extends Error {}
@@ -643,7 +666,7 @@ Column widths are computed over the whole schema at once, so lines are aligned w
 
 ## `@evgkch/machjs/debug`
 
-Observing a running machine. All four functions subscribe to `TRANSITION`, so they receive only transitions that actually happened. A `dispatch` that answered `ok: false`, and `restore`, publish no events and do not show up here.
+Observing a running machine. All four functions subscribe to `TRANSITION`, so they receive only transitions that actually happened. A `dispatch` that answered on the `Err` branch, and `restore`, publish no events and do not show up here.
 
 ```ts
 function log(fsm, sink?: (t: Transition) => void): Off;
@@ -768,7 +791,7 @@ The context belongs to the state, not to the machine: $Q[q]$ is what state $q$ c
 
 $$\mathrm{step}: \mathrm{FsmState}\langle Q \rangle \times \mathrm{Msg}(\Sigma) \rightharpoonup \mathrm{FsmState}\langle Q \rangle \times \mathrm{Msg}(\Lambda)$$
 
-A step takes and returns a state in full — the context cannot be recovered from a type name alone. Partiality matters: rejection (returning `false`) is as legitimate an outcome as a transition.
+A step takes and returns a state in full — the context cannot be recovered from a type name alone. Partiality matters: rejection (`UNHANDLED`, `REJECTED`, `TERMINAL` or `BUSY`) is as legitimate an outcome as a transition.
 
 ### Notation
 

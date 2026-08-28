@@ -46,7 +46,7 @@ export function analyze(schema, start) {
  * `terminal` is a warning, not an error, since it is usually an intended final state. Several
  * rules on one cell is not itself a finding, nor is a cell whose every rule is guarded — an
  * absent `when` reads as ⊤, and a guard refusing an event is a legitimate outcome of δ's
- * partiality, the same reason `dispatch` returns a boolean.
+ * partiality, the same reason `dispatch` answers with a verdict rather than a transition.
  */
 export function validate(schema, start) {
     const issues = [];

@@ -1,32 +1,38 @@
 /**
- * The kernel's error values. None are thrown: each rides inside one frozen `ok: false` response
- * (`UNHANDLED`, `REJECTED`, `TERMINAL`, `BUSY` in `./index.js`) and exists as one instance,
- * so no dispatch allocates on any path.
+ * The kernel's error values. None are thrown by the kernel: each rides inside one frozen
+ * `Err` verdict (`UNHANDLED`, `REJECTED`, `TERMINAL`, `BUSY` in `./index.js`) and exists as one
+ * instance, so no dispatch allocates on any path. `Result.unwrap` throws the instance it holds.
  */
 
 /** The current state has no cell for this event — other events may still fire. */
 export class UnhandledError extends Error {
+  /** Literal, so a `switch` over `MachineError` narrows on `name` and is checked for exhaustiveness. */
+  override readonly name = "UnhandledError";
+
   constructor() {
     super("the event is unhandled in the current state");
-    this.name = "UnhandledError";
     Object.setPrototypeOf(this, UnhandledError.prototype);
   }
 }
 
 /** The cell exists, but every rule's `when` refused the event with this payload. */
 export class RejectedError extends Error {
+  /** Literal, so a `switch` over `MachineError` narrows on `name` and is checked for exhaustiveness. */
+  override readonly name = "RejectedError";
+
   constructor() {
     super("every guard rejected the event");
-    this.name = "RejectedError";
     Object.setPrototypeOf(this, RejectedError.prototype);
   }
 }
 
 /** The current state has no outgoing transitions at all — no event will ever fire from it. */
 export class TerminalError extends Error {
+  /** Literal, so a `switch` over `MachineError` narrows on `name` and is checked for exhaustiveness. */
+  override readonly name = "TerminalError";
+
   constructor() {
     super("the state is terminal: no outgoing transitions");
-    this.name = "TerminalError";
     Object.setPrototypeOf(this, TerminalError.prototype);
   }
 }
@@ -37,9 +43,18 @@ export class TerminalError extends Error {
  * with `queueMicrotask` to send the event after the current transition has finished.
  */
 export class BusyError extends Error {
+  /** Literal, so a `switch` over `MachineError` narrows on `name` and is checked for exhaustiveness. */
+  override readonly name = "BusyError";
+
   constructor() {
     super("nested dispatch is refused; use queueMicrotask");
-    this.name = "BusyError";
     Object.setPrototypeOf(this, BusyError.prototype);
   }
 }
+
+/**
+ * Every error the kernel answers with. A closed union: a caller that translates verdicts into its
+ * own vocabulary switches on `name` and the compiler reports the case it forgot.
+ */
+export type MachineError =
+  UnhandledError | RejectedError | TerminalError | BusyError;

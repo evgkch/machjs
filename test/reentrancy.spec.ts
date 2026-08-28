@@ -122,7 +122,7 @@ describe("a dispatch from an operation of the rule itself", () => {
     const fsm = chain();
     let answer: boolean | undefined;
     fsm.rx.on("out", () => {
-      answer = fsm.can("next").ok;
+      answer = fsm.can("next").isOk();
     });
     fsm.dispatch("go");
     expect(answer).toBe(true);
