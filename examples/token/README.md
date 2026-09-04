@@ -74,8 +74,6 @@ export type Q = Merge<
 >;
 ```
 
-Three phases, three different things remembered, and the two absences carry as much as the three fields.
-
 **`refreshing` has no token.** While one is being fetched the old one is known to be refused, so there is nothing to send — and a caller cannot reach for it, because `Q["refreshing"]` has no such field. The stale-token bug is not guarded against; it is unwriteable.
 
 **`dead` has no token either.** It has the reason instead, and the reason is what goes out to everyone waiting.
@@ -141,13 +139,11 @@ export const auth = new StateMachine<Q, Σ, Λ>(
 );
 ```
 
-Three things are worth reading twice.
-
 **Requirement 3 is a cell, not a flag.** `emit: "refresh"` stands in `ok · denied` and nowhere else in that column. The second caller's `denied` arrives in `refreshing`, where the rule for it counts the caller and emits nothing. There is no `if (refreshing)` because there is nothing that could go wrong: the schema has no way to start a second fetch.
 
-**Requirement 5 is a phase with rules.** `failed` leads to `dead`, and `dead` answers: every later `denied` is refused out of it at once, with the reason on the ticket. A flag somebody forgot to clear cannot answer anything; a state can.
+**Requirement 5 is a phase with rules.** `failed` leads to `dead`, and `dead` answers: every later `denied` is refused out of it at once, with the reason on the ticket.
 
-**`dead` is not a dead end.** Delete its two rules and `validate` says so — section 8. A client that never recovers from one failed refresh is a bug, not a design, and the analysis is what says which one it is.
+**`dead` is not a dead end.** Delete its two rules and `validate` says so — section 8.
 
 ## 6. Interaction from the browser
 

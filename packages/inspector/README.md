@@ -4,7 +4,7 @@
 
 A finite-state-machine inspector for [`@evgkch/machjs`](https://github.com/evgkch/machjs). It reads a dumped schema or attaches to a running machine and shows three projections of one automaton: the rule text, the transition figure, and the run. The projections are linked: point at a cell of the figure and the rule's line lights up, point at a line and the cell does, name both halves of a transition and it fires.
 
-`JSON.stringify(machine)` returns the graph — the schema without function bodies, but with their names. That is enough to draw, check and run the machine.
+`JSON.stringify(machine)` returns the graph — the schema without function bodies, but with their names.
 
 [**Open the inspector**](https://evgkch.github.io/machjs/inspector/)
 
@@ -21,7 +21,7 @@ A finite-state-machine inspector for [`@evgkch/machjs`](https://github.com/evgkc
 | [`@evgkch/machjs-inspector/ui`](#evgkchmachjs-inspectorui) | `overlay`, `mount`, `ensemble`, subjects, focus    |
 | [Widgets](#widgets)                                      | Six custom elements and their `wiring`             |
 | [Schemas](#schemas)                                      | Ready-made files, the rule language                |
-| [Limitations](#limitations)                              | What to keep in mind                               |
+| [Limitations](#limitations)                              | One copy of the library, `close()`, the recorder, the tokens |
 
 ---
 
@@ -97,7 +97,7 @@ gone.close();
 
 ## `@evgkch/machjs-inspector`
 
-The main entry point — what the application writes. No document and no styles: the process under debugging may have no DOM.
+The main entry point — what the application writes.
 
 ### `inspect`
 
@@ -105,7 +105,7 @@ The main entry point — what the application writes. No document and no styles:
 function inspect<T extends AnyMachine>(fsm: T, opts?: Options): T;
 ```
 
-`inspect` returns the machine it was given — the same object, with one listener on its bus. The call wraps a finished instance on the line where it is declared, and is erased after debugging.
+`inspect` returns the machine it was given — the same object, with one listener on its bus.
 
 | Option         | What it does                                                        |
 | -------------- | -------------------------------------------------------------------- |
@@ -255,7 +255,7 @@ type Ensemble = {
 };
 ```
 
-The binding without the markup. The widgets are independent: each is subscribed to the subject and draws itself; `ensemble` wires the members to a shared subject and focus and takes a rule named on any of them — once, in one place. `mount` is built on `ensemble` and adds the grid, the measuring and the keyboard; a page with markup of its own calls `ensemble` directly.
+The binding without the markup. The widgets are independent: each is subscribed to the subject and draws itself; `ensemble` wires the members to a shared subject and focus and takes a rule named on any of them. `mount` is built on `ensemble` and adds the grid, the measuring and the keyboard; a page with markup of its own calls `ensemble` directly.
 
 ### Subjects
 
@@ -336,7 +336,7 @@ run.show(subject.graph, start); // the order of the rows
 run.draw();
 ```
 
-`draw` is called again when the graph changed; `dress` — when only the focus moved. A named rule is taken by a binding — `mount` or `ensemble` — not by a single widget. If you do not need your own panel order, use `mount`.
+`draw` is called again when the graph changed; `dress` — when only the focus moved. A named rule is taken by a binding — `mount` or `ensemble` — not by a single widget.
 
 `<machjs-diagram>` wires the same way: `wiring = { subject, focus, fire? }`, then `draw(start)` — or `handle.enroll(diagram)`. `fire` takes a rule and drops the selection; `ensemble` passes its own, and without one the widget does both itself. States are cells in a row, transitions are arcs: leftward over the row, rightward under it, an arc in its target's colour. Rules that differ only in guard are one arrow; a rule with a different `emit` is its own line. The label is `on · when / emit`, to the extent the rule has a guard and an output: three `down` arrows out of one state are told apart by their guard names. Pointing at an arc lights its rule in the figure and in the text; clicking an arc takes the rule, if the machine can, and drops the selection. A transition the machine takes runs its dashes along its own arc — on every step, whoever made it. The `on / emit` label acts for its arc — on pointing and on clicking alike. Clicking a state is a press in the shared choice: only its transitions stay on the diagram, the figure bands its row, the history draws the step's dashed candidates; `Escape` drops it, along with everything else. Pressing the outgoing state and then the incoming one takes the transition between them — a second way of taking, equal to the arc click; the same state twice is the self-loop. Pointing at the incoming state while the outgoing one is pressed bands the candidates in the figure: the source's row, the target's column, their events' columns and their outputs' rows.
 
@@ -357,7 +357,7 @@ host.append(diagram);
 desk.enroll(diagram); // wiring, drawing and a switch
 ```
 
-The switch's name is the tag without `machjs-`; several widgets of one tag are named by the second argument. `desk.seat(name, { locked?, title? })` is a switch without the wiring, for a panel the page shows and hides itself; its state reads off `desk.panels` — the panels machine. `desk.ensemble` is the binder (`fire`, `rewind`, `forget`, `draw`). The menu of both inspector pages is this very desk.
+The switch's name is the tag without `machjs-`; several widgets of one tag are named by the second argument. `desk.seat(name, { locked?, title? })` is a switch without the wiring, for a panel the page shows and hides itself; its state reads off `desk.panels` — the panels machine. `desk.ensemble` is the binder (`fire`, `rewind`, `forget`, `draw`).
 
 `<machjs-editor>` is assembled from `readSchema`, which gives `show` what it takes: the rules with the line each was written on, one colour per state, and what the checks found.
 

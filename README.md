@@ -9,7 +9,7 @@
 
 # machjs
 
-A Mealy state machine for TypeScript: one table of rules, a context that belongs to the state rather than to the machine, and a graph that is a projection of the same object — serialize it, draw it, analyse it. The repository holds the library, the inspector that draws its machines, and the examples that run on both.
+A Mealy state machine for TypeScript: one table of rules, a context that belongs to the state rather than to the machine, and a graph that is a projection of the same object — serialize it, draw it, analyse it. The repository holds the library, the inspector, and the examples.
 
 <p align="center">
   <a href="packages/core/README.md">Guide</a> ·
@@ -25,10 +25,10 @@ A Mealy state machine for TypeScript: one table of rules, a context that belongs
 | Directory                                  | Package                                                                              | What is in it                                              |
 | ------------------------------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
 | [`packages/core`](packages/core)           | [`@evgkch/machjs`](https://www.npmjs.com/package/@evgkch/machjs)                     | The machine, and the schema it is written as                 |
-| [`packages/inspector`](packages/inspector) | [`@evgkch/machjs-inspector`](https://www.npmjs.com/package/@evgkch/machjs-inspector) | Six widgets, the two pages, the relay, the palette           |
+| [`packages/inspector`](packages/inspector) | [`@evgkch/machjs-inspector`](https://www.npmjs.com/package/@evgkch/machjs-inspector) | Six widgets, two pages, the relay, the palette               |
 | [`examples`](examples)                     | private                                                                              | Four pages on the library and the widgets, a walkthrough each |
 
-`packages/` holds the published packages, and nothing else. `analysis`, `formatters` and `debug` are entry points of `@evgkch/machjs`, not packages of their own: they share its version and import one another.
+`packages/` holds the published packages, and nothing else. `analysis`, `formatters` and `debug` are entry points of `@evgkch/machjs`, not packages of their own: the version is one.
 
 ## Documentation
 
@@ -38,15 +38,6 @@ A Mealy state machine for TypeScript: one table of rules, a context that belongs
 | [Inspector](packages/inspector/README.md) · [Инспектор](packages/inspector/README.ru.md)                 | The entry points, the widgets, the relay, the schema files       |
 | [Examples](examples/README.md) · [Примеры](examples/README.ru.md)                                        | The four pages and the shell they share                          |
 | [Contributing](CONTRIBUTING.md) · [Как работать](CONTRIBUTING.ru.md)                                     | Building, the tests, releasing                                   |
-
-## Sites
-
-| Site          | Address                                                                          |
-| ------------- | ---------------------------------------------------------------------------------- |
-| The examples  | [evgkch.github.io/machjs](https://evgkch.github.io/machjs/)                      |
-| The inspector | [evgkch.github.io/machjs/inspector](https://evgkch.github.io/machjs/inspector/)   |
-
-Both are published from `master` by [`pages.yml`](.github/workflows/pages.yml).
 
 ## License
 

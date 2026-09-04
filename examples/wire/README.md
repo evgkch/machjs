@@ -42,17 +42,15 @@ Files against the sections of this document:
 
 ## 1. Problem statement
 
-The task: a card terminal takes an amount and asks an authorisation host to charge it. The host holds a float and answers yes or no. Between them is a network, and the network is not reliable — a message may take any amount of time, may be delivered twice, and may not arrive at all.
+The task: a card terminal takes an amount and sends an authorisation host a request to charge it. The host holds a float and answers yes or no. Between them is a network, and the network is not reliable — a message may take any amount of time, may be delivered twice, and may not arrive at all.
 
 Three properties have to hold whatever the network does.
 
-An answer belongs to one question. The terminal must not treat an answer to an earlier attempt as an answer to the current one, and must not treat the same answer twice as two events.
+An answer belongs to one question. Neither an answer to an earlier attempt nor a second delivery of the same answer changes the terminal's state.
 
 A question charges once. If the network delivers the same question twice, the balance moves once. The second delivery is answered — the asker cannot tell that it was a repeat — but nothing else happens.
 
 Neither machine hangs on the other. A terminal whose question was lost stays where it is, and says so; it does not invent an answer and does not fall back into a state it cannot justify.
-
-None of that is about the network. All of it is about what each machine will accept where it stands, which is what a transition schema says.
 
 ## 2. Two machines, not one
 
@@ -112,8 +110,6 @@ Table 4 — The terminal's rules
 | `waiting`  | `giveUp` | —          | `declined` | —      |
 | `approved` | `again`  | —          | `idle`     | —      |
 | `declined` | `again`  | —          | `entering` | —      |
-
-Two absences carry as much as the ten rules.
 
 `waiting` has no `key` rule and no `rub` rule. That is the whole of locking the keypad while a question is out: `dispatch("key", …)` from `waiting` finds no cell, answers `UNHANDLED`, and changes nothing (README, “Partiality”). No flag was set and no handler was disabled to make it so — and section 9 shows the keypad reading the same fact back out of the machine.
 
@@ -325,8 +321,6 @@ The crossing time is a slider, and it selects which of the two duplicate cases t
 | 0.2 s    | 67 ms               | `working`            | no `auth` rule there — refused        |
 | 2.4 s    | 800 ms              | `listening`          | `known` fires — answered off the file |
 
-Both are correct behaviour, and the journal names both.
-
 ## 9. Interaction from the browser
 
 Every input goes straight to a machine, with no test of the phase on the way:
@@ -351,7 +345,7 @@ giveUp.disabled = !terminal.can("giveUp").isOk();
 again.disabled = !terminal.can("again").isOk();
 ```
 
-The keypad greys out in `waiting` because the schema has no `key` rule there — not because a line of code disables it. Delete a rule from the table and the key goes grey; add one and it lights up. The row of controls is the alphabet, drawn.
+The keypad greys out in `waiting` because the schema has no `key` rule there — not because a line of code disables it. Delete a rule from the table and the key goes grey; add one and it lights up.
 
 ## 10. Machine run
 
@@ -415,9 +409,9 @@ Nothing is wrong with either: no unreachable state, no rule an unguarded one ahe
 }
 ```
 
-`terminal` is empty for both, and that is a statement about the protocol rather than about the code: neither machine has a state it cannot leave. The terminal's `approved` and `declined` both have `again`, and the host always returns to `listening`. A payment terminal with a dead end would be one that has to be restarted.
+`terminal` is empty for both, and that is a statement about the protocol rather than about the code: neither machine has a state it cannot leave. The terminal's `approved` and `declined` both have `again`, and the host always returns to `listening`.
 
-The host's cascade is worth checking against `validate` by breaking it. Put the unguarded `auth` rule first and the `known` rule under it, and `validate` reports a `dead-rule`: the second could never fire, and every repeated question would be checked again and charged again.
+Put the unguarded `auth` rule first and the `known` rule under it, and `validate` reports a `dead-rule`: the second could never fire, and every repeated question would be checked again and charged again.
 
 ## 12. The machines on the page
 

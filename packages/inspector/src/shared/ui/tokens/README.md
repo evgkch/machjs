@@ -6,7 +6,7 @@ The shared design vocabulary of the machjs tools: palette, type, spacing steps, 
 — and the controls built out of them. One file, `tokens.css`.
 
 The inspector's own pages and widgets import it from here, by a relative path. The package
-publishes a copy of it, so a page that draws the widgets itself gets the palette by name:
+publishes a copy of it, so a page with widgets of its own takes the palette by name:
 
 ```css
 @import "@evgkch/machjs-inspector/tokens.css";
@@ -18,8 +18,7 @@ and without the tokens a widget is left without colours.
 ## The two layers
 
 `tokens.css` declares its own order, `@layer tokens, controls;`, at the head of the file. A page
-that adds a layer of its own writes `@layer tokens, page;` and gets `tokens, controls, page` — the
-import is processed first, so both layers below are already ordered when the page names its own.
+that adds a layer of its own writes `@layer tokens, page;` and gets `tokens, controls, page`.
 
 | Layer      | What is in it                                                              |
 | ---------- | -------------------------------------------------------------------------- |
@@ -38,5 +37,4 @@ overrides any of it with a plain `button { … }` of its own.
 | `--ui`         | 14px   | The text inside a control                           |
 | `--ui-sm`      | 13px   | The smaller text beside it                          |
 
-36px is the module and a half (`--cell` is 24px): a control is taller than a row of the figure
-because a finger lands on it and a row does not.
+36px is the module and a half (`--cell` is 24px).

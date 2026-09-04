@@ -162,7 +162,7 @@ stateDiagram-v2
 
 ## 3. Context
 
-The guards from section 2.3 must distinguish between pressing a handle and pressing inside, so they need access to the rectangle itself. For this we need geometry types.
+The guards from section 2.3 must distinguish between pressing a handle and pressing inside, so they need access to the rectangle itself.
 
 ```ts
 type Point = { x: number; y: number };
@@ -207,7 +207,7 @@ This choice has a consequence: a state and its context only make sense together,
 Guards are written in the rules by function names; their implementations are given in section 4.2.
 
 > [!NOTE]
-> Below is a sketch; the compiler would not accept it, and there is no `satisfies` intentionally: guards read the context (section 3), and entering a state with context requires a context function, so the full schema is given in section 5.3, together with the operations. Here we only show where the guard names stand in the rules.
+> Below is a sketch; the compiler would not accept it, and there is no `satisfies` intentionally: guards read the context (section 3), and entering a state with context requires a context function, so the full schema is given in section 5.3, together with the operations.
 
 ```ts
 const guarded = {

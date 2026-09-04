@@ -4,21 +4,6 @@
 
 Node 22 or newer. Every command below runs from the repository root.
 
----
-
-## Table of contents
-
-| Section                                   | What it covers                                  |
-| ------------------------------------------- | ------------------------------------------------- |
-| [Setup](#setup)                           | Installing, building, and why the build is first |
-| [Scripts](#scripts)                       | What each npm script does                       |
-| [The tests](#the-tests)                   | Three suites, and what each one presses         |
-| [Conventions](#conventions)               | Commits, formatting, the peer range             |
-| [Releasing](#releasing)                   | The tag, provenance, the one setting on npmjs   |
-| [History before the move](#history-before-the-move) | Reading a file's past across the merge |
-
----
-
 ## Setup
 
 ```sh
@@ -44,6 +29,8 @@ One workspace at a time: `npm run <script> -w <name>`, for example `npm test -w 
 
 The relay — a WebSocket server for a machine running in another process — starts with `npm run inspect -w @evgkch/machjs-inspector`. The [inspector's README](packages/inspector/README.md#the-relay) says what crosses it.
 
+[`pages.yml`](.github/workflows/pages.yml) builds the same `site/` on every push to `master` and deploys it: the examples at https://evgkch.github.io/machjs/, the inspector at https://evgkch.github.io/machjs/inspector/.
+
 ## The tests
 
 | Suite                                  | What it presses                                                                 |
@@ -65,7 +52,7 @@ The first suite is jest. The last two run a real DOM (happy-dom) over the source
 
 ## Releasing
 
-Two packages are published: `@evgkch/machjs` from `packages/core`, `@evgkch/machjs-inspector` from `packages/inspector`. A tag names the package and the version; [`publish.yml`](.github/workflows/publish.yml) builds and tests the repository, checks the tag against the manifest, and publishes that one package with provenance. No token is stored here.
+Two packages are published: `@evgkch/machjs` from `packages/core`, `@evgkch/machjs-inspector` from `packages/inspector`. A tag names the package and the version; [`publish.yml`](.github/workflows/publish.yml) builds the repository, runs the tests, checks the tag against the manifest, and publishes that one package with provenance. No token is stored here.
 
 1. Set the version in the package's `package.json`.
 2. Commit: `0.5.0 — …`.
@@ -76,11 +63,11 @@ git tag machjs@0.5.0 && git push origin machjs@0.5.0            # the library
 git tag machjs-inspector@0.0.9 && git push origin machjs-inspector@0.0.9
 ```
 
-Trusted publishing is set once per package on npmjs.com, before the first tag: _Settings → Trusted publisher → GitHub Actions_, repository `evgkch/machjs`, workflow `publish.yml`.
+Trusted publishing is set on npmjs.com once for each package, before the first tag: _Settings → Trusted publisher → GitHub Actions_, repository `evgkch/machjs`, workflow `publish.yml`.
 
 ## History before the move
 
-The inspector, the examples and the palette were repositories of their own until `git subtree add` brought them in here, so every commit that made them is reachable from this one. A subtree merge is where `git log --follow` and `git blame` stop. To read a file's history from before the move, name its path and ask for the full history:
+The inspector, the examples and the palette were repositories of their own until `git subtree add` brought them in here, with all of their history. A subtree merge is where `git log --follow` and `git blame` stop. To read a file's history from before the move, name its path and ask for the full history:
 
 ```sh
 git log --full-history -- packages/inspector/src/widgets/figure/figure.ts

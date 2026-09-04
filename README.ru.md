@@ -9,7 +9,7 @@
 
 # machjs
 
-Автомат Мили для TypeScript. Поведение задаётся одной таблицей правил, контекст привязан к состоянию, а не к автомату, а граф — проекция того же объекта: его сериализуют, рисуют и анализируют. В репозитории лежат библиотека, инспектор, который рисует её автоматы, и примеры на том и другом.
+Автомат Мили для TypeScript. Поведение задаётся одной таблицей правил, контекст привязан к состоянию, а не к автомату, а граф — проекция того же объекта: его сериализуют, рисуют и анализируют. В репозитории лежат библиотека, инспектор и примеры.
 
 <p align="center">
   <a href="packages/core/README.ru.md">Руководство</a> ·
@@ -28,7 +28,7 @@
 | [`packages/inspector`](packages/inspector) | [`@evgkch/machjs-inspector`](https://www.npmjs.com/package/@evgkch/machjs-inspector) | Шесть виджетов, две страницы, реле, палитра                     |
 | [`examples`](examples)                     | приватный                                                                            | Четыре страницы на библиотеке и виджетах, к каждой разбор       |
 
-В `packages/` лежат публикуемые пакеты и ничего кроме них. `analysis`, `formatters` и `debug` — точки входа пакета `@evgkch/machjs`, а не отдельные пакеты: у них общая версия, и они импортируют друг друга.
+В `packages/` лежат публикуемые пакеты и ничего кроме них. `analysis`, `formatters` и `debug` — точки входа пакета `@evgkch/machjs`, а не отдельные пакеты: версия у них общая.
 
 ## Документация
 
@@ -38,15 +38,6 @@
 | [Инспектор](packages/inspector/README.ru.md) · [Inspector](packages/inspector/README.md)     | Точки входа, виджеты, реле, файлы схем                           |
 | [Примеры](examples/README.ru.md) · [Examples](examples/README.md)                             | Четыре страницы и общая для них оболочка                         |
 | [Как работать](CONTRIBUTING.ru.md) · [Contributing](CONTRIBUTING.md)                          | Сборка, тесты, выпуск                                            |
-
-## Сайты
-
-| Сайт      | Адрес                                                                             |
-| --------- | ----------------------------------------------------------------------------------- |
-| Примеры   | [evgkch.github.io/machjs](https://evgkch.github.io/machjs/)                       |
-| Инспектор | [evgkch.github.io/machjs/inspector](https://evgkch.github.io/machjs/inspector/)    |
-
-Оба публикуются из `master` через [`pages.yml`](.github/workflows/pages.yml).
 
 ## Лицензия
 

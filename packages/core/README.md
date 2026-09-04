@@ -33,7 +33,7 @@ Complete, runnable examples live in [`examples/`](https://github.com/evgkch/mach
 | [`@evgkch/machjs/formatters`](#evgkchmachjsformatters)                                     | Tree, rules, Mermaid, DOT                                              |
 | [`@evgkch/machjs/debug`](#evgkchmachjsdebug)                                               | Logging, invariants, history                                           |
 | [The inspector](#the-inspector)                                                          | The development tool: its pages and widgets                            |
-| [Limitations](#limitations)                                                              | Important notes for usage                                              |
+| [Limitations](#limitations)                                                              | The schema read once, pure `when`, rule order, the frozen context, `BUSY` |
 | [TypeScript compiler messages](#typescript-compiler-messages)                            | How to read type errors                                                |
 | [Formal definition and terminology](#formal-definition-and-terminology)                  | Mathematical model, notation                                           |
 | [Visualizing and checking a schema from a file](#visualizing-and-checking-a-schema-from-a-file) | `render.ts` script, JSON                                    |
@@ -95,11 +95,7 @@ FROM idle  ON coin   TO paid
 FROM paid  ON select TO idle  EMIT vend
 ```
 
-The second one reads: “from state `paid` on event `select` go to `idle`, emitting `vend`.”
-
 ### First example: code
-
-Let's encode these rules with the library.
 
 ```ts
 import { StateMachine } from "@evgkch/machjs";
@@ -221,7 +217,7 @@ vm.state.type;    // 'idle'
 vm.state.context; // { paid: 0 }
 ```
 
-Context is tied to the state, so there is no separate getter for it – it is returned together with the type. Narrowing by `type` also narrows the context:
+Narrowing by `type` also narrows the context:
 
 ```ts
 if (vm.state.type === "paid") {
@@ -341,7 +337,7 @@ The order of `dispatch`:
 6. Publishes the output event to `rx`, then `TRANSITION`.
 7. Returns `OK`.
 
-Steps 3–4 run before the commit, so an exception in a guard, a context function or a packer leaves the machine unchanged. The errors are shared by all calls and carry no call data: the caller already knows the event, the state and the refusing guard's name.
+The errors are shared by all calls and carry no call data: the caller already knows the event, the state and the refusing guard's name.
 
 `can` performs only steps 1–2, without side effects.
 
@@ -371,7 +367,7 @@ import { TRANSITION } from "@evgkch/machjs";
 vm.rx.on(TRANSITION, (t) => console.log(t));
 ```
 
-`t` contains fields `input`, `source`, `target`, `output?` and `at`. `at` is `Date.now()` taken when the transition happened; it is not part of the transition relation, only a timestamp for whatever records the run.
+`t` contains fields `input`, `source`, `target`, `output?` and `at`. `at` is `Date.now()` taken when the transition happened.
 
 ### Atomicity and nested calls
 
@@ -435,7 +431,7 @@ The same entry point exports `nameOf(operation, slot)`. It is used by `toJSON` a
 
 ### Graph and JSON representation
 
-`toJSON()` returns a graph – the schema without function bodies but with their names. Every operation becomes a string (or `"?"` for an anonymous function), in the place the function stood: inside the pair for a context function or a packer, under `when` for a guard. This representation is suitable for visualization and validation.
+`toJSON()` returns a graph – the schema without function bodies but with their names. Every operation becomes a string (or `"?"` for an anonymous function), in the place the function stood: inside the pair for a context function or a packer, under `when` for a guard.
 
 ```json
 {
@@ -453,7 +449,7 @@ The same entry point exports `nameOf(operation, slot)`. It is used by `toJSON` a
 
 The JSON has the same shape as the schema in code, and the shape is unambiguous for `emit` too: `["vend", "refund"]` is one event with its packer, never a list of two events.
 
-Such a schema can be drawn and checked, but it can also be passed to the constructor. A name in place of a function is read as that function's neutral value: a guard as a condition that holds, a context function as the identity, a packer as no data at all. A machine restored from JSON walks its graph but computes nothing: the context is carried into the target state unchanged, and output events are sent without data.
+Such a schema can be drawn and checked, but it can also be passed to the constructor. A name in place of a function is read as that function's neutral value: a guard as a condition that holds, a context function as the identity, a packer as no data at all.
 
 ### Signatures
 
@@ -530,7 +526,7 @@ class BusyError extends Error {}
 const TRANSITION: unique symbol;
 ```
 
-`Args<Σ>` in the signatures above is an internal type and is not exported. It is the one type behind both calls — the event's name alone where it carries nothing, the name and its payload where it does — a single tuple union instead of two overloads.
+`Args<Σ>` in the signatures above is an internal type and is not exported.
 
 Exported types: `Carrier`, `IState`, `IEvent`, `Merge`, `FsmState`, `FsmEvent`, `When`, `With`, `By`, `Rule`, `Schema`, `Graph`, `Edge`, `Nodes`, `Transition`, `AnyTransition`, `AnyMachine`, `Off`, `Verdict`.
 
@@ -571,8 +567,6 @@ The same facts plus two cell-level checks:
 | `terminal`       | `warning` | the state has no way out                                    |
 | `duplicate-edge` | `warning` | two rules in a cell a run cannot tell apart                 |
 
-A terminal state is a warning rather than an error because it is usually a final state the author intended.
-
 Each `Issue` carries `severity`, `kind`, `node` and a ready-made `message`; cell-level findings also fill in `event`. `formatIssues` from `formatters` renders the report.
 
 ```ts
@@ -581,7 +575,7 @@ console.log(formatIssues(validate(vm.schema, "idle")));
 
 `duplicate-edge` is the one check that needs the code: rules are compared by the identity of the guard function, and a name left behind by a dump gives no identity, since two different anonymous guards both print as `?`. On a schema loaded from JSON this check does not fire; the other three work in full.
 
-A missing `when` is not a finding: an absent guard is read as true, and refusing a transition is as ordinary an outcome as taking one.
+A missing `when` is not a finding.
 
 ### `paths`
 
@@ -610,8 +604,6 @@ const toRules: Formatter<unknown>;
 const formatIssues: Formatter<Issue<PropertyKey>[], FormatOptions>;
 const edgeLabel: (edge: Edge) => string;
 ```
-
-Every exported function has the shape of a `Formatter`, so any of them can be replaced by one of your own with the same signature.
 
 ### Output formats
 
@@ -654,9 +646,7 @@ toTree(vm.schema, { at: "paid" });
 
 `edgeLabel` builds an edge label in the order the rule runs: `ON coin WHEN short WITH collect EMIT vend`. `toRules` and the transition log in `debug` use the same keywords.
 
-`BY` is left out of an edge label deliberately. A guard decides which edge fires and `WITH` changes the context — both facts about the transition itself — whereas `BY` only shapes the data of an event the label already names. The full set of seven words is printed by `toRules`.
-
-`edgeLabel` is exported so that a renderer of your own labels edges the way the shipped ones do: a label rebuilt by hand will drift from the standard one over time.
+`BY` is left out of an edge label. The full set of seven words is printed by `toRules`.
 
 Operation names are taken from the functions themselves; an anonymous one prints as `?`. A schema restored from JSON gives the same output as a schema with code: `toRules(vm.schema)` and `toRules(vm.toJSON())` agree.
 
@@ -677,7 +667,7 @@ function history(fsm, opts?: { maxSize?: number }): History;
 
 ### `log`
 
-`log` subscribes to transitions and returns an unsubscribe handle. The `sink` receives the whole `Transition`, so a handler can print it, filter it, count it or ship it somewhere.
+`log` subscribes to transitions and returns an unsubscribe handle. The `sink` receives the whole `Transition`.
 
 ```ts
 const off = log(vm, (t) => {
@@ -695,8 +685,6 @@ This is also how output events are handled without naming their types: `rx.on` w
 log(vm); // the default sink is rules(), printing to the console
 log(vm, rules((line) => file.write(line + "\n")));
 ```
-
-The wrapped function receives the transition itself as a second argument, so there is no need to parse the assembled line back apart to get at the event data.
 
 > [!NOTE]
 > `rules` from `debug` and `toRules` from `formatters` should not be confused. The first formats one transition that happened, the second prints the whole schema; the language is the same.
@@ -722,7 +710,7 @@ invariant(vm, (ctx) => ctx.paid >= 0);
 | `rx`                 | publishes `moved` with the new index when history moves the machine  |
 | `stop()`             | stop recording and unsubscribe from transitions      |
 
-Navigation goes through `fsm.restore`: nothing is replayed and no `Transition` is published, which is why the history does not record its own steps. It publishes `moved` on its own `rx` instead — the signal to redraw anything that renders the machine. The next `dispatch` after an undo discards everything recorded ahead of it.
+Navigation goes through `fsm.restore`: nothing is replayed and no `Transition` is published, which is why the history does not record its own steps. The next `dispatch` after an undo discards everything recorded ahead of it.
 
 `maxSize` (at least 1) caps the buffer. Once it is full the oldest record is dropped, and undo then goes back no further than `maxSize` transitions.
 
@@ -749,7 +737,7 @@ The inspector's widgets also attach one at a time, without raising the whole ins
 - The schema is read once, in the constructor. Mutating the schema object afterwards does not change the machine's behaviour — build a new machine instead.
 - **`when` must be pure.** Otherwise `can` and `dispatch` stop agreeing on the same question.
 - **An unconditional rule, if present, must be last.** Rules after it are unreachable; `validate` reports this as a `dead-rule` error.
-- **The context function must return a new object.** The context is frozen after the transition, and changing it in place raises an error. Freezing is on when `process` is unavailable or `NODE_ENV !== 'production'`; it is also shallow and does not extend to nested objects. In production nothing prevents a mutation of the context, so the rule is kept by the developer and the check merely helps catch a violation while debugging.
+- **The context function must return a new object.** The context is frozen after the transition, and changing it in place raises an error. Freezing is on when `process` is unavailable or `NODE_ENV !== 'production'`; it is also shallow and does not extend to nested objects.
 - **`restore` is not a transition.** It publishes no events, does not freeze the context and does not check it against the state.
 - **A nested `dispatch` on the same instance is refused with `BUSY`.** Use `queueMicrotask` inside the subscription.
 

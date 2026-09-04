@@ -43,11 +43,11 @@ Three files at the root are shared by every example page:
 | [`shell.css`](shell.css)       | The full-screen frame: the bar, the stage, the dock, the deck — and the skin  |
 | [`shell.ts`](shell.ts)         | `dockEdge` — the switch that moves the panels between the side and the bottom |
 
-An example writes `@import "../../shell.css";` and then `@layer subject { … }`, and styles what is on the stage. The furniture is not its business.
+An example writes `@import "../../shell.css";` and then `@layer subject { … }`, and styles what is on the stage.
 
-**The tool is Gruvbox.** A region marked `class="tool"` — the dock, the bar's switches, a legend standing under a machine — is painted in Gruvbox in both schemes, while the page keeps the tokens' own palette. A reader never has to ask whether what is in front of them is the application or the instrument watching it.
+**The tool is Gruvbox.** A region marked `class="tool"` — the dock, the bar's switches, a legend standing under a machine — is painted in Gruvbox in both schemes, while the page keeps the tokens' own palette.
 
-It is a region and not a widget, on purpose: some of what the inspector draws *is* the subject. The schema under review in `review` is edited in `machjs-editor` and drawn in `machjs-diagram`, and it is the document, not the instrument — so it stands outside a marked region and keeps the page's colours, while the pipeline reviewing it sits in the dock, in the tool's.
+The schema under review in `review` is edited in `machjs-editor` and drawn in `machjs-diagram`, and it is the document, not the instrument — so it stands outside a marked region and keeps the page's colours, while the pipeline reviewing it sits in the dock, in the tool's.
 
 The skin is a block of custom properties and nothing more: the widgets read the palette as custom properties, and custom properties inherit through a shadow root.
 

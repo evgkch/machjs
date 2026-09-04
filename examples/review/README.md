@@ -185,8 +185,6 @@ stateDiagram-v2
     approved --> changes: ON reject
 ```
 
-The `review --> review` arrow is the rule for a signature that does not complete the quorum: the document stays in review.
-
 ## 3. Context
 
 The guards from section 2.3 must tell whether the gate found anything that blocks, and whether this signature completes the quorum. To do that they need the gate's list of faults and the signatures already given — so context.
@@ -230,7 +228,7 @@ type Ticket = {
 };
 ```
 
-A submission is not one object with fields added along the way. It is a different object in every phase, and the phase decides which: a fault list exists only in `blocked`, a signature list from `review` on, a timestamp only in `shipped`. The context composition is **different in different states**.
+A submission is not one object with fields added along the way. The context composition is **different in different states**.
 
 Table 2 — What each state holds
 
@@ -258,9 +256,9 @@ export type Q = Merge<
 >;
 ```
 
-The persistent part is `Ticket`: the document, the round number, the closed items. The remaining fields are declared in the context of a specific phase and do not exist outside it.
+The remaining fields are declared in the context of a specific phase and do not exist outside it.
 
-A single record with all fields at once would look shorter, but it would need a placeholder for every phase without the field — an empty fault list, a list of no signatures, a zero timestamp. That is exactly how a `shipped` document ends up with an open fault list. The state-bound context rules the placeholder out: `draft` has no `faults` field.
+A single record with all fields at once would look shorter, but it would need a placeholder for every phase without the field — an empty fault list, a list of no signatures, a zero timestamp. The state-bound context rules the placeholder out: `draft` has no `faults` field.
 
 An item that was answered is _closed_, not deleted: `closed` records the round, the author and the text, and the record stays for the life of the ticket. If a revision did not fix the problem, the next gate run enters the same item again, beside the old record.
 
@@ -306,7 +304,7 @@ const guarded = {
 };
 ```
 
-The two dead-rule errors are gone. The cells are guarded differently, and this is deliberate. `checking` + `checked` ends in an unguarded rule: the gate's answer has an outcome either way. `review` + `sign` has no unguarded rule: a repeat signature satisfies neither guard, and `dispatch` answers `REJECTED`. `reject` is guarded too: a request for changes from a reviewer whose signature stands would contradict it. Refusing a transition is as ordinary an outcome as taking one (README, “validate”). Validation leaves one finding.
+The two dead-rule errors are gone. The cells are guarded differently, and this is deliberate. `checking` + `checked` ends in an unguarded rule: the gate's answer has an outcome either way. `review` + `sign` has no unguarded rule: a repeat signature satisfies neither guard, and `dispatch` answers `REJECTED`. `reject` is guarded too: a request for changes from a reviewer whose signature stands would contradict it. Refusing a transition is as ordinary an outcome as taking one (README, “validate”).
 
 ```ts
 formatIssues(validate(guarded, "draft"));
@@ -382,8 +380,6 @@ Table 3 — Context update functions
 | `asked`         | Writes the request and its author into the `changes` context         |
 | `restarted`     | The author withdraws: returns a `Ticket` without the `review` fields |
 | `stamped`       | Stamps the time it shipped                                           |
-
-The listing below also contains `text` and the `line` helpers. They do not update the context but build output events, and so are covered in section 5.2.
 
 ```ts
 function edited(c: Ticket, text: string): Ticket {
@@ -557,7 +553,7 @@ function shipped(c: Ticket) {
 }
 ```
 
-The packers are the `by` half: they read the context _after_ the transition and turn it into the event's payload. `text` reads the current document; `passed` and `refused` — the result of the gate's answer; `quorum` — the signatures that completed the quorum. The page builds the feed from these lines and keeps no log of its own.
+The packers are the `by` half: they read the context _after_ the transition and turn it into the event's payload. The page builds the feed from these lines and keeps no log of its own.
 
 ### 5.3. Full schema
 
@@ -673,7 +669,7 @@ const found = (graph: Graph, start: string): Fault[] =>
     }));
 ```
 
-`validate`'s two severities are kept almost as they are: an error blocks, a warning is shown to the reviewers. The one exception: the dead-end warning is not filed at all — a state with no way out is usually the schema's intended final state (README, `validate`), and the nothing-can-run case is a policy blocker of its own (section 6.3). The mapping to `Fault` is done here, so the guard in the machine checks one thing: is there a blocker.
+`validate`'s two severities are kept almost as they are: an error blocks, a warning is shown to the reviewers. The mapping to `Fault` is done here, so the guard in the machine checks one thing: is there a blocker.
 
 ### 6.3. House rules
 
@@ -710,8 +706,6 @@ const policy = (graph: Graph, start: string): Fault[] => {
 ```
 
 The house rules are this organisation's, not the library's. There are three: a schema with no way out of any state, a state name not in lower case, a guard without a name. The third applies to the serialized form: a dump writes the operation's name in place of the function, and `?` in place of a nameless guard — the rule checks `when === "?"`.
-
-The two lists are separated: `found` is facts about the schema, `policy` is policy.
 
 ### 6.4. Running the gate
 
@@ -909,9 +903,9 @@ flow.rx.on(TRANSITION, paint);
 paint();
 ```
 
-`paint` runs after every transition and reads the machine and nothing else. The state is a discriminated union, so `s.type` narrows `s.context`: inside the `review` branch the signatures are in scope and the fault list is not, because a document in review has no fault list. The compiler checks the same thing the schema does.
+`paint` runs after every transition and reads the machine and nothing else. The state is a discriminated union, so `s.type` narrows `s.context`: inside the `review` branch the signatures are in scope and the fault list is not, because a document in review has no fault list.
 
-A button is enabled when `can(event)` — the same question the next `dispatch` will check — answers `OK`; the set of available actions is written in the schema, not on this page. Delete a rule from the table and the button is disabled; add one and it is enabled. The question narrows by payload too: once anna has signed, `can("sign", { who: "anna", … })` answers `REJECTED` while the same question about boris answers `OK`. The select's options are disabled by the same question; if the selected one is disabled, the page moves the selection to an available one.
+A button is enabled when `can(event)` — the same question the next `dispatch` will check — answers `OK`; the set of available actions is written in the schema, not on this page. The question narrows by payload too: once anna has signed, `can("sign", { who: "anna", … })` answers `REJECTED` while the same question about boris answers `OK`. The select's options are disabled by the same question; if the selected one is disabled, the page moves the selection to an available one.
 
 ## 8. Machine run
 
@@ -974,7 +968,7 @@ formatIssues(validate(flow.schema, "draft"));
 ⚠ warning node "shipped" has no outgoing transitions
 ```
 
-There are no unreachable states, no dead rules, and every state but one has an outgoing path. The exception is `shipped`, and it is intentional: with this warning the library marks a final state (README, “validate”).
+There are no unreachable states, no dead rules, and every state but one has an outgoing path.
 
 ## 10. The machine on the page
 
