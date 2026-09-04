@@ -1,0 +1,347 @@
+/*
+ * Three layers, one set of metrics: a coloured `pre` under a transparent textarea, a gutter
+ * beside them. Any metric that differs puts the caret off its word. The sheet scrolls all three
+ * together, snapping by line; the textarea is sized to its text (`--lines`/`--cols`) and never
+ * scrolls itself.
+ */
+:host {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    height: 100%;
+    /* A floor, not a height: the row it sits in is a share of the page, and it scrolls inside. */
+    min-height: 14rem;
+    border: 1px solid var(--line-firm);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: hidden;
+}
+
+:host(:focus-within) {
+    border-color: var(--accent);
+}
+
+/* One module: a source line, a figure row and a run slice are the same height — `--cell`. */
+.ink,
+textarea,
+.gutter {
+    margin: 0;
+    font: 400 var(--code)/var(--cell) var(--mono-font);
+    tab-size: 2;
+}
+
+.ink,
+textarea {
+    padding: var(--step-4) var(--step-3);
+    white-space: pre;
+}
+
+.sheet {
+    overflow: auto;
+    overscroll-behavior: contain;
+    /* A line at a time, and there is nothing between two lines to stop at. */
+    scroll-snap-type: y mandatory;
+    /* Where a line comes to rest: at the top of the text, not at the top of the box. Without it a
+       snapped line sits against the edge of the frame and under the label above it. */
+    scroll-padding-top: var(--step-4);
+    scroll-padding-bottom: var(--step-4);
+}
+
+/* The gutter and the text, side by side on the page that scrolls. */
+.page {
+    display: flex;
+    align-items: stretch;
+    min-height: 100%;
+}
+
+/* A grid of one, so the text layer is as tall as the page and never shorter than its own text:
+   the whole box is the textarea, and clicking anywhere in it puts the caret in the source. */
+.stack {
+    position: relative;
+    display: grid;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Behind, and never in the way. It scrolls because the page does, so it needs no moving. */
+.ink {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    color: var(--muted);
+}
+
+/* The same width as the textarea over it, or the layers disagree where a line stops. */
+.ink {
+    width: max(100%, calc(var(--cols, 0) * 1ch + var(--step-3) * 2));
+}
+
+.ink code {
+    display: block;
+}
+
+/*
+ * One line, one block, one snap target. `min-height` keeps blank lines a line tall. The negative
+ * margin reaches through the box's padding so a highlight band runs edge to edge.
+ */
+.line {
+    display: block;
+    margin: 0 calc(-1 * var(--step-3));
+    padding: 0 var(--step-3);
+    min-height: var(--cell);
+    scroll-snap-align: start;
+}
+
+/* The last line snaps to the bottom; with only top targets the end of the source is unreachable
+   under mandatory snapping. */
+.line:last-child {
+    scroll-snap-align: end;
+}
+
+/* The figure's own tint, on line and number both, so the band has no break at the gutter. */
+.line.lit,
+.gutter .row.lit {
+    background: color-mix(
+        in oklab,
+        var(--accent) var(--wash-firm),
+        transparent
+    );
+}
+
+/* A line that can never run; the gutter says which fault. */
+.line.dead {
+    opacity: var(--quiet);
+}
+
+/* The completion offer, in the quiet of things not there. TAB takes it. */
+.ghost {
+    color: var(--faint);
+    pointer-events: none;
+}
+
+/* Sized to its text so it never scrolls itself; the counts come from the text, the units from
+   the shared metrics. */
+textarea {
+    display: block;
+    width: max(100%, calc(var(--cols, 0) * 1ch + var(--step-3) * 2));
+    min-height: calc(var(--lines, 1) * var(--cell) + var(--step-4) * 2);
+    border: 0;
+    /* The frame around the editor already says where the focus is. A second frame inside it says
+       the same thing again, in the browser's own colour, over the text. */
+    outline: none;
+    background: transparent;
+    color: transparent;
+    caret-color: var(--ink);
+    resize: none;
+    overflow: hidden;
+}
+
+textarea::selection {
+    background: color-mix(
+        in oklab,
+        var(--accent) var(--wash-hard),
+        transparent
+    );
+}
+
+/* Where every panel's name sits: the same inset in all three. */
+.tag {
+    display: flex;
+    align-items: center;
+    gap: var(--step-2);
+    padding: var(--step-4) var(--step-4) var(--step-2);
+}
+
+/*
+ * The rename chip: appears on double-click, does nothing until pressed. Out of the flow, on the
+ * corner of the box — in the flow it changed the row's height on arrival and shifted the source
+ * under the caret. Offsets are the row's inset less its padding, so text aligns with text.
+ */
+.rename {
+    position: absolute;
+    top: calc(var(--step-4) - var(--step-1));
+    right: calc(var(--step-4) - var(--step-2));
+    z-index: 2;
+    padding: var(--step-1) var(--step-2);
+    border: 0;
+    border-radius: var(--cell);
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+}
+
+.rename:hover {
+    color: var(--accent);
+}
+
+.rename.on {
+    background: color-mix(
+        in oklab,
+        var(--accent) var(--wash-firm),
+        transparent
+    );
+    color: var(--accent);
+}
+
+.rename[hidden] {
+    display: none;
+}
+
+/*
+ * The foot strip: the counts, or the parser's complaint — never both. Always present, so the
+ * page does not move on unparsed keystrokes. Deep enough that its top rule stands clear of the
+ * superellipse corner's clip.
+ */
+.say {
+    margin: 0;
+    padding: var(--step-3) var(--step-4);
+    border-top: 1px solid var(--line);
+    color: var(--faint);
+    font: 400 var(--name)/1.4 var(--mono-font);
+}
+
+/* The gutter marks the line; this says what about it. */
+.say.wrong {
+    background: color-mix(in oklab, var(--warn) var(--wash), transparent);
+    color: var(--warn);
+}
+
+/* ── the gutter ─────────────────────────────────────────────────────────── */
+
+/* Line numbers and fire marks. Sticky left: still under horizontal scroll, moving with
+   vertical. */
+.gutter {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    flex: none;
+    padding: var(--step-4) 0;
+    border-right: 1px solid var(--line);
+    background: var(--surface);
+    user-select: none;
+}
+
+/* The mark on the outside edge, then the number. */
+.gutter .row {
+    display: grid;
+    grid-template-columns: var(--step-2) minmax(1.4rem, auto);
+    align-items: center;
+    gap: var(--step-2);
+    height: var(--cell);
+    padding: 0 var(--step-2);
+}
+
+/* The same size as a step number in the run. */
+.gutter .num {
+    color: var(--faint);
+    font-size: var(--micro);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+/* Nothing in the column shifts when a mark appears: the room for it is always there. */
+.gutter .run {
+    justify-self: center;
+}
+
+/* The figure's own dot, in the lane colour. The column is always present, so a line gaining a
+   mark does not shift the text. A true circle: `corner-shape: round` overrides the global
+   superellipse. */
+.gutter .run {
+    width: var(--step-2);
+    height: var(--step-2);
+    border-radius: 50%;
+    corner-shape: round;
+    background: var(--c, var(--accent));
+    visibility: hidden;
+}
+
+/* No hover rule: pointing dispatches `enter`, and the returned `lit` covers row and line as one
+   band. */
+.gutter .row.can {
+    cursor: pointer;
+}
+
+.gutter .row.can .run {
+    visibility: visible;
+}
+
+.gutter .row.can .num {
+    color: var(--muted);
+}
+
+/* A rule that can never fire: unreachable source, or shadowed by an unguarded rule. */
+.gutter .row.dead .num {
+    color: var(--warn);
+    text-decoration: line-through;
+}
+
+/* Where the reader stopped. The message says the same thing in words, once, underneath. */
+.gutter .row.blame {
+    background: color-mix(in oklab, var(--warn) var(--wash-firm), transparent);
+}
+
+.gutter .row.blame .num {
+    color: var(--warn);
+    font-weight: 700;
+}
+
+/* ── the words of the language, the same as under the figure and in the history ── */
+
+.ink .key {
+    color: var(--faint);
+}
+
+.ink .q {
+    color: var(--c, var(--ink));
+    font-weight: 600;
+}
+
+/* The current state, marked on every line its word appears in — the figure's dot, in text. */
+.ink .q.here {
+    padding: 0.1em 0.25em;
+    margin: 0 -0.25em;
+    border-radius: var(--cell);
+    background: color-mix(
+        in oklab,
+        var(--c, var(--accent)) var(--wash),
+        transparent
+    );
+}
+
+.ink .s {
+    color: var(--ink);
+}
+
+.ink .l {
+    color: var(--emit);
+}
+
+/* `off` — unreachable from the start: struck through, as on the figure's index. `end` — nothing
+   leaves it; not a fault, so the quietest mark: a dotted underline. */
+.ink .q.off {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    opacity: var(--quiet);
+}
+
+.ink .q.end {
+    text-decoration: underline dotted;
+    text-underline-offset: 0.2em;
+}
+
+/* What can be said about a function: its name, or `?` for one that has none. */
+.ink .op {
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* Where the reader stops, and the colour with it. */
+.ink .c {
+    color: var(--faint);
+    font-style: italic;
+}

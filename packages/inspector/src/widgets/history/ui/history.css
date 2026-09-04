@@ -1,0 +1,212 @@
+/* ── what the run did, on the figure's own rows ──────────────────────────── */
+
+/*
+ * The same frame and top padding as the figure's, so the shared rows sit at the same height on
+ * both sides of the gap. No side padding: the index is flush left, the slices scroll to the
+ * frame. The foot padding keeps the last row of names clear of the superellipse corner.
+ */
+:host {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    max-height: 100%;
+    padding: var(--step-4) 0 var(--step-3);
+    border: 1px solid var(--line-firm);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: hidden;
+}
+
+/* The scroll along the slices; snapping is by step — there is nothing between two to stop at. */
+.cols {
+    position: relative;
+    /* Its own stacking context, so a step's opaque tint (negative z-index) sits above the panel
+       and below the run. */
+    isolation: isolate;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
+    scroll-snap-type: x mandatory;
+}
+
+svg.run,
+svg.names {
+    display: block;
+}
+
+/* The panel's name and the two run-end buttons on one line. */
+.tag {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    gap: var(--step-3);
+    padding: 0 var(--step-4) var(--step-2);
+}
+
+.ends {
+    display: inline-flex;
+    gap: var(--step-2);
+}
+
+.ends[hidden] {
+    display: none;
+}
+
+/* Two quiet words, not button-shaped. */
+.ends .end {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--faint);
+    font: 500 var(--micro)/1 var(--mono-font);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.ends .end:hover {
+    color: var(--accent);
+}
+
+text.name {
+    font: 500 var(--name)/1 var(--mono-font);
+    fill: var(--c, var(--muted));
+}
+
+/* The figure's rows, carried across: the same line, the same colour, the same weight. */
+line.string {
+    stroke: color-mix(
+        in oklab,
+        var(--c, var(--line)) var(--wash-firm),
+        transparent
+    );
+    stroke-width: 1;
+}
+
+/* Where the run went: one curve per step, from the slice it left to the slice it reached — and a
+   straight segment along one string where the step went where it already was. */
+.trail {
+    fill: none;
+    stroke: var(--c, var(--accent));
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+/* A slice: the machine was in exactly one state at each of them. */
+circle.at {
+    fill: var(--c, var(--accent));
+}
+
+/* The elided middle of a long repetition: dashed and thinner — a count, not a moment. Takes no
+   pointer and no click. */
+.trail.elided {
+    stroke-width: 1.5;
+    stroke-dasharray: 3 4;
+}
+
+.cols .step.elided {
+    pointer-events: none;
+    cursor: default;
+}
+
+/* Undone, still on the board, still reachable by a click on it. */
+.trail.ahead,
+circle.at.ahead {
+    opacity: var(--undone);
+}
+
+/* The preview of the rule under the pointer: heavier than a string, lighter than a taken step,
+   dashed and marching towards the slice it would reach. No arrowhead — a position in this panel
+   is a dot. */
+.maybe {
+    fill: none;
+    stroke: var(--c, var(--accent));
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 3 2;
+    animation: march 0.5s linear infinite;
+}
+
+/* Where the offered step would stand: the position as a ring, not yet a dot. */
+circle.maybe-at {
+    fill: var(--surface);
+    stroke: var(--c, var(--accent));
+    stroke-width: 1.5;
+}
+
+/*
+ * One step: the click target, the snap target, the holder of the number. Clicking one is undo
+ * and redo. Pressed area is one column — the slice the step arrived in; two-column press areas
+ * would overlap. Drawn area is both slices (the ::before below).
+ */
+.cols .step {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: grid;
+    align-content: end;
+    justify-items: start;
+    padding-bottom: var(--step-1);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    cursor: pointer;
+    scroll-snap-align: end;
+}
+
+/*
+ * The step's tint, covering both its slices. Opaque (mixed into the surface, not laid over it):
+ * adjacent steps share a column, and translucent tints would stack into a darker band there. It
+ * stops above the number strip.
+ */
+.cols .step::before {
+    content: "";
+    position: absolute;
+    z-index: -2;
+    top: 0;
+    right: 0;
+    bottom: var(--foot);
+    left: calc(-1 * var(--cell));
+    pointer-events: none;
+}
+
+.cols .step:hover::before {
+    background: color-mix(in oklab, var(--accent) var(--wash), var(--surface));
+}
+
+/* Where the machine stands, when that is behind the run's end. Above the hover tint. */
+.cols .step.now::before {
+    z-index: -1;
+    background: color-mix(
+        in oklab,
+        var(--accent) var(--wash-firm),
+        var(--surface)
+    );
+}
+
+/*
+ * The step number, on the boundary the two slices meet at (the band's left edge), pulled back by
+ * half its width — centred in the band it would read as counting the slice, not the step. The
+ * elided column shows `×N` in the same type. Neither takes clicks.
+ */
+.cols .step .no {
+    justify-self: start;
+    translate: -50% 0;
+    pointer-events: none;
+    color: var(--faint);
+    font: 500 var(--micro)/1 var(--mono-font);
+    font-variant-numeric: tabular-nums;
+}
+
+/* The one label in the strip that is not a step number. */
+.cols .step .gap {
+    font-weight: 700;
+}
+
+.cols .step.now .no {
+    color: var(--accent);
+}
+
+.cols .step.ahead .no {
+    opacity: var(--dim);
+}

@@ -1,0 +1,41 @@
+/* One mount, and everything below is inside it. Two inspectors on a screen are two of these. */
+
+@layer tokens, controls, page;
+
+@layer page {
+    .machjs-inspector {
+        display: grid;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+    }
+
+    /*
+ * The figure and the history: beside if the board fits whole, under if not — the mount measures
+ * and puts the class on. Exploring there is no history, and the figure has the whole surface.
+ */
+    .work {
+        /* The least history worth standing beside the figure: eight slices. In pixels, because the
+       mount reads it with `parseFloat`. */
+        --history-min: 192px;
+
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+        gap: var(--step-4);
+        min-height: 0;
+        height: 100%;
+        /* Both hug what is in them vertically: a figure with room to spare is a figure, not a field. */
+        align-items: start;
+    }
+
+    /* Beside: the figure column is the board's width (`--board`, set by the mount), the history
+   takes the rest with `--history-min` as its floor — the number the mount tested against. */
+    .work.beside {
+        grid-template-columns: var(--board, minmax(0, 1fr)) minmax(
+                var(--history-min),
+                1fr
+            );
+        grid-template-rows: minmax(0, 1fr);
+    }
+}

@@ -1,0 +1,33 @@
+{
+  "blank": {
+    "parsed": [
+      {
+        "to": ["ready", "adopt"],
+        "emit": ["built", "made"],
+        "when": "readable"
+      },
+      { "to": ["broken", "first"], "emit": ["stopped", "told"] }
+    ]
+  },
+  "ready": {
+    "parsed": [
+      {
+        "to": ["ready", "adopt"],
+        "emit": ["built", "made"],
+        "when": "readable"
+      },
+      { "to": ["broken", "keep"], "emit": ["stopped", "told"] }
+    ],
+    "begin": [{ "to": ["ready", "begun"], "emit": ["built", "made"] }]
+  },
+  "broken": {
+    "parsed": [
+      {
+        "to": ["ready", "adopt"],
+        "emit": ["built", "made"],
+        "when": "readable"
+      },
+      { "to": ["broken", "still"], "emit": ["stopped", "told"] }
+    ]
+  }
+}

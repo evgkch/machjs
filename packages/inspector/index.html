@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>machjs — inspector</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Onest:wght@200..900&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <main>
+            <div class="bar">
+                <label
+                    >Schema
+                    <select id="sample"></select>
+                </label>
+                <div class="acts">
+                    <button
+                        id="new"
+                        title="a schema of your own, in the language"
+                    >
+                        new
+                    </button>
+                    <button
+                        id="open"
+                        title="read a schema from a file — a dump, or the language"
+                    >
+                        open
+                    </button>
+                    <button
+                        id="dump"
+                        title="write this schema out as JSON, the way a machine dumps itself"
+                    >
+                        dump
+                    </button>
+                </div>
+                <input
+                    type="file"
+                    id="file"
+                    accept=".json,.txt,application/json,text/plain"
+                    hidden
+                />
+                <div class="run">
+                    <label
+                        >Start
+                        <select id="start"></select>
+                    </label>
+                    <button
+                        id="reset"
+                        class="reset"
+                        title="forget the run and stand at the start again"
+                    >
+                        reset
+                    </button>
+                </div>
+
+                <!-- Which panels are up. -->
+                <div class="panels" id="panels"></div>
+            </div>
+
+            <!-- The machine's alphabet: three legends, no frame, each its own switch. -->
+            <div class="alphabet" id="alphabet"></div>
+
+            <div class="panes">
+                <!-- The editor is put in here: it is three layers that have to agree on every
+                     metric, so it is built where those metrics are, and not written out twice. -->
+                <section class="pane" id="text"></section>
+
+                <!-- The classic diagram: the same schema as one row of states and arcs. -->
+                <section class="pane" id="chart"></section>
+
+                <section class="pane" id="inspector"></section>
+            </div>
+        </main>
+
+        <script type="module" src="./src/app/main.ts"></script>
+    </body>
+</html>
