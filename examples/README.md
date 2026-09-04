@@ -31,7 +31,7 @@ npm run preview   # serve the build
 npm test          # every page in a DOM: the machine is driven, the widgets are checked
 ```
 
-The library and the widgets come from the workspace, not from npm: a change in `packages/core` or `packages/inspector` reaches the examples after that package is rebuilt.
+The library and the widgets come from the workspace, not from npm: after a change in `packages/core` or `packages/inspector`, rebuild that package.
 
 ## The shell
 

@@ -12,8 +12,8 @@ publishes a copy of it, so a page that draws the widgets itself gets the palette
 @import "@evgkch/machjs-inspector/tokens.css";
 ```
 
-The widgets require it. The palette reaches a shadow root through inherited custom properties;
-without the tokens a widget is left without colours.
+The widgets require it: the palette crosses into a shadow root as inherited custom properties,
+and without the tokens a widget is left without colours.
 
 ## The two layers
 
