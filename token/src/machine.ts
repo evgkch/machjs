@@ -2,9 +2,11 @@
  * The token's lifetime, as a schema.
  *
  * Requirement 3 — "refresh runs once, however many callers were refused" — is not a flag and not
- * an `if`. `emit: "refresh"` stands in one cell, `ok · denied`. The second caller's `denied`
- * arrives in `refreshing`, where the rule for it is a different one: it counts the caller and
- * emits nothing. There is nothing to check, because there is nothing that could go wrong.
+ * an `if`. Down the `denied` column `emit: "refresh"` stands in one cell, `ok · denied`. The
+ * second caller's `denied` arrives in `refreshing`, where the rule for it is a different one: it
+ * counts the caller and emits nothing. There is nothing to check, because there is nothing that
+ * could go wrong. (`dead · retry` emits it too, but that is the reader asking for another try,
+ * not a caller being refused.)
  *
  * Requirement 5 — "a failed refresh refuses the waiting callers, nobody hangs" — is `failed`
  * leading to a phase that answers. `dead` is a state with rules, not a flag somebody forgot to
