@@ -2,7 +2,7 @@
 
 # machjs — examples
 
-Examples for [`@evgkch/machjs`](https://github.com/evgkch/machjs), a small typed Mealy state machine. Each one is a working page built on the published package: plain HTML and TypeScript, no framework. Every example comes with a walkthrough of the same code, line by line.
+Examples for [`@evgkch/machjs`](https://github.com/evgkch/machjs), a small typed Mealy state machine. Each one is a working page built on the library and the inspector's widgets: plain HTML and TypeScript, no framework. Every example comes with a walkthrough of the same code, line by line.
 
 **Live: [evgkch.github.io/machjs](https://evgkch.github.io/machjs/)**
 
@@ -15,21 +15,23 @@ Examples for [`@evgkch/machjs`](https://github.com/evgkch/machjs), a small typed
 
 ## Running locally
 
-One Vite project holds every example: the index page is at the root, each example at its own path.
+The examples are a workspace of [`evgkch/machjs`](https://github.com/evgkch/machjs), and one Vite project holds every one of them: the index page is at the root, each example at its own path. From the repository root:
 
 ```sh
-npm install
+npm ci
+npm run dev:examples   # builds the library and the widgets, then http://localhost:5173
+```
+
+In this directory, once the library and the inspector's package are built:
+
+```sh
 npm run dev       # http://localhost:5173
 npm run build     # tsc --noEmit + build to dist/
 npm run preview   # serve the build
+npm test          # every page in a DOM: the machine is driven, the widgets are checked
 ```
 
-The examples depend on the package from npm, so nothing has to be built in the library repository first. To try them against unreleased changes, build the library and link it — from the library checkout, then from this one:
-
-```sh
-npm run build && npm link      # in machjs
-npm link @evgkch/machjs         # here
-```
+The library and the widgets come from the workspace, not from npm: a change in `packages/core` or `packages/inspector` reaches the examples after that package is rebuilt.
 
 ## The shell
 
@@ -55,8 +57,8 @@ The skin is a block of custom properties and nothing more: the widgets read the 
 2. An entry in `build.rollupOptions.input` in [`vite.config.ts`](vite.config.ts): Vite does not look for pages on its own.
 3. A card in [`index.html`](index.html) — copy the existing `<li class="card">` and change the text and links.
 
-## Relation to the library repository
+## The site
 
-[`evgkch/machjs`](https://github.com/evgkch/machjs) includes this repository as a submodule at `examples/`, and publishes the site from it: pushing here changes nothing on the site until the submodule pointer in `machjs` is moved to the new commit.
+[evgkch.github.io/machjs](https://evgkch.github.io/machjs/) is built from this directory by `.github/workflows/pages.yml` on every push to `master`, with the inspector's pages under `/inspector/`.
 
 MIT.

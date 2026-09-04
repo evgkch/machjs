@@ -58,7 +58,7 @@ const { choice, pointer } = newFocus();
 const here = dirname(fileURLToPath(import.meta.url));
 
 // Laid out by the repository's own formatter, so a fresh dump passes `format:check`.
-const style = await resolveConfig(join(here, "..", ".prettierrc.json"));
+const style = await resolveConfig(join(here, "..", "schemas", "any.json"));
 
 for (const [file, machine] of [
   ["the-inspectors-choice.json", choice],

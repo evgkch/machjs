@@ -2,9 +2,9 @@
 
 # Schema Review
 
-A complete walkthrough from problem statement to a working state machine: a change moving through review — an automated gate, then two sign-offs, then it ships. The document under review is itself a state-machine schema: the gate is the library's own `validate` and `analyze`, and the machine that runs the review is drawn on the page by the widgets of [`@evgkch/machjs-inspector`](https://github.com/evgkch/machjs-inspector). The sections follow the order of work — first the transition graph, then context, guards and operations, then the gate, the page and the analysis. In the code, type definitions are usually placed before the schema, but here they are introduced as needed.
+A complete walkthrough from problem statement to a working state machine: a change moving through review — an automated gate, then two sign-offs, then it ships. The document under review is itself a state-machine schema: the gate is the library's own `validate` and `analyze`, and the machine that runs the review is drawn on the page by the widgets of [`@evgkch/machjs-inspector`](https://github.com/evgkch/machjs/tree/master/packages/inspector). The sections follow the order of work — first the transition graph, then context, guards and operations, then the gate, the page and the analysis. In the code, type definitions are usually placed before the schema, but here they are introduced as needed.
 
-Notation and definitions are given in the [guide](https://github.com/evgkch/machjs/blob/master/README.md). References of the form “section 4.2” point to sections of this document; the guide is referenced by section title — “README, “Transition schema””.
+Notation and definitions are given in the [guide](https://github.com/evgkch/machjs/blob/master/packages/core/README.md). References of the form “section 4.2” point to sections of this document; the guide is referenced by section title — “README, “Transition schema””.
 
 **Working project.** The example runs as a page — [live demo](https://evgkch.github.io/machjs/review/). Vite, plain HTML and TypeScript, no frameworks; the commands are run from the root of this repository:
 
@@ -978,7 +978,7 @@ There are no unreachable states, no dead rules, and every state but one has an o
 
 ## 10. The machine on the page
 
-At the bottom of the page the automaton is drawn by the widgets of [`@evgkch/machjs-inspector`](https://github.com/evgkch/machjs-inspector): the legend of states, the transition diagram and the run. `<machjs-desk>` binds them — it wires the widgets to one subject and gives each a switch:
+At the bottom of the page the automaton is drawn by the widgets of [`@evgkch/machjs-inspector`](https://github.com/evgkch/machjs/tree/master/packages/inspector): the legend of states, the transition diagram and the run. `<machjs-desk>` binds them — it wires the widgets to one subject and gives each a switch:
 
 ```ts
 import { MachjsDesk, fromMachine } from "@evgkch/machjs-inspector/ui";

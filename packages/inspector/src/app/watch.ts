@@ -12,7 +12,7 @@ console.log(
     "Inspecting machines that are running somewhere else. An application writes one line —\n" +
     "`const fsm = inspect(fsm, { name })` — and a relay carries what it says to this page.\n" +
     "Names cross the wire: no context, no payload, nothing an application holds.\n" +
-    "https://github.com/evgkch/machjs-inspector",
+    "https://github.com/evgkch/machjs/tree/master/packages/inspector",
   "font-weight:700",
   "font-weight:400",
 );

@@ -11,16 +11,17 @@ export default defineConfig({
   // `/form/review/review/…`. In `mpa` a path that is not a page is a 404.
   appType: "mpa",
   resolve: {
-    // The library is linked from the folder above, and a linked package is
+    // The library is linked from the workspace, and a linked package is
     // resolved from where it really lives — so anything that reached it by a
     // second path would be a second copy, with a second `TRANSITION` symbol,
     // and a listener on one would never hear the other. One copy, this one.
     dedupe: ["@evgkch/machjs"],
   },
   optimizeDeps: {
-    // Prebundled, the inspector would carry a copy of the library inside the
-    // bundle — the second copy the line above exists to prevent. Served as
-    // source, its import resolves to the page's one copy.
+    // Prebundled, the inspector would carry a copy of the library inside the bundle — the second
+    // copy the line above exists to prevent. Vite prebundles what lives in `node_modules`, and a
+    // workspace package is a link out of it, so today this changes nothing; it is what keeps the
+    // page right if the inspector is ever taken from the registry instead.
     exclude: ["@evgkch/machjs-inspector"],
   },
   build: {

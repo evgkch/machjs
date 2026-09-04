@@ -1,70 +1,33 @@
 {
-  "name": "@evgkch/machjs",
-  "version": "0.5.0",
-  "publishConfig": {
-    "access": "public"
-  },
-  "description": "A small, typed Mealy state machine: one table of rules, a context that belongs to the state rather than the machine, and a graph that is a projection of the same object \u2014 serialize it, draw it, analyse it",
+  "name": "machjs-monorepo",
+  "private": true,
+  "description": "machjs — a small, typed Mealy state machine for TypeScript, the inspector that draws it, and the examples",
   "type": "module",
-  "sideEffects": false,
-  "files": [
-    "dist"
+  "workspaces": [
+    "packages/core",
+    "packages/inspector",
+    "examples"
   ],
-  "main": "dist/core/index.js",
-  "browser": "dist/core/index.js",
-  "types": "dist/core/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/core/index.d.ts",
-      "default": "./dist/core/index.js"
-    },
-    "./analysis": {
-      "types": "./dist/analysis/index.d.ts",
-      "default": "./dist/analysis/index.js"
-    },
-    "./debug": {
-      "types": "./dist/debug/index.d.ts",
-      "default": "./dist/debug/index.js"
-    },
-    "./formatters": {
-      "types": "./dist/formatters/index.d.ts",
-      "default": "./dist/formatters/index.js"
-    }
-  },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "dev": "tsc -p tsconfig.build.json --watch",
-    "typecheck": "tsc -p tsconfig.json",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "build": "npm run build -w @evgkch/machjs && npm run build -w @evgkch/machjs-inspector && npm run build -w examples",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm test --workspaces --if-present",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepublishOnly": "npm run typecheck && npm run format:check && npm run build && npm test"
+    "site": "node scripts/site.mjs",
+    "dev:examples": "npm run build -w @evgkch/machjs && npm run build:lib -w @evgkch/machjs-inspector && npm run dev -w examples",
+    "dev:inspector": "npm run build -w @evgkch/machjs && npm run dev -w @evgkch/machjs-inspector"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "jest": "^30.4.2",
     "prettier": "^3.9.6",
-    "ts-jest": "^29.4.11",
-    "typescript": "^5.6.0"
+    "typescript": "^5.9.3"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/evgkch/machjs.git"
   },
-  "keywords": [
-    "fsm",
-    "state-machine",
-    "finite-state-machine",
-    "mealy",
-    "transducer",
-    "typescript",
-    "typestate",
-    "discriminated-union"
-  ],
-  "author": "Evgeny Kucherenko",
-  "license": "MIT",
-  "homepage": "https://github.com/evgkch/machjs",
-  "dependencies": {
-    "@evgkch/chanjs": "^1.0.0"
-  }
+  "license": "MIT"
 }

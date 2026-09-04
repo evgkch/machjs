@@ -3,7 +3,7 @@
 // what each widget rendered. `npm run matrix`; exits 1 on any mismatch.
 import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/, "");
-const { Window } = await import(`${root}/node_modules/happy-dom/lib/index.js`);
+const { Window } = await import("happy-dom");
 const win = new Window();
 for (const k of [
   "window",
@@ -24,12 +24,8 @@ for (const k of [
     });
   } catch {}
 }
-const { createServer } = await import(
-  `${root}/node_modules/vite/dist/node/index.js`
-);
-const { toRules } = await import(
-  `${root}/node_modules/@evgkch/machjs/dist/formatters/index.js`
-);
+const { createServer } = await import("vite");
+const { toRules } = await import("@evgkch/machjs/formatters");
 const server = await createServer({
   root,
   logLevel: "error",
@@ -463,9 +459,7 @@ try {
   console.log(
     "— M15: a guard that reads its payload cannot crash a bare ask —",
   );
-  const { StateMachine: SM } = await import(
-    `${new URL("..", import.meta.url).pathname.replace(/\/$/, "")}/node_modules/@evgkch/machjs/dist/core/index.js`
-  );
+  const { StateMachine: SM } = await import("@evgkch/machjs");
   const { fromMachine } = await server.ssrLoadModule(
     "/src/entities/machine/lib/from-machine.ts",
   );

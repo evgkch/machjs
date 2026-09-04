@@ -5,10 +5,8 @@ import { fileURLToPath } from "node:url";
 import fs from "node:fs";
 
 const root = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/, "");
-const { Window } = await import(`${root}/node_modules/happy-dom/lib/index.js`);
-const { createServer } = await import(
-  `${root}/node_modules/vite/dist/node/index.js`
-);
+const { Window } = await import("happy-dom");
+const { createServer } = await import("vite");
 
 let failed = 0;
 const eq = (name, got, want) => {

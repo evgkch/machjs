@@ -3,23 +3,15 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 
 /**
- * The palette, published on its own.
+ * The palette, published as `@evgkch/machjs-inspector/tokens.css`.
  *
- * `@evgkch/machjs-inspector/tokens.css` is a file of the package's manifest, so it has to be in
- * `dist-lib` whenever `dist-lib` exists — and it is the one thing there that is not a build
- * product: it is the `machjs-tokens` submodule's file, copied. That copy used to be a `cp` in the npm
- * script beside the build, which meant the build alone produced a `dist-lib` that was missing a
- * file the manifest promises, and the promise is what somebody else's stylesheet imports. Running
- * the build on its own is a thing anybody does; emitting it here makes one command enough.
- *
- * Emitted rather than copied, so it goes wherever the output goes and is cleared with it.
- *
- * It lands where the source has it, under `shared/ui`, and not at the root — that is the path the
- * manifest maps `./tokens.css` onto, and one mapping is cheaper than a copy at the root beside
- * the tree. What a reader writes is `@evgkch/machjs-inspector/tokens.css` either way: the name is
- * the manifest's, and where the file sits under it is nobody's business but this build's.
+ * It is the one file in `dist-lib` that is not a build product: `src/shared/ui/tokens/tokens.css`,
+ * copied. That copy used to be a `cp` in the npm script beside the build, which meant the build
+ * alone produced a `dist-lib` that was missing a file the manifest promises, and the promise is
+ * what somebody else's stylesheet imports. Emitted here, one command is enough, and the file goes
+ * wherever the output goes and is cleared with it.
  */
-const TOKENS = "shared/ui/tokens/tokens.css";
+const TOKENS = "src/shared/ui/tokens/tokens.css";
 
 const tokens = (): Plugin => ({
   name: "machjs-inspector-tokens",
@@ -28,8 +20,8 @@ const tokens = (): Plugin => ({
   generateBundle() {
     this.emitFile({
       type: "asset",
-      fileName: TOKENS,
-      source: readFileSync(`src/${TOKENS}`, "utf8"),
+      fileName: "tokens.css",
+      source: readFileSync(TOKENS, "utf8"),
     });
   },
 });
@@ -41,15 +33,12 @@ const tokens = (): Plugin => ({
  * The library is left out of the bundle: whoever embeds the inspector already has a machine, and
  * a second copy of `machjs` would be a second `TRANSITION` symbol — the listener would never fire.
  *
- * Two entries, and which one is the main one is the whole point. `index` is `inspect(fsm)`: what an
- * application writes, with no document and no stylesheet in it, because the thing being debugged
- * may have neither — a server, a worker, a test run. `ui` is the tool, for a page that wants to
- * draw the figure itself, and importing it means importing a stylesheet.
- *
- * What that stylesheet now is has changed, and the manifest's three CSS entries say it: the widgets
- * carry their own into their shadow roots, so `ui.css` is what is left for the light DOM — the
- * mount's grid and the overlay — and `tokens.css` is the palette, which crosses into a shadow root
- * on its own because a custom property is inherited.
+ * Two entries. `index` is `inspect(fsm)`: what an application writes, with no document and no
+ * stylesheet in it, because the thing being debugged may have neither — a server, a worker, a
+ * test run. `ui` is the tool, for a page that wants to draw the figure itself, and importing it
+ * means importing a stylesheet: `ui.css` is the light DOM — the mount's grid and the overlay —
+ * and `tokens.css` is the palette, which crosses into a shadow root on its own because a custom
+ * property is inherited.
  */
 export default defineConfig({
   plugins: [tokens()],
@@ -60,7 +49,7 @@ export default defineConfig({
       formats: ["es"],
     },
     rollupOptions: {
-      external: [/^@evgkch\//, /^lit/],
+      external: [/^@evgkch\/(machjs|chanjs)(\/|$)/, /^lit/],
       // Named after the entry that carries it, which is `ui` — the main entry has no stylesheet at
       // all, and a file called `index.css` beside a JavaScript file that never mentions a document
       // would be the manifest's one confusing sentence.

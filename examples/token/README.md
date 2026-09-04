@@ -4,7 +4,7 @@
 
 A complete walkthrough from problem statement to a working state machine: an HTTP client whose access token expires, five callers refused at once, and exactly one refresh. The sections follow the order of work — first the transition graph, then the context, the operations, then the browser wiring and the analysis. In the code the type definitions usually stand before the schema; here they appear as they become necessary.
 
-Notation and definitions are given in the [guide](https://github.com/evgkch/machjs/blob/master/README.md). References of the form “section 4.2” point to sections of this document; the guide is referenced by section title — “README, ‘Transition schema’”.
+Notation and definitions are given in the [guide](https://github.com/evgkch/machjs/blob/master/packages/core/README.md). References of the form “section 4.2” point to sections of this document; the guide is referenced by section title — “README, ‘Transition schema’”.
 
 **Working project.** The example runs as a page — [live demo](https://evgkch.github.io/machjs/token/). Vite, plain HTML and TypeScript, no frameworks; the commands are run from the root of this repository:
 

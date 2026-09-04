@@ -20,51 +20,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # The examples live in evgkch/machjs-examples and are pinned here as a
-      # submodule: the site is whatever commit `examples` currently points at.
-      # Recursive, because the examples pin a submodule of their own — the
-      # shared tokens.
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
-      # The examples take the library from the checkout beside them rather than
-      # from the registry, so the library has to be a working package here before
-      # anything can be typechecked against it.
-      #
-      # Its dependencies are the half that is easy to miss. A `file:` dependency
-      # is a symlink, and npm does not copy the target's own dependencies into the
-      # consumer's tree — it expects the target to have them already. So
-      # `chanjs` resolved on a machine where the library had been installed
-      # once, and nowhere else; and the failure named neither of them. With the
-      # type of `rx` unresolved every listener's payload quietly became `any`, and
-      # the first `noImplicitAny` error landed three files away from the cause.
-      #
-      # Built as well as installed. `dist` is committed, so the site would come
-      # out of it either way — and then a commit that changed the source and
-      # forgot to rebuild would publish a site made from the previous one.
-      - name: Build the library
-        run: |
-          npm install
-          npm run build
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
 
-      # Built, then pressed: the machines drive, the widgets follow, nothing throws.
-      - name: Build the examples
-        working-directory: examples
-        run: |
-          npm install
-          npm run build
-          npm test
+      # One site: the examples at the root, the inspector's pages under /inspector/.
+      - run: npm run site
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: examples/dist
+          path: site
 
   deploy:
     needs: build

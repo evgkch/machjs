@@ -1,0 +1,11 @@
+{
+  // Shared by every package: the language level and strictness. A package adds its own `lib`,
+  // `module`, `moduleResolution`, `types` and `include`.
+  "compilerOptions": {
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

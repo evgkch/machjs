@@ -4,7 +4,7 @@
 
 A complete walkthrough from problem statement to two working state machines: a card terminal and an authorisation host, joined by a wire that can be cut, slowed, or made to deliver twice. The sections follow the order of work — first the two transition graphs, then the contexts, guards and operations, then the seam between the machines, the wire, the browser wiring and the analysis. In the code the type definitions usually stand before the schema; here they appear as they become necessary.
 
-Notation and definitions are given in the [guide](https://github.com/evgkch/machjs/blob/master/README.md). References of the form “section 4.2” point to sections of this document; the guide is referenced by section title — “README, ‘Transition schema’”.
+Notation and definitions are given in the [guide](https://github.com/evgkch/machjs/blob/master/packages/core/README.md). References of the form “section 4.2” point to sections of this document; the guide is referenced by section title — “README, ‘Transition schema’”.
 
 **Working project.** The example runs as a page — [live demo](https://evgkch.github.io/machjs/wire/). Vite, plain HTML and TypeScript, no frameworks; the commands are run from the root of this repository:
 

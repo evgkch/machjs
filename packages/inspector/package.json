@@ -1,52 +1,15 @@
 {
   "name": "@evgkch/machjs-inspector",
   "version": "0.0.9",
-  "type": "module",
   "description": "Look at a state machine: three projections of its transition relation, drawn from the graph and driven by two clicks. Reads a dumped schema, or attaches to a machine that is running",
-  "license": "MIT",
-  "author": "Evgeny Kucherenko",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/evgkch/machjs-inspector.git"
-  },
-  "homepage": "https://evgkch.github.io/machjs-inspector/",
-  "keywords": [
-    "fsm",
-    "state-machine",
-    "mealy",
-    "inspector",
-    "devtools",
-    "visualisation"
+  "type": "module",
+  "sideEffects": [
+    "*.css",
+    "./dist-lib/ui.js"
   ],
-  "scripts": {
-    "dev": "vite",
-    "inspect": "node scripts/relay.mjs & vite --open /viewer.html",
-    "relay": "node scripts/relay.mjs",
-    "build": "npm run dump && tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
-    "dump": "node --no-warnings scripts/dump.mjs",
-    "matrix": "node scripts/matrix.mjs",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "build:lib": "vite build --config vite.lib.config.ts && tsc -p tsconfig.build.json && node scripts/bare-dts.mjs",
-    "prepublishOnly": "npm run build:lib"
-  },
-  "peerDependencies": {
-    "@evgkch/chanjs": ">=1.0.0",
-    "@evgkch/machjs": ">=0.5.0"
-  },
-  "devDependencies": {
-    "@evgkch/chanjs": "^1.0.0",
-    "@evgkch/machjs": "file:../machjs",
-    "happy-dom": "^20.11.2",
-    "prettier": "^3.9.6",
-    "typescript": "^5.9.3",
-    "vite": "^8.2.0",
-    "ws": "^8.21.3"
-  },
   "files": [
-    "dist-lib"
+    "dist-lib",
+    "README.ru.md"
   ],
   "main": "./dist-lib/index.js",
   "types": "./dist-lib/index.d.ts",
@@ -60,15 +23,56 @@
       "default": "./dist-lib/ui.js"
     },
     "./style.css": "./dist-lib/ui.css",
-    "./tokens.css": "./dist-lib/shared/ui/tokens/tokens.css"
+    "./tokens.css": "./dist-lib/tokens.css"
   },
-  "sideEffects": [
-    "*.css"
-  ],
-  "publishConfig": {
-    "access": "public"
+  "scripts": {
+    "dev": "vite",
+    "inspect": "node scripts/relay.mjs & vite --open /viewer.html",
+    "relay": "node scripts/relay.mjs",
+    "build": "npm run build:lib && npm run build:site",
+    "build:lib": "vite build --config vite.lib.config.ts && tsc -p tsconfig.build.json && node scripts/bare-dts.mjs",
+    "build:site": "npm run dump && tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "dump": "node --no-warnings scripts/dump.mjs",
+    "test": "node scripts/matrix.mjs",
+    "matrix": "node scripts/matrix.mjs",
+    "prepublishOnly": "npm run build:lib"
   },
   "dependencies": {
     "lit": "^3.3.3"
+  },
+  "peerDependencies": {
+    "@evgkch/chanjs": ">=1.0.0",
+    "@evgkch/machjs": ">=0.5.0"
+  },
+  "devDependencies": {
+    "@evgkch/chanjs": "^1.0.0",
+    "@evgkch/machjs": "*",
+    "happy-dom": "^20.11.2",
+    "vite": "^8.2.0",
+    "ws": "^8.21.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/evgkch/machjs.git",
+    "directory": "packages/inspector"
+  },
+  "homepage": "https://evgkch.github.io/machjs/inspector/",
+  "bugs": {
+    "url": "https://github.com/evgkch/machjs/issues"
+  },
+  "keywords": [
+    "fsm",
+    "state-machine",
+    "mealy",
+    "inspector",
+    "devtools",
+    "visualisation"
+  ],
+  "author": "Evgeny Kucherenko",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
   }
 }

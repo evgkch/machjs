@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Built before it is checked: the inspector and the examples reach the library and the
+      # widgets through the workspace links, and those point at `dist` and `dist-lib`.
+      - run: npm run build
+      - run: npm run typecheck
+      - run: npm run format:check
+
+      # jest in the library, the widget matrix in the inspector, the pages in the examples.
+      - run: npm test
+
+      # The site both workflows publish, assembled here so a broken page fails a pull request.
+      - run: npm run site
+
+      # The inspector's schemas are dumps of its own machines, written by the site build. A
+      # source change that was not dumped fails here rather than drifting.
+      - run: git diff --exit-code -- packages/inspector/schemas

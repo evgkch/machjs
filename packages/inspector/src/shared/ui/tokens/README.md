@@ -1,18 +1,19 @@
 **English** · [Русский](README.ru.md)
 
-# fsmjs tokens
+# machjs tokens
 
-The shared design vocabulary of the fsmjs tools: palette, type, spacing steps, radii, state lanes
+The shared design vocabulary of the machjs tools: palette, type, spacing steps, radii, state lanes
 — and the controls built out of them. One file, `tokens.css`.
 
-Connected as a git submodule and imported by a page or a widget:
+The inspector's own pages and widgets import it from here, by a relative path. The package
+publishes a copy of it, so a page that draws the widgets itself gets the palette by name:
 
 ```css
-@import "./tokens/tokens.css";
+@import "@evgkch/machjs-inspector/tokens.css";
 ```
 
-Used by [fsmjs-inspector](https://github.com/evgkch/fsmjs-inspector) and
-[fsmjs-examples](https://github.com/evgkch/fsmjs-examples).
+The widgets require it. The palette reaches a shadow root through inherited custom properties;
+without the tokens a widget is left without colours.
 
 ## The two layers
 
@@ -39,7 +40,3 @@ overrides any of it with a plain `button { … }` of its own.
 
 36px is the module and a half (`--cell` is 24px): a control is taller than a row of the figure
 because a finger lands on it and a row does not.
-
-## License
-
-MIT

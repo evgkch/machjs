@@ -1,4 +1,4 @@
-@import "./tokens/tokens.css";
+@import "@evgkch/machjs-inspector/tokens.css";
 
 @layer tokens, controls, page;
 

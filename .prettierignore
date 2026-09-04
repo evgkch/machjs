@@ -1,11 +1,13 @@
 # Build output — formatted by the tool that wrote it, not by us.
 dist/
-
-# A repository of its own, with its own formatting setup.
-examples/
+dist-lib/
+site/
 
 # Prose is laid out by hand: tables, wrapping and the width of a rule line all carry
 # meaning here, and Prettier would reflow them.
 *.md
 
 package-lock.json
+
+# Tool configuration, written by the tool.
+.claude/

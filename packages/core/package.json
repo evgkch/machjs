@@ -1,0 +1,71 @@
+{
+  "name": "@evgkch/machjs",
+  "version": "0.5.0",
+  "description": "A small, typed Mealy state machine: one table of rules, a context that belongs to the state rather than the machine, and a graph that is a projection of the same object — serialize it, draw it, analyse it",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.ru.md"
+  ],
+  "main": "dist/core/index.js",
+  "browser": "dist/core/index.js",
+  "types": "dist/core/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/core/index.d.ts",
+      "default": "./dist/core/index.js"
+    },
+    "./analysis": {
+      "types": "./dist/analysis/index.d.ts",
+      "default": "./dist/analysis/index.js"
+    },
+    "./debug": {
+      "types": "./dist/debug/index.d.ts",
+      "default": "./dist/debug/index.js"
+    },
+    "./formatters": {
+      "types": "./dist/formatters/index.d.ts",
+      "default": "./dist/formatters/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "prepublishOnly": "npm run typecheck && npm run build && npm test"
+  },
+  "dependencies": {
+    "@evgkch/chanjs": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.11"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/evgkch/machjs.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/evgkch/machjs/tree/master/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/evgkch/machjs/issues"
+  },
+  "keywords": [
+    "fsm",
+    "state-machine",
+    "finite-state-machine",
+    "mealy",
+    "transducer",
+    "typescript",
+    "typestate",
+    "discriminated-union"
+  ],
+  "author": "Evgeny Kucherenko",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

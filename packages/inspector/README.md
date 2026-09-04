@@ -6,7 +6,7 @@ A finite-state-machine inspector for [`@evgkch/machjs`](https://github.com/evgkc
 
 `JSON.stringify(machine)` returns the graph — the schema without function bodies, but with their names. That is enough to draw, check and run the machine.
 
-[**Open the inspector**](https://evgkch.github.io/machjs-inspector/)
+[**Open the inspector**](https://evgkch.github.io/machjs/inspector/)
 
 ---
 
@@ -27,7 +27,7 @@ A finite-state-machine inspector for [`@evgkch/machjs`](https://github.com/evgkc
 
 ## Installation
 
-The inspector's pages and [the relay](#the-relay) — a WebSocket server through which the application under debugging hands its machines to the watching page — run from a clone of the repository. The application itself takes the npm package:
+The inspector's pages and [the relay](#the-relay) — a WebSocket server through which the application under debugging hands its machines to the watching page — run from a clone of [`evgkch/machjs`](https://github.com/evgkch/machjs), where this package is `packages/inspector`. The application itself takes the npm package:
 
 ```sh
 npm i -D @evgkch/machjs-inspector
@@ -41,7 +41,7 @@ if (import.meta.env.DEV) inspect(fsm, { name: "cart" });
 
 If the widgets are part of the page's interface, the dependency is a regular one.
 
-The package is ESM-only. Its one dependency of its own is `lit`, the custom-elements base. Peer dependencies — `@evgkch/machjs >= 0.2.1` and `@evgkch/chanjs >= 1.1.0`: neither is bundled, and the application must have exactly one copy of `machjs` (see [Limitations](#limitations)).
+The package is ESM-only. Its one dependency of its own is `lit`, the custom-elements base. Peer dependencies — `@evgkch/machjs >= 0.5.0` and `@evgkch/chanjs >= 1.0.0`: neither is bundled, and the application must have exactly one copy of `machjs` (see [Limitations](#limitations)).
 
 Entry points:
 
@@ -56,19 +56,20 @@ Entry points:
 
 ## Ways of working
 
-**The ready-made page.** In a clone of the repository:
+**The ready-made page.** In a clone of `evgkch/machjs`, from its root:
 
 ```sh
-npm install
-npm run dev
+npm ci
+npm run dev:inspector
 ```
 
 The inspector opens: the schema editor beside the figure. A schema is read from a file — a `JSON.stringify(machine)` dump or text in the rule language — written in the editor, or taken from the [ready-made ones](#schemas). The dump button writes what was typed back out as JSON.
 
-**A running machine.** The relay and the watching page run in a clone of the repository:
+**A running machine.** The relay and the watching page run in a clone of `evgkch/machjs`:
 
 ```sh
-npm run inspect      # the relay at ws://localhost:8999 and the watching page
+npm ci && npm run build -w @evgkch/machjs
+npm run inspect -w @evgkch/machjs-inspector      # the relay at ws://localhost:8999 and the watching page
 ```
 
 The application under debugging gains one line:

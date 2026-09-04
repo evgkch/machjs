@@ -1,0 +1,52 @@
+name: Publish
+
+# A tag names the package and the version: `machjs@0.5.0`, `machjs-inspector@0.0.9`. The version
+# has to match the package's manifest. The package is published with provenance through npm's
+# trusted publishing, so no token is stored in the repository.
+on:
+  push:
+    tags:
+      - "machjs@*"
+      - "machjs-inspector@*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      # Trusted publishing needs npm 11.5.1 or newer; Node 22 ships an older one.
+      - run: npm install -g npm@latest
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+      - name: Read the tag
+        id: tag
+        run: |
+          name="${GITHUB_REF_NAME%@*}"
+          version="${GITHUB_REF_NAME##*@}"
+          case "$name" in
+            machjs) dir=packages/core ;;
+            machjs-inspector) dir=packages/inspector ;;
+            *) echo "unknown package: $name" >&2; exit 1 ;;
+          esac
+          manifest=$(node -p "require('./$dir/package.json').version")
+          if [ "$manifest" != "$version" ]; then
+            echo "the tag says $version, $dir/package.json says $manifest" >&2
+            exit 1
+          fi
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+
+      - run: npm publish --workspace ${{ steps.tag.outputs.dir }} --provenance --access public

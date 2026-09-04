@@ -1,0 +1,17 @@
+{
+  // Editor / typecheck config for the package (src, test, scripts). Emits nothing — building dist
+  // is `tsconfig.build.json`. The `paths` entries resolve the package's own name to its sources, so
+  // anything importing `@evgkch/machjs` typechecks without a build.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "paths": {
+      "@evgkch/machjs": ["./src/core/index.ts"],
+      "@evgkch/machjs/*": ["./src/*/index.ts"]
+    }
+  },
+  "include": ["src", "test", "scripts"]
+}
