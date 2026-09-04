@@ -1,0 +1,102 @@
+@import "./tokens/tokens.css";
+
+@layer tokens, controls, page;
+
+/*
+ * What every page of the set shares below its own layer: the two properties the tokens have no
+ * opinion about, and the running text — links, inline code, an eyebrow, a lede, a hint, a
+ * label-and-value pair.
+ *
+ * It used to stand in four stylesheets at once, and the four had drifted: `main` was 44rem on two
+ * pages and 52rem on the third, `code` was styled on two of them and not on the third. One copy
+ * is the whole reason this file exists.
+ */
+@layer page {
+    :root {
+        /* The examples' frames are smaller than the inspector's. */
+        --radius: 18px;
+
+        /* The graph paper behind a drawing area, and the lift a floating panel sits on. */
+        --grid: color-mix(in oklab, var(--line) 70%, transparent);
+        --accent-in: var(--surface);
+        --shadow:
+            0 1px 2px oklch(22% 0.012 264 / 0.05),
+            0 8px 24px -12px oklch(22% 0.012 264 / 0.18);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --shadow:
+                0 1px 2px oklch(0% 0 0 / 0.4),
+                0 12px 32px -14px oklch(0% 0 0 / 0.7);
+        }
+    }
+
+    a {
+        color: var(--accent);
+        text-decoration-color: color-mix(
+            in srgb,
+            var(--accent) 35%,
+            transparent
+        );
+        text-underline-offset: 0.18em;
+    }
+
+    a:hover {
+        text-decoration-color: currentColor;
+    }
+
+    code {
+        font: 500 0.9em/1 var(--mono-font);
+        color: var(--ink);
+    }
+
+    .eyebrow {
+        margin: 0;
+        font-size: var(--micro);
+        font-weight: 600;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--accent);
+    }
+
+    .lede {
+        margin: 0;
+        max-width: 38rem;
+        color: var(--muted);
+        text-wrap: pretty;
+    }
+
+    /*
+     * A hint is what to try, not a paragraph about the example. Written as a list on every page,
+     * so it also carries the reset a list needs.
+     */
+    .hint {
+        display: grid;
+        gap: var(--step-1);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: var(--ui-sm);
+        color: var(--faint);
+        text-wrap: pretty;
+    }
+
+    .hint b,
+    .hint code {
+        color: var(--ink);
+        font-weight: 500;
+    }
+
+    /* A label and its value, on one baseline. The label is the tokens' `.label`. */
+    .stat {
+        display: inline-flex;
+        align-items: baseline;
+        gap: var(--step-2);
+    }
+
+    .stat .value {
+        font: 500 var(--ui) / 1.4 var(--mono-font);
+        font-variant-numeric: tabular-nums;
+    }
+}

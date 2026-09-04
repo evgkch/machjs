@@ -1,0 +1,268 @@
+@import "./page.css";
+
+/*
+ * The examples index. The palette, the type, the spacings and the corners come out of the tokens;
+ * the running text, the two properties the tokens have no opinion about, and the link and code
+ * styling come out of `page.css` beside this file. What is left here belongs to this page and to
+ * nothing else: the column it is set in, the cards, and the three thumbnails.
+ */
+@layer page {
+    body {
+        margin: 0;
+        padding: clamp(1.5rem, 5vw, 3.5rem) 1.25rem 4rem;
+        background: var(--bg);
+        color: var(--ink);
+        font: 400 15px/1.6 var(--main-font);
+    }
+
+    main {
+        max-width: 44rem;
+        margin: 0 auto;
+        display: grid;
+        gap: 2rem;
+    }
+
+    /* ── header ──────────────────────────────────────────────────────────────── */
+
+    header {
+        display: grid;
+        gap: 0.4rem;
+    }
+
+    h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 4vw, 1.9rem);
+        font-weight: 620;
+        letter-spacing: -0.021em;
+    }
+
+    .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem 1rem;
+        margin: 0.4rem 0 0;
+        font-size: 0.88rem;
+    }
+
+    /* A link and its translation stay together; the gap separates the pairs. */
+    .links > span {
+        white-space: nowrap;
+    }
+
+    .alt {
+        font: 500 0.85em/1 var(--mono-font);
+        color: var(--faint);
+        text-decoration: none;
+    }
+
+    .alt:hover {
+        color: var(--accent);
+    }
+
+    /* ── cards ───────────────────────────────────────────────────────────────── */
+
+    .cards {
+        display: grid;
+        gap: 1.25rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .card {
+        display: grid;
+        grid-template-columns: 12rem 1fr;
+        gap: 1.25rem;
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 34rem) {
+        .card {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .body {
+        display: grid;
+        gap: 0.5rem;
+        align-content: start;
+    }
+
+    h2 {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: -0.011em;
+    }
+
+    h2 a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    h2 a:hover {
+        color: var(--accent);
+    }
+
+    .about {
+        margin: 0;
+        color: var(--muted);
+        text-wrap: pretty;
+    }
+
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin: 0;
+    }
+
+    .tags span {
+        padding: 0.14rem 0.5rem;
+        border: 1px solid var(--line-firm);
+        border-radius: 999px;
+        font: 500 0.72rem/1.5 var(--mono-font);
+        color: var(--faint);
+    }
+
+    /*
+ * Thumbnail: the demo's own drawing surface in miniature — a dot grid with a
+ * selected rectangle on it, handles and all. No screenshot to keep in sync.
+ */
+    .thumb {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 8rem;
+        border: 1px solid var(--line-firm);
+        border-radius: var(--radius-sm);
+        background:
+            radial-gradient(circle at 1px 1px, var(--grid) 1px, transparent 0) 0
+                0 / 12px 12px,
+            var(--bg);
+        overflow: hidden;
+    }
+
+    .rect {
+        position: absolute;
+        inset: 28% 24%;
+        border: 1.5px solid var(--accent);
+        border-radius: 2px;
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+
+    /* The third thumbnail: two boxes and a message between them, which is the shape of a wire. */
+    .link {
+        width: 74%;
+        color: var(--faint);
+    }
+
+    .link rect {
+        fill: color-mix(in srgb, var(--accent) 12%, transparent);
+        stroke: var(--accent);
+        stroke-width: 1.5;
+    }
+
+    .link .rail {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.5;
+        stroke-dasharray: 4 4;
+    }
+
+    .link .msg {
+        fill: var(--surface);
+        stroke: var(--emit);
+    }
+
+    /* The fourth thumbnail: four callers, one key, one wire — the shape of a queue behind one
+       refresh. */
+    .queue {
+        width: 78%;
+        color: var(--faint);
+    }
+
+    .queue .q {
+        fill: color-mix(in srgb, var(--accent) 12%, transparent);
+        stroke: var(--accent);
+        stroke-width: 1.2;
+    }
+
+    .queue .key {
+        fill: var(--surface);
+        stroke: var(--emit);
+        stroke-width: 1.5;
+    }
+
+    .queue .rail {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.5;
+        stroke-dasharray: 4 4;
+    }
+
+    /* The second thumbnail: three nodes and the way back, which is the shape of a review. */
+    .graph {
+        width: 78%;
+        color: var(--faint);
+    }
+
+    .graph rect {
+        fill: color-mix(in srgb, var(--accent) 12%, transparent);
+        stroke: var(--accent);
+        stroke-width: 1.5;
+    }
+
+    .graph path {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.5;
+    }
+
+    /* The arrowhead is the one path that is a shape rather than a line. */
+    .graph marker path {
+        fill: currentColor;
+        stroke: none;
+    }
+
+    .rect::after {
+        content: "";
+        position: absolute;
+        inset: -3.5px;
+        background-image:
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent));
+        background-size: 6px 6px;
+        background-repeat: no-repeat;
+        background-position:
+            left top,
+            center top,
+            right top,
+            left center,
+            right center,
+            left bottom,
+            center bottom,
+            right bottom;
+    }
+
+    /* ── footer ──────────────────────────────────────────────────────────────── */
+
+    footer {
+        color: var(--faint);
+        font-size: 0.85rem;
+    }
+
+    footer p {
+        margin: 0;
+    }
+}

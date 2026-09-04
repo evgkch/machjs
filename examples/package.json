@@ -1,0 +1,27 @@
+{
+  "name": "machjs-examples",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Examples for @evgkch/machjs — plain HTML and TypeScript, no framework",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck:only": "tsc --noEmit",
+    "test": "node scripts/pages.mjs"
+  },
+  "dependencies": {
+    "@evgkch/machjs": "file:.."
+  },
+  "devDependencies": {
+    "@evgkch/machjs-inspector": "^0.0.7",
+    "happy-dom": "^20.11.6",
+    "prettier": "^3.9.6",
+    "typescript": "^5.9.3",
+    "vite": "^8.2.0"
+  }
+}

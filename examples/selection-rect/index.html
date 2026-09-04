@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>machjs — selection rectangle</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Onest:wght@200..900&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="./src/style.css" />
+    </head>
+    <body data-phase="empty">
+        <!-- The bar: what this is, where the machine stands, and what is switched on. The legend
+             is the inspector's — the current state filled, every capsule in its lane colour. -->
+        <header class="bar">
+            <span class="who">
+                <a class="eyebrow" href="../">machjs</a>
+                <h1>Selection rectangle</h1>
+            </span>
+            <machjs-legend kind="states" class="tool"></machjs-legend>
+            <div class="board tool" id="board"></div>
+        </header>
+
+        <!-- The stage is the drawing area: the whole viewport under the bar. -->
+        <main class="stage" id="area">
+            <div id="box"></div>
+        </main>
+
+        <!-- The dock: the inspector's widgets over the drawing, down the right edge. Each is a
+             switch on the desk; turned off, the screen is the subject and nothing else. -->
+        <aside class="dock tool">
+            <div class="pane"><machjs-diagram></machjs-diagram></div>
+            <div class="pane"><machjs-history></machjs-history></div>
+        </aside>
+
+        <!-- The deck: what the page says about itself. Switched from the same row — `desk.seat`
+             gives a panel the page lays out itself a switch beside the widgets'. -->
+        <div class="deck">
+            <section class="card" id="about">
+                <ul class="hint">
+                    <li>Drag to draw.</li>
+                    <li>
+                        Grab the middle to move, an edge or corner to resize.
+                    </li>
+                </ul>
+                <p class="keys">
+                    <kbd>Esc</kbd> cancel · <kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> undo
+                </p>
+            </section>
+            <section class="card readout" id="readout">
+                <div class="stat">
+                    <span class="label">Rectangle</span>
+                    <span class="value" id="rect">—</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Undo</span>
+                    <span class="value" id="undo">0</span>
+                </div>
+            </section>
+        </div>
+
+        <script type="module" src="./src/main.ts"></script>
+    </body>
+</html>

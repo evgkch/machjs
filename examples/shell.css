@@ -1,0 +1,509 @@
+@import "./page.css";
+
+@layer tokens, controls, page, shell, subject, frame;
+
+/*
+ * The shell every full-screen example stands in.
+ *
+ * The subject takes the viewport; the page does not scroll. Everything the inspector draws, and
+ * everything the example says about itself, floats over the subject as a panel — a bar along the
+ * top, a dock down the right edge, a deck in the bottom corner. Each panel is a switch on the
+ * desk, so a reader who wants only the subject turns them all off and the screen is the subject.
+ *
+ * An example adds nothing of the furniture: it writes `@layer subject { … }` and styles what is
+ * on the stage.
+ */
+@layer shell {
+    :root {
+        /* The bar's height, named because the dock hangs from it. */
+        --bar: calc(var(--control) + var(--step-4));
+        /* The width of the dock, and the gap every floating panel keeps from the edge. */
+        --dock: clamp(19rem, 26vw, 27rem);
+        /* The other way round: how tall the dock is when it lies along an edge. */
+        --dock-h: min(34dvh, 20rem);
+        --float: var(--step-3);
+    }
+
+    /*
+     * Both, because `overflow` on `body` alone propagates to the viewport and leaves the body
+     * itself visible — so anything longer than the window escapes its box and the whole page
+     * slides sideways instead of the one box that overflows scrolling inside itself.
+     */
+    html,
+    body {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    body {
+        margin: 0;
+        height: 100dvh;
+        display: grid;
+        /*
+         * The column is capped, not `auto`: an implicit grid column is sized to its widest item,
+         * so a bar longer than the window would widen the body itself instead of scrolling inside
+         * its own box, and the whole page would slide sideways.
+         */
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: var(--bar) minmax(0, 1fr);
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--ink);
+        font: 400 15px/1.6 var(--main-font);
+    }
+
+    /* ── the bar: what the example is, where it stands, what is switched on ──── */
+
+    /*
+     * One row, always, and one height. Where the row is longer than the window it scrolls sideways
+     * rather than wrapping: a bar that changes height moves the stage under it, and nothing on it
+     * is worth that. Nothing is lost either — every switch is still reachable, a swipe away.
+     */
+    .bar {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: var(--step-4);
+        height: var(--bar);
+        padding: 0 var(--step-4);
+        border-bottom: 1px solid var(--line);
+        background: var(--surface);
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+        /* Over the dock and the deck: the switches must stay reachable. */
+        z-index: 3;
+    }
+
+    .bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /*
+     * Nothing on the bar shrinks. A legend given less room than its states need would wrap inside
+     * its own shadow root, where no rule here can reach it, and stand taller than the bar.
+     */
+    .bar > * {
+        flex: 0 0 auto;
+    }
+
+    .bar .who {
+        display: flex;
+        align-items: baseline;
+        gap: var(--step-3);
+        white-space: nowrap;
+    }
+
+    .bar h1 {
+        margin: 0;
+        font-size: var(--ui);
+        font-weight: 620;
+        letter-spacing: -0.011em;
+    }
+
+    /*
+     * Where the row is tight, the title is the first thing to go: the page's name is in the tab
+     * and the eyebrow beside it is still the way back. Everything else on the bar is a control.
+     */
+    @media (max-width: 90rem) {
+        .bar h1 {
+            display: none;
+        }
+
+        /* And the row closes up, rather than making the reader swipe for the last switch. */
+        .bar {
+            gap: var(--step-3);
+        }
+
+        .edge button {
+            padding: 0 var(--step-2);
+        }
+    }
+
+    /* The states, in their lane colours. Takes what the two ends leave it, and no more. */
+
+    /* The desk's slot, at the far end of the bar: one switch per panel on the page. */
+    .bar .board {
+        display: flex;
+        align-items: center;
+        gap: var(--step-3);
+        margin-left: auto;
+    }
+
+    /* ── the stage: the subject, and nothing else ───────────────────────────── */
+
+    .stage {
+        position: relative;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    /* ── the dock: the inspector's widgets, down the right edge ─────────────── */
+
+    .dock {
+        position: fixed;
+        top: calc(var(--bar) + var(--float));
+        right: var(--float);
+        bottom: var(--float);
+        display: flex;
+        flex-direction: column;
+        /* Each panel keeps whatever width it was given, pinned to the same edge. */
+        align-items: flex-end;
+        gap: var(--float);
+        z-index: 2;
+        /* The dock itself is only an arrangement: what is not a panel belongs to the stage. */
+        pointer-events: none;
+    }
+
+    /*
+     * A panel is widened by the browser's own grip and by nothing written here. `resize` wants a
+     * scroll container, hence `overflow`, and it draws the grip on the inline-end corner — so
+     * `rtl` moves it to the left edge, which is the edge that may move: a panel is pinned to the
+     * right and grows leftwards over the stage. The widget inside is put back to `ltr`, because
+     * `direction` inherits through a shadow root and would otherwise mirror what it draws.
+     */
+    .dock > .pane {
+        width: var(--dock);
+        min-width: 15rem;
+        max-width: min(52rem, 74vw);
+        min-height: 0;
+        display: flex;
+        pointer-events: auto;
+        direction: rtl;
+        resize: horizontal;
+        overflow: hidden;
+    }
+
+    .dock > .pane > * {
+        direction: ltr;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    /* A panel whose widget is switched off leaves no empty box behind, and no grip on it. */
+    .dock > .pane:not(:has(> *:not([hidden]))) {
+        display: none;
+    }
+
+    /*
+     * The drawing is as tall as a drawing; the run is as tall as what is left, because it is the
+     * one panel that grows with the session. Either switched off, the other takes the column.
+     */
+    /*
+     * A drawing is as tall as a drawing — until the column is shorter than the drawings in it, and
+     * then it gives way. `flex-shrink` rather than a fixed height: three panels on a short screen
+     * would otherwise run off the bottom.
+     */
+    .dock > .pane:has(> machjs-diagram),
+    .dock > .pane:has(> machjs-figure) {
+        flex: 0 1 auto;
+        height: min(20rem, 42dvh);
+        min-height: 7rem;
+    }
+
+    .dock > .pane:has(> machjs-history) {
+        flex: 1 1 auto;
+        min-height: 9rem;
+    }
+
+    /* ── which edge the dock stands on ──────────────────────────────────────── */
+
+    /*
+     * Lying along the top or the bottom instead of down the right side: the panels stand side by
+     * side across the width, which is what a wide subject with narrow columns wants. Each pane is
+     * still widened by its own grip — `width` is the flex basis here, so a grip changes the share
+     * that pane takes of the row.
+     */
+    body[data-dock="bottom"] .dock,
+    body[data-dock="top"] .dock {
+        left: var(--float);
+        right: var(--float);
+        width: auto;
+        height: var(--dock-h);
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    body[data-dock="bottom"] .dock {
+        top: auto;
+        bottom: var(--float);
+    }
+
+    body[data-dock="top"] .dock {
+        top: calc(var(--bar) + var(--float));
+        bottom: auto;
+    }
+
+    body[data-dock="bottom"] .dock > .pane,
+    body[data-dock="top"] .dock > .pane {
+        flex: 1 1 auto;
+        height: auto;
+        min-width: 12rem;
+        max-width: none;
+    }
+
+    /* The deck's panels ride above a dock on the floor. */
+    body[data-dock="bottom"] .deck {
+        bottom: calc(var(--dock-h) + var(--float) * 2);
+    }
+
+    /* The switch that moves it: two segments, in the tool's own colours. */
+    .edge {
+        display: inline-flex;
+        align-items: stretch;
+        min-height: var(--control);
+        border: 1px solid var(--line-firm);
+        border-radius: var(--control);
+        background: var(--surface);
+        overflow: hidden;
+    }
+
+    .edge button {
+        height: auto;
+        padding: 0 var(--step-3);
+        border: 0;
+        border-radius: 0;
+        background: none;
+        color: var(--faint);
+        font: 500 var(--name) / 1 var(--mono-font);
+    }
+
+    .edge button + button {
+        border-left: 1px solid var(--line-firm);
+    }
+
+    .edge button[aria-pressed="true"] {
+        color: var(--ink);
+        background: color-mix(
+            in oklab,
+            var(--accent) var(--wash-firm),
+            var(--surface)
+        );
+    }
+
+    .edge button:hover:not([aria-pressed="true"]) {
+        color: var(--ink);
+        background: color-mix(
+            in oklab,
+            var(--accent) var(--wash),
+            var(--surface)
+        );
+    }
+
+    /* ── the deck: the panels the example owns, in the bottom corner ────────── */
+
+    .deck {
+        position: fixed;
+        left: var(--float);
+        bottom: var(--float);
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        gap: var(--float);
+        max-width: min(30rem, calc(100vw - var(--dock) - var(--float) * 3));
+        pointer-events: none;
+    }
+
+    .deck > * {
+        pointer-events: auto;
+    }
+
+    /*
+     * A floating panel: the surface, thinned, with the subject showing through it. The blur is
+     * what says the panel is over the drawing rather than beside it; where it is unsupported the
+     * surface stands at full strength and nothing else changes.
+     */
+    .card {
+        padding: var(--step-3) var(--step-4);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+    }
+
+    @supports (backdrop-filter: blur(1px)) {
+        .card {
+            background: color-mix(in oklab, var(--surface) 86%, transparent);
+            backdrop-filter: blur(14px) saturate(1.4);
+        }
+    }
+
+    .card h2 {
+        margin: 0 0 var(--step-2);
+    }
+
+    /* A row of controls in a floating panel. */
+    .acts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--step-2);
+    }
+
+    /* ── narrow: the dock lies down along the bottom, the deck rides above it ── */
+
+    /*
+     * Narrow: there is no room for a column beside the subject, so the dock lies on the floor
+     * whichever edge was chosen, and the panels stand side by side across it.
+     */
+    @media (max-width: 60rem) {
+        :root {
+            --dock: 0px;
+            --dock-h: min(40dvh, 18rem);
+        }
+
+        .dock,
+        body[data-dock] .dock {
+            top: auto;
+            left: var(--float);
+            right: var(--float);
+            bottom: var(--float);
+            width: auto;
+            height: var(--dock-h);
+            flex-direction: row;
+            align-items: stretch;
+        }
+
+        .dock > .pane,
+        body[data-dock] .dock > .pane {
+            flex: 1 1 0;
+            width: auto;
+            height: auto;
+            min-height: 0;
+            min-width: 0;
+            max-width: none;
+        }
+
+        .deck,
+        body[data-dock] .deck {
+            bottom: calc(var(--dock-h) + var(--float) * 2);
+            max-width: calc(100vw - var(--float) * 2);
+        }
+
+        /* Every panel switched off — the deck drops back to the floor. */
+        .dock:not(:has(> .pane > *:not([hidden]))) ~ .deck {
+            bottom: var(--float);
+        }
+    }
+}
+
+/*
+ * The tool, told apart from the application by colour.
+ *
+ * A region marked `tool` — the dock, the bar's switches, a legend standing under a machine — is
+ * painted in Gruvbox rather than in the page's palette, so a reader never has to ask whether what
+ * is in front of them is the application or the instrument watching it.
+ *
+ * It is a region and not a widget, on purpose. Some of what the inspector draws *is* the subject:
+ * the schema under review in the second example is edited in `machjs-editor` and drawn in
+ * `machjs-diagram`, and it is the document, not the instrument. So the mark goes on the place, and
+ * a widget standing outside one keeps the page's colours.
+ *
+ * The whole skin is these variables. The widgets read the palette as custom properties, custom
+ * properties inherit — through a shadow root included — so nothing reaches inside a widget and no
+ * widget is patched.
+ *
+ * Both schemes, because the tool follows the system the way the page does. The roles are the
+ * tokens' own; only the values move.
+ */
+@layer shell {
+    .tool {
+        /* bg0_h, bg0, fg1, fg3, gray, bg1, bg2 */
+        --bg: #f9f5d7;
+        --surface: #fbf1c7;
+        --ink: #3c3836;
+        --muted: #665c54;
+        --faint: #928374;
+        --line: #ebdbb2;
+        --line-firm: #d5c4a1;
+
+        /* The tool speaking about itself is fg2; what a rule emits and what is wrong keep the
+           warm quadrant, as in the tokens. */
+        --accent: #504945;
+        --warn: #9d0006;
+        --emit: #af3a03;
+
+        /*
+         * One colour per state, cycling after eight. Gruvbox names its hues rather than stepping
+         * a wheel, so these are listed instead of derived — the first three as far apart as the
+         * palette allows, red and orange left out because they are spoken for above.
+         */
+        --lane-0: #076678;
+        --lane-1: #79740e;
+        --lane-2: #8f3f71;
+        --lane-3: #427b58;
+        --lane-4: #b57614;
+        --lane-5: #458588;
+        --lane-6: #b16286;
+        --lane-7: #689d6a;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .tool {
+            --bg: #1d2021;
+            --surface: #282828;
+            --ink: #ebdbb2;
+            --muted: #bdae93;
+            --faint: #928374;
+            --line: #3c3836;
+            --line-firm: #504945;
+
+            --accent: #d5c4a1;
+            --warn: #fb4934;
+            --emit: #fe8019;
+
+            /* The bright half of the palette: the same hues, lifted off a dark ground. */
+            --lane-0: #83a598;
+            --lane-1: #b8bb26;
+            --lane-2: #d3869b;
+            --lane-3: #8ec07c;
+            --lane-4: #fabd2f;
+            --lane-5: #458588;
+            --lane-6: #b16286;
+            --lane-7: #98971a;
+        }
+    }
+}
+
+/*
+ * The shell's last word — above the layer an example writes in, because both of these are things
+ * a page would otherwise override by accident rather than on purpose.
+ */
+@layer frame {
+    /*
+     * `hidden` is what the desk's switches set. A panel that declares a `display` of its own would
+     * otherwise beat the rule that acts on it, and every panel on every page would have to
+     * remember `:not([hidden])`.
+     */
+    [hidden] {
+        display: none;
+    }
+
+    /*
+     * A stage whose own content stays clear of the dock rather than running under it. The room is
+     * kept for the dock's opening width only: widen a panel past that and it overlays again,
+     * which is what an overlay is for. Above the page's layer because a page sets its padding
+     * with the shorthand, which would otherwise take this side back.
+     */
+    body[data-dock="right"] .stage.clears-dock {
+        padding-right: calc(var(--dock) + var(--float) * 2);
+    }
+
+    body[data-dock="bottom"] .stage.clears-dock {
+        padding-bottom: calc(var(--dock-h) + var(--float) * 2);
+    }
+
+    body[data-dock="top"] .stage.clears-dock {
+        padding-top: calc(var(--dock-h) + var(--float) * 2);
+    }
+
+    /* On the floor whichever edge was chosen, so the room kept is the floor's. */
+    @media (max-width: 60rem) {
+        body[data-dock] .stage.clears-dock {
+            padding-right: var(--step-3);
+            padding-top: 0;
+            padding-bottom: calc(var(--dock-h) + var(--float) * 2);
+        }
+    }
+}

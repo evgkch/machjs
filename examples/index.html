@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>machjs — examples</title>
+        <meta
+            name="description"
+            content="Live examples for @evgkch/machjs — a small, typed Mealy state machine for TypeScript."
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Onest:wght@200..900&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="./style.css" />
+    </head>
+    <body>
+        <main>
+            <header>
+                <p class="eyebrow">@evgkch/machjs</p>
+                <h1>Examples</h1>
+                <p class="lede">
+                    Each example is a small app built on the library: one table
+                    of rules, a context that belongs to the state rather than to
+                    the machine. Open the demo, then read the walkthrough — it
+                    goes through the same code line by line.
+                </p>
+                <p class="links">
+                    <a href="https://github.com/evgkch/machjs">Repository</a>
+                    <a href="https://www.npmjs.com/package/@evgkch/machjs"
+                        >npm</a
+                    >
+                    <span
+                        ><a href="https://github.com/evgkch/machjs#readme"
+                            >Guide</a
+                        >
+                        <a
+                            class="alt"
+                            href="https://github.com/evgkch/machjs/blob/master/README.ru.md"
+                            hreflang="ru"
+                            >[ru]</a
+                        ></span
+                    >
+                </p>
+            </header>
+
+            <ul class="cards">
+                <li class="card">
+                    <a
+                        class="thumb"
+                        href="./selection-rect/"
+                        aria-hidden="true"
+                        tabindex="-1"
+                    >
+                        <span class="rect"></span>
+                    </a>
+                    <div class="body">
+                        <h2>
+                            <a href="./selection-rect/">Selection rectangle</a>
+                        </h2>
+                        <p class="about">
+                            Drag to draw a rectangle, then move or resize it.
+                            Five phases, eight handles, undo. Plain HTML and
+                            TypeScript, no framework — every pointer event goes
+                            straight to the machine, and no handler tests the
+                            phase.
+                        </p>
+                        <p class="tags">
+                            <span>pointer events</span><span>undo</span
+                            ><span>state-dependent context</span>
+                        </p>
+                        <p class="links">
+                            <a href="./selection-rect/">Open demo</a>
+                            <a
+                                href="https://github.com/evgkch/machjs-examples/tree/master/selection-rect"
+                                >Source</a
+                            >
+                            <span
+                                ><a
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/selection-rect/README.md"
+                                    >Walkthrough</a
+                                >
+                                <a
+                                    class="alt"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/selection-rect/README.ru.md"
+                                    hreflang="ru"
+                                    >[ru]</a
+                                ></span
+                            >
+                        </p>
+                    </div>
+                </li>
+
+                <li class="card">
+                    <a
+                        class="thumb"
+                        href="./review/"
+                        aria-hidden="true"
+                        tabindex="-1"
+                    >
+                        <svg
+                            class="graph"
+                            viewBox="0 0 132 46"
+                            role="presentation"
+                        >
+                            <defs>
+                                <marker
+                                    id="tip"
+                                    viewBox="0 0 8 8"
+                                    refX="7"
+                                    refY="4"
+                                    markerWidth="5"
+                                    markerHeight="5"
+                                    orient="auto"
+                                >
+                                    <path d="M0 1 L7 4 L0 7 Z" />
+                                </marker>
+                            </defs>
+                            <rect x="1" y="16" width="34" height="16" rx="4" />
+                            <rect x="49" y="16" width="34" height="16" rx="4" />
+                            <rect x="97" y="16" width="34" height="16" rx="4" />
+                            <path d="M35 24 H45" marker-end="url(#tip)" />
+                            <path d="M83 24 H93" marker-end="url(#tip)" />
+                            <path
+                                d="M60 16 C60 3, 18 3, 18 13"
+                                marker-end="url(#tip)"
+                            />
+                        </svg>
+                    </a>
+                    <div class="body">
+                        <h2><a href="./review/">Schema review</a></h2>
+                        <p class="about">
+                            The document under review is itself a state-machine
+                            schema. The gate is the library's own
+                            <code>validate</code> and <code>analyze</code>, the
+                            sign-offs are ECDSA signatures over the text, and
+                            the machine is drawn on the page by the inspector's
+                            widgets. Every button is enabled by asking the
+                            machine <code>can()</code>.
+                        </p>
+                        <p class="tags">
+                            <span>guards</span><span>output events</span
+                            ><span>waiting as a phase</span>
+                        </p>
+                        <p class="links">
+                            <a href="./review/">Open demo</a>
+                            <a
+                                href="https://github.com/evgkch/machjs-examples/tree/master/review"
+                                >Source</a
+                            >
+                            <span
+                                ><a
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/review/README.md"
+                                    >Walkthrough</a
+                                >
+                                <a
+                                    class="alt"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/review/README.ru.md"
+                                    hreflang="ru"
+                                    >[ru]</a
+                                ></span
+                            >
+                        </p>
+                    </div>
+                </li>
+                <li class="card">
+                    <a
+                        class="thumb"
+                        href="./wire/"
+                        aria-hidden="true"
+                        tabindex="-1"
+                    >
+                        <svg
+                            class="link"
+                            viewBox="0 0 132 46"
+                            role="presentation"
+                        >
+                            <rect x="1" y="13" width="30" height="20" rx="4" />
+                            <rect
+                                x="101"
+                                y="13"
+                                width="30"
+                                height="20"
+                                rx="4"
+                            />
+                            <path class="rail" d="M33 23 H99" />
+                            <rect
+                                class="msg"
+                                x="56"
+                                y="18"
+                                width="20"
+                                height="10"
+                                rx="5"
+                            />
+                        </svg>
+                    </a>
+                    <div class="body">
+                        <h2><a href="./wire/">Two machines over a wire</a></h2>
+                        <p class="about">
+                            A card terminal and a host, each a machine of its
+                            own: the terminal's Λ is the host's Σ and back
+                            again. The wire between them can be cut, slowed, or
+                            made to deliver twice — and every delivery the
+                            machine at the far end refuses is written down with
+                            the reason it gave.
+                        </p>
+                        <p class="tags">
+                            <span>two machines</span><span>output events</span
+                            ><span>idempotency</span>
+                        </p>
+                        <p class="links">
+                            <a href="./wire/">Open demo</a>
+                            <a
+                                href="https://github.com/evgkch/machjs-examples/tree/master/wire"
+                                >Source</a
+                            >
+                            <span
+                                ><a
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/wire/README.md"
+                                    >Walkthrough</a
+                                >
+                                <a
+                                    class="alt"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/wire/README.ru.md"
+                                    hreflang="ru"
+                                    >[ru]</a
+                                ></span
+                            >
+                        </p>
+                    </div>
+                </li>
+                <li class="card">
+                    <a
+                        class="thumb"
+                        href="./token/"
+                        aria-hidden="true"
+                        tabindex="-1"
+                    >
+                        <svg
+                            class="queue"
+                            viewBox="0 0 132 46"
+                            role="presentation"
+                        >
+                            <rect
+                                class="q"
+                                x="1"
+                                y="4"
+                                width="26"
+                                height="7"
+                                rx="3.5"
+                            />
+                            <rect
+                                class="q"
+                                x="1"
+                                y="14"
+                                width="26"
+                                height="7"
+                                rx="3.5"
+                            />
+                            <rect
+                                class="q"
+                                x="1"
+                                y="24"
+                                width="26"
+                                height="7"
+                                rx="3.5"
+                            />
+                            <rect
+                                class="q"
+                                x="1"
+                                y="34"
+                                width="26"
+                                height="7"
+                                rx="3.5"
+                            />
+                            <path class="rail" d="M29 22 H61" />
+                            <rect
+                                class="key"
+                                x="63"
+                                y="15"
+                                width="30"
+                                height="16"
+                                rx="5"
+                            />
+                            <path class="rail" d="M95 22 H129" />
+                        </svg>
+                    </a>
+                    <div class="body">
+                        <h2><a href="./token/">Refreshing a token</a></h2>
+                        <p class="about">
+                            Five callers get a 401 at once and the token is
+                            fetched exactly once — not by a flag, but because
+                            <code>emit refresh</code> stands in one cell of the
+                            schema. Break the refresh and all five are refused
+                            together; none of them waits.
+                        </p>
+                        <p class="tags">
+                            <span>one output, once</span
+                            ><span>waiting as a phase</span
+                            ><span>dependent context</span>
+                        </p>
+                        <p class="links">
+                            <a href="./token/">Open demo</a>
+                            <a
+                                href="https://github.com/evgkch/machjs-examples/tree/master/token"
+                                >Source</a
+                            >
+                            <span
+                                ><a
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/token/README.md"
+                                    >Walkthrough</a
+                                >
+                                <a
+                                    class="alt"
+                                    href="https://github.com/evgkch/machjs-examples/blob/master/token/README.ru.md"
+                                    hreflang="ru"
+                                    >[ru]</a
+                                ></span
+                            >
+                        </p>
+                    </div>
+                </li>
+            </ul>
+
+            <footer>
+                <p>
+                    Published from
+                    <a
+                        href="https://github.com/evgkch/machjs/tree/master/examples"
+                        >examples/</a
+                    >
+                    on every push to <code>master</code>. MIT.
+                </p>
+            </footer>
+        </main>
+    </body>
+</html>

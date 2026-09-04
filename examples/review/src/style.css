@@ -1,0 +1,311 @@
+@import "../../shell.css";
+
+/*
+ * Schema-review example. The shell beside this file holds the bar, the dock and the deck; what is
+ * left here is the stage — the submission as text and the same submission drawn — and the review
+ * sheet that stands on the deck.
+ */
+@layer subject {
+    :root {
+        /* Seven states in a row: the pipeline's diagram opens wider than the shell's default. */
+        --dock: clamp(22rem, 30vw, 34rem);
+    }
+
+    /* ── the stage: the document, twice ─────────────────────────────────────── */
+
+    .stage {
+        display: grid;
+        grid-template-columns: 19rem minmax(0, 1.5fr) minmax(0, 1fr);
+        gap: var(--step-3);
+        padding: var(--step-3);
+    }
+
+    /*
+     * The review sheet's column. Not the shell's deck: these are the controls of the application
+     * rather than a look at the machine, so they take room instead of floating over the document.
+     * Every panel switched off, the column goes with them.
+     */
+    .sheets {
+        display: grid;
+        grid-auto-rows: max-content;
+        gap: var(--step-3);
+        min-height: 0;
+        overflow: auto;
+        scrollbar-width: thin;
+    }
+
+    .stage:not(:has(.sheets > *:not([hidden]))) {
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    }
+
+    .stage:not(:has(.sheets > *:not([hidden]))) .sheets {
+        display: none;
+    }
+
+    .paper,
+    .drawn {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: var(--step-2);
+        min-height: 0;
+        min-width: 0;
+    }
+
+    .paper-bar {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--step-3);
+    }
+
+    .file {
+        font: 500 var(--ui-sm) / 1 var(--mono-font);
+        color: var(--faint);
+    }
+
+    /* The editor brings its own frame; it only has to be told how much room it has. */
+    .paper-body {
+        display: flex;
+        min-height: 0;
+    }
+
+    machjs-editor {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+
+    /*
+     * The drawing sits under a caption and over the reader's complaint, so its row is what is
+     * left of the column. The `.pane` is the shell's: a grip on its left edge.
+     */
+    .drawn {
+        grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .drawn .pane {
+        min-height: 0;
+        display: flex;
+    }
+
+    /* What the reader could not read, and the line it is about. Empty while the text reads. */
+    .say {
+        margin: 0;
+        min-height: 1.2em;
+        font: 400 var(--ui-sm) / 1.4 var(--mono-font);
+        color: var(--warn);
+    }
+
+    /*
+     * The document cannot be edited while the gate has it, and cannot be edited in review at all
+     * — there is no `write` rule in those phases, and the signatures are over this text. The
+     * editor is left legible and marked as untouchable rather than hidden.
+     */
+    body[data-phase="checking"] machjs-editor,
+    body[data-phase="review"] machjs-editor,
+    body[data-phase="approved"] machjs-editor,
+    body[data-phase="shipped"] machjs-editor {
+        opacity: var(--quiet);
+    }
+
+    /* ── the review sheet ───────────────────────────────────────────────────── */
+
+    .sheet {
+        display: grid;
+        gap: var(--step-3);
+    }
+
+    .sheet-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--step-2) var(--step-4);
+    }
+
+    /* One row per member: the name, what they have done, and the two acts open to them. */
+    .board-list {
+        display: grid;
+        gap: var(--step-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .board-list li {
+        display: grid;
+        grid-template-columns: 1fr auto auto auto;
+        align-items: center;
+        gap: var(--step-2);
+    }
+
+    .board-list .name {
+        font: 500 var(--ui) / 1 var(--mono-font);
+    }
+
+    /* The signature, or the request this member raised — eight hex digits is enough to compare. */
+    .board-list .mark {
+        font: 400 var(--micro) / 1 var(--mono-font);
+        color: var(--faint);
+        white-space: nowrap;
+    }
+
+    .board-list li[data-signed] .mark {
+        color: var(--emit);
+    }
+
+    .board-list button {
+        height: var(--control-sm);
+        padding: 0 var(--step-3);
+        font-size: var(--ui-sm);
+    }
+
+    /*
+     * What the machine will take, shown as what to press. Nothing here reads the phase: `can()`
+     * enables a control, and this rule says that an enabled one is the thing to do — so the sheet
+     * answers "what now" at every step without a word of copy about it.
+     */
+    .acts button:not(:disabled),
+    .board-list button:not(:disabled) {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .ask input {
+        width: 100%;
+    }
+
+    /* ── what is open, and what was settled ─────────────────────────────────── */
+
+    .notes {
+        display: grid;
+        gap: var(--step-3);
+    }
+
+    .faults,
+    .settled ul,
+    .trace ol {
+        display: grid;
+        gap: var(--step-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .faults:empty {
+        display: none;
+    }
+
+    .faults li,
+    .settled li {
+        display: grid;
+        gap: 2px;
+        padding-left: var(--step-3);
+        border-left: 2px solid var(--line-firm);
+    }
+
+    .faults li.blocker {
+        border-left-color: var(--warn);
+    }
+
+    .faults li.caution {
+        border-left-color: var(--emit);
+    }
+
+    .settled li.done {
+        opacity: var(--quiet);
+    }
+
+    .where {
+        font: 500 var(--micro) / 1.4 var(--mono-font);
+        letter-spacing: 0.04em;
+        color: var(--faint);
+    }
+
+    .what {
+        font-size: var(--ui-sm);
+        line-height: 1.4;
+        text-wrap: pretty;
+    }
+
+    /* ── the activity feed ──────────────────────────────────────────────────── */
+
+    .trace {
+        display: grid;
+        gap: var(--step-2);
+    }
+
+    .trace ol {
+        max-height: 11rem;
+        overflow: auto;
+    }
+
+    .trace li {
+        font: 400 var(--ui-sm) / 1.4 var(--mono-font);
+        color: var(--muted);
+    }
+
+    /* The newest line is the one being read; the older ones stand back. */
+    .trace li:first-child {
+        color: var(--ink);
+    }
+
+    /* ── narrow: the document above its drawing ─────────────────────────────── */
+
+    /*
+     * Not wide enough for three columns: the sheet keeps its own, and the document stands above
+     * its drawing in the other. Every row is as tall as its content and the stage scrolls —
+     * squeezing them into the height instead cuts the document in half, and half a document is
+     * not something to review.
+     */
+    @media (max-width: 78rem) {
+        .stage,
+        .stage:not(:has(.sheets > *:not([hidden]))) {
+            grid-template-columns: 19rem minmax(0, 1fr);
+            grid-template-rows: auto auto;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        /*
+         * `min-height: 0` is what lets a column give way inside a full-height row; here the rows
+         * are the content's, so it has to go — an `auto` track whose item may shrink to nothing
+         * shrinks to nothing, and everything in it is cut off instead of the stage scrolling.
+         */
+        .sheets {
+            grid-column: 1;
+            grid-row: 1 / span 2;
+            min-height: auto;
+            overflow: visible;
+        }
+
+        .paper {
+            grid-column: 2;
+            grid-row: 1;
+            min-height: 22rem;
+        }
+
+        .drawn {
+            grid-column: 2;
+            grid-row: 2;
+            min-height: 16rem;
+        }
+    }
+
+    /* Narrower still: one column, everything under everything. */
+    @media (max-width: 52rem) {
+        .stage,
+        .stage:not(:has(.sheets > *:not([hidden]))) {
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: auto;
+            grid-auto-rows: auto;
+        }
+
+        .sheets,
+        .paper,
+        .drawn {
+            grid-column: 1;
+            grid-row: auto;
+        }
+    }
+}

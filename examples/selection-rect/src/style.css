@@ -1,0 +1,87 @@
+@import "../../shell.css";
+
+/*
+ * Selection-rectangle example. The shell beside this file holds the bar, the dock and the deck;
+ * what is left here is the drawing surface and the box on it — the only two things this example
+ * does not share with the others.
+ */
+@layer subject {
+    /* The stage itself is the surface: graph paper edge to edge, no frame around it. */
+    #area {
+        background:
+            radial-gradient(circle at 1px 1px, var(--grid) 1px, transparent 0) 0
+                0 / var(--cell) var(--cell),
+            var(--bg);
+        cursor: crosshair;
+        touch-action: none;
+        user-select: none;
+    }
+
+    #box {
+        position: absolute;
+        display: none;
+        border: 1.5px solid var(--accent);
+        border-radius: 2px;
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        pointer-events: none;
+    }
+
+    /*
+     * The eight handles, drawn where `handleAt` actually looks for them — one square background
+     * layer per anchor point. Hidden while a fresh rectangle is being dragged out: there is
+     * nothing to grab yet.
+     */
+    #box::after {
+        content: "";
+        position: absolute;
+        inset: -3.5px;
+        background-image:
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent)),
+            linear-gradient(var(--accent), var(--accent));
+        background-size: 7px 7px;
+        background-repeat: no-repeat;
+        background-position:
+            left top,
+            center top,
+            right top,
+            left center,
+            right center,
+            left bottom,
+            center bottom,
+            right bottom;
+        opacity: 0;
+        transition: opacity var(--quick) var(--ease);
+    }
+
+    body[data-phase="ready"] #box::after,
+    body[data-phase="moving"] #box::after,
+    body[data-phase="resizing"] #box::after {
+        opacity: 1;
+    }
+
+    /* ── the deck's two panels ──────────────────────────────────────────────── */
+
+    #about {
+        display: grid;
+        gap: var(--step-2);
+        max-width: 26rem;
+    }
+
+    .keys {
+        margin: 0;
+        font-size: var(--ui-sm);
+        color: var(--muted);
+    }
+
+    .readout {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--step-2) var(--step-5);
+    }
+}
