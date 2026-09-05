@@ -553,6 +553,32 @@ try {
   eq("the complaint holds the strip", q(lone, ".say.wrong"), 1);
 
   console.log(
+    "— M16d: the drawing is wide enough for the labels written on it —",
+  );
+  // A label stands centred on its arrow and is often wider than the arrow is long. Sized by the
+  // cells alone, the drawing clips it, and a clipped `giveUp` reads as `give`.
+  {
+    const { lay } = await server.ssrLoadModule(
+      "/src/widgets/diagram/model/lay.ts",
+    );
+    const wide = ui.readSchema(
+      "FROM a ON averyLongEventName WHEN aLongGuardName TO a WITH anOperation EMIT anOutputEvent",
+      "",
+    );
+    const l = lay(wide.graph, "a", { off: new Set(), dead: () => false });
+    const cells = Math.max(...l.chips.map((c) => c.x + c.w));
+    const caps = l.arcs.map(
+      (a) => (a.x0 + a.x1) / 2 + (a.label.length * 6) / 2,
+    );
+    eq("the label runs past the cells", Math.max(...caps) > cells, true);
+    eq(
+      "and the drawing still holds it",
+      l.left + l.width >= Math.max(...caps),
+      true,
+    );
+  }
+
+  console.log(
     "— M16c: the box is sized in columns, so a pasted tab cannot push the caret off its word —",
   );
   // A tab is one character and two columns (`tab-size: 2`). Sized by the character count, the

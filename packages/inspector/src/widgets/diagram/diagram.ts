@@ -296,7 +296,7 @@ export class MachjsDiagram extends MachjsElement<Change, Wiring> {
           class="chart"
           width=${l.width}
           height=${l.height}
-          viewBox=${`0 0 ${l.width} ${l.height}`}
+          viewBox=${`${l.left} 0 ${l.width} ${l.height}`}
         >
           ${arcs.map((a) => a.group)} ${chips}
           <g class="caps">${arcs.map((a) => a.cap)}</g>

@@ -39,6 +39,13 @@ export const TIP = 5;
 const ROOM = 14;
 const SIDE = 8;
 
+/**
+ * One character of a label, in pixels: `--micro` in the monospace face. A label is centred on its
+ * arrow and is often wider than the arrow is long, so the drawing has to make room for it — the
+ * SVG clips whatever falls outside, and a clipped `giveUp` reads as `give`.
+ */
+const CAP = 6;
+
 export type Chip = {
   q: string;
   /** Left edge. */
@@ -70,6 +77,8 @@ export type Arc = {
 export type Lay = {
   chips: Chip[];
   arcs: Arc[];
+  /** Left edge of the drawing: negative where a label reaches past the first cell. */
+  left: number;
   width: number;
   height: number;
   /** Top of the row of cells. */
@@ -208,10 +217,20 @@ export function lay(graph: Graph, start: string): Lay {
   const deep = (side: Arc["side"]) =>
     Math.max(0, ...arcs.filter((r) => r.side === side).map((r) => r.level));
   const base = deep("top") * STEP + ROOM;
+  // The labels stand centred on their arrows, so the ends of the drawing are theirs, not the
+  // cells'. Measured from the character count: the face is monospace and the size is fixed.
+  const ends = arcs.map((a) => {
+    const mid = (a.x0 + a.x1) / 2;
+    const half = (a.label.length * CAP) / 2;
+    return [mid - half, mid + half] as const;
+  });
+  const left = Math.min(0, ...ends.map(([l]) => l));
+  const right = Math.max(x - GAP + SIDE, SIDE * 2, ...ends.map(([, r]) => r));
   return {
     chips,
     arcs,
-    width: Math.max(x - GAP + SIDE, SIDE * 2),
+    left,
+    width: right - left,
     height: base + CELL + deep("bottom") * STEP + ROOM,
     base,
   };
