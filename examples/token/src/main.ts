@@ -13,17 +13,10 @@
  * them. There is no branch here that could forget to.
  */
 import { TRANSITION } from "@evgkch/machjs";
-import {
-  MachjsDesk,
-  MachjsDiagram,
-  fromMachine,
-} from "@evgkch/machjs-inspector/ui";
-import { dockEdge } from "../../shell.js";
+import { fromMachine } from "@evgkch/machjs-inspector/ui";
+import { board, el } from "../../shell.js";
 import { auth } from "./machine.js";
 import type { Token } from "./types.js";
-
-const el = <T extends HTMLElement>(id: string) =>
-  document.getElementById(id) as T;
 
 const asksOut = el<HTMLOListElement>("asks");
 const waitingOut = el<HTMLElement>("waiting");
@@ -189,27 +182,13 @@ paint();
 
 // ── the machine, drawn ──────────────────────────────────────────────────────
 
-const dia = new MachjsDiagram();
-el<HTMLElement>("dia").append(dia);
-
-const desk = new MachjsDesk();
-desk.wiring = { subject: fromMachine(auth) };
-el<HTMLElement>("board").append(desk);
-desk.enroll(document.querySelector("machjs-legend")!);
-desk.enroll(dia, "diagram");
-desk.enroll(document.querySelector("machjs-history")!);
-
-/** The panels the page lays out itself, by the name their switch carries. */
-const own = [["about", el<HTMLElement>("about")]] as const;
-for (const [name] of own) desk.seat(name);
-
-const panels = desk.panels;
-function dress() {
-  const up = panels.state.context;
-  for (const [name, box] of own) box.hidden = up[name] === false;
-}
-panels.rx.on(TRANSITION, dress);
-dress();
-
-// Where the panels stand — the reader's call, kept for this page.
-dockEdge(el<HTMLElement>("board"), "right");
+board({
+  subject: fromMachine(auth),
+  enroll: (desk) => {
+    for (const widget of document.querySelectorAll<HTMLElement>(
+      "machjs-legend, machjs-diagram, machjs-history",
+    ))
+      desk.enroll(widget as Parameters<typeof desk.enroll>[0]);
+  },
+  own: ["about"],
+});

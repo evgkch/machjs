@@ -16,9 +16,8 @@
  * copies them — and both machines are written as though it will.
  */
 import { TRANSITION } from "@evgkch/machjs";
-import { dockEdge } from "../../shell.js";
+import { board, el } from "../../shell.js";
 import {
-  MachjsDesk,
   MachjsDiagram,
   MachjsLegend,
   ensemble,
@@ -30,9 +29,6 @@ import { PAN, money, terminal } from "./terminal.js";
 import { host } from "./host.js";
 import { newWire } from "./wire.js";
 import type { Parcel } from "./wire.js";
-
-const el = <T extends HTMLElement>(id: string) =>
-  document.getElementById(id) as T;
 
 const amountOut = el<HTMLElement>("amount");
 const saysOut = el<HTMLElement>("says");
@@ -285,32 +281,10 @@ const hostBand = ensemble(
 hostBand.enroll(hostLegend);
 hostBand.draw();
 
-// The desk runs the run and hands a switch to everything else on the page.
-const desk = new MachjsDesk();
-desk.wiring = { subject: fromMachine(terminal, { history: past }) };
-el<HTMLElement>("board").append(desk);
-desk.enroll(document.querySelector("machjs-history")!);
-
-/** The panels the page lays out itself, by the name their switch carries. */
-const own = [
-  ["terminal", el<HTMLElement>("term-dia")],
-  ["host", el<HTMLElement>("host-dia")],
-  ["about", el<HTMLElement>("about")],
-  ["journal", el<HTMLElement>("journal")],
-] as const;
-for (const [name] of own) desk.seat(name);
-
-/**
- * The arrangement records only what a reader has touched, so a name absent from it was never
- * switched — and a panel nobody has switched is up.
- */
-const panels = desk.panels;
-function dress() {
-  const up = panels.state.context;
-  for (const [name, box] of own) box.hidden = up[name] === false;
-}
-panels.rx.on(TRANSITION, dress);
-dress();
-
-// Where the panels stand — the reader's call, kept for this page.
-dockEdge(document.getElementById("board")!, "right");
+// The desk runs the run and hands a switch to everything else on the page. The two diagrams and
+// the two legends belong to their own ensembles, so only the run is enrolled here.
+board({
+  subject: fromMachine(terminal, { history: past }),
+  enroll: (desk) => desk.enroll(document.querySelector("machjs-history")!),
+  own: [["terminal", "term-dia"], ["host", "host-dia"], "about", "journal"],
+});

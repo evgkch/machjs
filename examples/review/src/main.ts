@@ -25,9 +25,8 @@
  * handler and the machine receives a finished signature.
  */
 import { TRANSITION } from "@evgkch/machjs";
-import { dockEdge } from "../../shell.js";
+import { board, el } from "../../shell.js";
 import {
-  MachjsDesk,
   MachjsDiagram,
   MachjsEditor,
   ensemble,
@@ -42,9 +41,6 @@ import type { Ensemble, Subject, Written } from "@evgkch/machjs-inspector/ui";
 import { QUORUM, flow } from "./machine.js";
 import { gate, read } from "./gate.js";
 import type { Closed, Fault } from "./types.js";
-
-const el = <T extends HTMLElement>(id: string) =>
-  document.getElementById(id) as T;
 
 // The three panels are written in a `<template>` and placed here, so the markup keeps them
 // together with the rest of the page while the script decides which column they stand in.
@@ -328,32 +324,14 @@ paint();
 // ── the machine, drawn ────────────────────────────────────────────────────────
 //
 // The inspector's widgets on the review pipeline — a different machine from the one on the stage,
-// and the one this example is about. The desk wires each to that subject and gives it a switch;
-// the three panels of the deck take a switch on the same row.
-const desk = new MachjsDesk();
-desk.wiring = { subject: fromMachine(flow) };
-el<HTMLElement>("board").append(desk);
-desk.enroll(document.querySelector("machjs-legend")!);
-desk.enroll(pipeline, "diagram");
-desk.enroll(document.querySelector("machjs-history")!);
-
-/** The deck's panels, by the name their switch carries. */
-const own = ["sheet", "notes", "trace"].map(
-  (name) => [name, el<HTMLElement>(name)] as const,
-);
-for (const [name] of own) desk.seat(name);
-
-/**
- * The arrangement records only what a reader has touched, so a name absent from it was never
- * switched — and a panel nobody has switched is up.
- */
-const panels = desk.panels;
-function dress() {
-  const up = panels.state.context;
-  for (const [name, box] of own) box.hidden = up[name] === false;
-}
-panels.rx.on(TRANSITION, dress);
-dress();
-
-// Where the panels stand — the reader's call, kept for this page.
-dockEdge(document.getElementById("board")!, "bottom");
+// and the one this example is about.
+board({
+  subject: fromMachine(flow),
+  enroll: (desk) => {
+    desk.enroll(document.querySelector("machjs-legend")!);
+    desk.enroll(pipeline, "diagram");
+    desk.enroll(document.querySelector("machjs-history")!);
+  },
+  own: ["sheet", "notes", "trace"],
+  edge: "bottom",
+});

@@ -7,11 +7,10 @@
  * machine's partiality doing real work: the set of events acceptable right now
  * is held by the schema, not by a chain of `if`s in the view.
  */
-import { TRANSITION } from "@evgkch/machjs";
-import { dockEdge } from "../../shell.js";
+import { board } from "../../shell.js";
 import type { FsmState } from "@evgkch/machjs";
 import { history, log } from "@evgkch/machjs/debug";
-import { MachjsDesk, fromMachine } from "@evgkch/machjs-inspector/ui";
+import { fromMachine } from "@evgkch/machjs-inspector/ui";
 import { handleAt, norm } from "./geometry.js";
 import { inside, sel } from "./machine.js";
 import type { Point, Rect, Sel, Spot } from "./types.js";
@@ -179,45 +178,15 @@ function render(at: FsmState<Sel>) {
 
 // ── the machine, drawn ────────────────────────────────────────────────────────
 //
-// The inspector's widgets on the same `sel`: the desk wires each to one subject and focus and
-// gives it a switch; the widgets hear the machine themselves.
-//
-// The page's own two panels take a switch on the same row. `seat` registers a name and draws the
-// switch but shows nothing — the arrangement is a machine of the library's own, and the page
-// reads it. So one row governs the whole screen, and turning every switch off leaves the drawing
-// surface alone on it.
-const desk = new MachjsDesk();
-desk.wiring = { subject: fromMachine(sel, { history: past }) };
-document.getElementById("board")!.append(desk);
-for (const widget of document.querySelectorAll<HTMLElement>(
-  "machjs-legend, machjs-diagram, machjs-history",
-))
-  desk.enroll(widget as Parameters<typeof desk.enroll>[0]);
-
-/** The deck's panels, by the name their switch carries. */
-const own = ["about", "readout"].map(
-  (name) => [name, document.getElementById(name)!] as const,
-);
-for (const [name] of own) desk.seat(name);
-
-/**
- * What the switches say, on the elements the page lays out itself.
- *
- * The arrangement records only what a reader has touched — a name absent from it was never
- * switched, and a panel nobody has switched is up. So the test is against `false` and not against
- * absence.
- *
- * Subscribed to `TRANSITION` rather than to the clicks: the switch is one way to move that
- * machine and not necessarily the only one, and a transition is the one thing that means the
- * arrangement changed.
- */
-const panels = desk.panels;
-function dress() {
-  const up = panels.state.context;
-  for (const [name, el] of own) el.hidden = up[name] === false;
-}
-panels.rx.on(TRANSITION, dress);
-dress();
-
-// Where the panels stand — the reader's call, kept for this page.
-dockEdge(document.getElementById("board")!, "right");
+// The inspector's widgets on the same `sel`, each wired to one subject and given a switch by the
+// shell's desk; the widgets follow the machine themselves.
+board({
+  subject: fromMachine(sel, { history: past }),
+  enroll: (desk) => {
+    for (const widget of document.querySelectorAll<HTMLElement>(
+      "machjs-legend, machjs-diagram, machjs-history",
+    ))
+      desk.enroll(widget as Parameters<typeof desk.enroll>[0]);
+  },
+  own: ["about", "readout"],
+});
