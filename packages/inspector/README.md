@@ -423,6 +423,8 @@ FROM open   ON pass               TO locked
 
 `FROM`, `ON` and `TO` are required, the word order is fixed, comments run `#` or `//` to the end of the line. The round trip "text → schema → dump" returns the same schema, not an equivalent one.
 
+The same text is what `toRules(schema)` from `@evgkch/machjs/formatters` returns: print it, and paste it into the editor.
+
 ---
 
 ## Limitations

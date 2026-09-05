@@ -728,6 +728,8 @@ import { inspect } from "@evgkch/machjs-inspector";
 const cart = inspect(new StateMachine(schema, start), { name: "cart" });
 ```
 
+Текст для вставки в редактор инспектора возвращает [`toRules(vm.schema)`](#evgkchmachjsformatters): язык у них один, и вывод в консоль достаточно скопировать.
+
 Виджеты инспектора подключаются и по отдельности, не поднимая целый инспектор: в примерах этого репозитория машины нарисованы отдельными виджетами ([открыть примеры](https://evgkch.github.io/machjs/)).
 
 ---

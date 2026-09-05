@@ -728,6 +728,8 @@ import { inspect } from "@evgkch/machjs-inspector";
 const cart = inspect(new StateMachine(schema, start), { name: "cart" });
 ```
 
+The text to paste into the inspector's editor is what [`toRules(vm.schema)`](#evgkchmachjsformatters) returns: the language is the same, and printing it is enough to copy from.
+
 The inspector's widgets also attach one at a time, without raising the whole inspector: this repository's examples draw their machines with them ([open the examples](https://evgkch.github.io/machjs/)).
 
 ---
