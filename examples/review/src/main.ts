@@ -25,6 +25,7 @@
  * handler and the machine receives a finished signature.
  */
 import { TRANSITION } from "@evgkch/machjs";
+import { history } from "@evgkch/machjs/debug";
 import { board, el } from "../../shell.js";
 import {
   MachjsDiagram,
@@ -326,7 +327,7 @@ paint();
 // The inspector's widgets on the review pipeline — a different machine from the one on the stage,
 // and the one this example is about.
 board({
-  subject: fromMachine(flow),
+  subject: fromMachine(flow, { history: history(flow) }),
   enroll: (desk) => {
     desk.enroll(document.querySelector("machjs-legend")!);
     desk.enroll(pipeline, "diagram");

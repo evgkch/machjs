@@ -13,6 +13,7 @@
  * them. There is no branch here that could forget to.
  */
 import { TRANSITION } from "@evgkch/machjs";
+import { history } from "@evgkch/machjs/debug";
 import { fromMachine } from "@evgkch/machjs-inspector/ui";
 import { board, el } from "../../shell.js";
 import { auth } from "./machine.js";
@@ -183,7 +184,7 @@ paint();
 // ── the machine, drawn ──────────────────────────────────────────────────────
 
 board({
-  subject: fromMachine(auth),
+  subject: fromMachine(auth, { history: history(auth) }),
   enroll: (desk) => {
     for (const widget of document.querySelectorAll<HTMLElement>(
       "machjs-legend, machjs-diagram, machjs-history",

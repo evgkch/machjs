@@ -137,9 +137,10 @@ export function newWire(): Wire {
       fly(way, label, false, arrive);
       if (weather.twice) {
         weather.twice = false;
-        // The copy leaves a beat later, so the two arrive apart and the reader can see which is
-        // which. Whether the second one changes anything is the receiving machine's business.
-        setTimeout(() => fly(way, label, true, arrive), weather.takes / 3);
+        // The copy leaves one crossing later, so it lands after the receiver has answered the
+        // original and is listening again. Sent sooner it arrives mid-answer, where the receiver
+        // has no rule for it at all — a true verdict, but not the one this page is about.
+        setTimeout(() => fly(way, label, true, arrive), weather.takes);
       }
     },
   };
