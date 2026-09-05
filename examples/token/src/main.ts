@@ -21,10 +21,12 @@ import type { Token } from "./types.js";
 
 const asksOut = el<HTMLOListElement>("asks");
 const waitingOut = el<HTMLElement>("waiting");
+const fetchesOut = el<HTMLElement>("fetches");
 const tokenOut = el<HTMLElement>("token");
 const phaseOut = el<HTMLElement>("phase");
 const saysOut = el<HTMLElement>("says");
 const expire = el<HTMLButtonElement>("expire");
+const five = el<HTMLButtonElement>("five");
 const broken = el<HTMLInputElement>("broken");
 const retry = el<HTMLButtonElement>("retry");
 
@@ -43,12 +45,20 @@ async function send(token: Token): Promise<number> {
   return token === stale ? 401 : 200;
 }
 
-/** Hands out a fresh token, or refuses to. Called once per refresh — the machine sees to that. */
-let minted = 0;
+/**
+ * Hands out a fresh token, or refuses to. Called once per refresh — the machine sees to that,
+ * and the count beside the queue is the proof: five callers refused, one fetch.
+ *
+ * Counted on the way in, so a refresh that fails is counted too, and repainted at once, so the
+ * number stands on the screen while the fetch is in flight and not only after it lands.
+ */
+let fetches = 0;
 async function mint(): Promise<Token> {
+  const n = ++fetches;
+  paint();
   await wait(700);
   if (broken.checked) throw new Error("the refresh endpoint answered 500");
-  return `tok-${++minted}`;
+  return `tok-${n}`;
 }
 
 // ── the waiting callers ─────────────────────────────────────────────────────
@@ -125,7 +135,7 @@ async function ask(): Promise<void> {
 }
 
 el<HTMLButtonElement>("one").addEventListener("click", () => void ask());
-el<HTMLButtonElement>("five").addEventListener("click", () => {
+five.addEventListener("click", () => {
   for (let i = 0; i < 5; i++) void ask();
 });
 retry.addEventListener("click", () => auth.dispatch("retry"));
@@ -165,6 +175,7 @@ function paint(): void {
   waitingOut.textContent = String(
     s.type === "refreshing" ? s.context.waiting : 0,
   );
+  fetchesOut.textContent = String(fetches);
   saysOut.textContent =
     s.type === "ok"
       ? "A usable token is held."
@@ -176,6 +187,11 @@ function paint(): void {
   // The server's own switch is not the machine's business: it is offered while there is a token
   // to spoil, and says so.
   expire.disabled = s.type !== "ok" || s.context.token === stale;
+  // The next useful press, marked. Nothing is refused while the token is good, so the first move
+  // is to spoil it; after that the callers are the point.
+  const next = expire.disabled ? five : expire;
+  for (const button of [expire, five])
+    button.classList.toggle("go", button === next);
 }
 
 auth.rx.on(TRANSITION, paint);

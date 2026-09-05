@@ -290,7 +290,7 @@ export class MachjsDiagram extends MachjsElement<Change, Wiring> {
 
     // Arcs first, cells over them, labels over everything: an arrow crossing a label would
     // otherwise strike it through.
-    return html`<div class="tag">diagram</div>
+    return html`<div class="tag">${this.getAttribute("name") ?? "diagram"}</div>
       <div class="plot">
         <svg
           class="chart"

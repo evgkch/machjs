@@ -101,7 +101,8 @@
         color: var(--accent);
     }
 
-    .acts .go:not(:disabled) {
+    .acts .go:not(:disabled),
+    .weather .go:not(:disabled) {
         background: var(--accent);
         color: var(--accent-in);
     }

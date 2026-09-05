@@ -376,3 +376,13 @@
         }
     }
 }
+
+@layer subject {
+    /* A question answered more than once: the money moved on the first answer only. */
+    .seen .again {
+        margin-inline-start: auto;
+        color: var(--faint);
+        font-size: var(--ui-sm);
+        white-space: nowrap;
+    }
+}

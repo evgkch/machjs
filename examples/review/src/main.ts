@@ -60,10 +60,12 @@ el<HTMLElement>("paper").append(editor);
 
 /** The submission, drawn. */
 const drawn = new MachjsDiagram();
+drawn.setAttribute("name", "submission");
 el<HTMLElement>("drawn").append(drawn);
 
 /** The review pipeline, drawn — a different machine, and the one this example is about. */
 const pipeline = new MachjsDiagram();
+pipeline.setAttribute("name", "pipeline");
 el<HTMLElement>("flow").append(pipeline);
 const sayOut = el<HTMLElement>("say");
 const fileOut = el<HTMLElement>("file");

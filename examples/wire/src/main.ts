@@ -68,10 +68,19 @@ terminal.rx.on("auth", (ask) => {
  * so `dispatch` refuses it and the page is not told anything happened.
  */
 host.rx.on("said", (said) => {
+  answered.set(said.ticket, (answered.get(said.ticket) ?? 0) + 1);
+  paintHost();
   wire.send("up", `${said.ok ? "ok" : "no"} #${said.ticket}`, () =>
     terminal.dispatch("said", said),
   );
 });
+
+/**
+ * How many times each question was answered. The host keeps one answer per ticket and the
+ * balance moves once; a copy delivered later is answered out of that file. Without this count the
+ * second delivery looks like nothing happening, which is exactly what it must not look like.
+ */
+const answered = new Map<number, number>();
 
 /**
  * The check the host is running. It is not a promise held anywhere: the host stands in `working`
@@ -190,6 +199,13 @@ function ticket(said: {
   b.className = "why";
   b.textContent = said.why;
   row.append(a, b);
+  const twice = answered.get(said.ticket) ?? 0;
+  if (twice > 1) {
+    const again = document.createElement("span");
+    again.className = "again";
+    again.textContent = `answered ×${twice}, charged once`;
+    row.append(again);
+  }
   return row;
 }
 
@@ -253,8 +269,10 @@ const termFocus = newFocus();
 const hostFocus = newFocus();
 
 const termDia = new MachjsDiagram();
+termDia.setAttribute("name", "terminal");
 el<HTMLElement>("term-dia").append(termDia);
 const hostDia = new MachjsDiagram();
+hostDia.setAttribute("name", "host");
 el<HTMLElement>("host-dia").append(hostDia);
 
 const termLegend = new MachjsLegend();
