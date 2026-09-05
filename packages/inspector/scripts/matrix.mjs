@@ -552,6 +552,25 @@ try {
   eq("the blamed row is marked", q(lone, ".gutter .row.blame"), 1);
   eq("the complaint holds the strip", q(lone, ".say.wrong"), 1);
 
+  console.log(
+    "— M16c: the box is sized in columns, so a pasted tab cannot push the caret off its word —",
+  );
+  // A tab is one character and two columns (`tab-size: 2`). Sized by the character count, the
+  // textarea would be narrower than its own text, scroll itself, and leave the coloured layer
+  // behind — the caret would then sit beside the word it is in.
+  lone.set("FROM a ON go TO b\n\tFROM b\tON back\tTO a");
+  await tick();
+  const chars = Math.max(
+    ...lone.shadowRoot
+      .querySelector("textarea")
+      .value.split("\n")
+      .map((l) => l.length),
+  );
+  const cols = Number(lone.style.getPropertyValue("--cols"));
+  eq("characters in the widest line", chars, 20);
+  eq("columns it occupies", cols, 22);
+  eq("the box is sized in columns, not characters", cols > chars, true);
+
   console.log(failed ? `\n${failed} FAILED` : "\nALL PASS");
   process.exitCode = failed ? 1 : 0;
 } catch (e) {

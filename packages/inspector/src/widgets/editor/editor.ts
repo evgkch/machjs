@@ -182,6 +182,19 @@ export class MachjsEditor extends LitElement {
     for (const kind of ["keyup", "click", "focus"] as const)
       this.#area.addEventListener(kind, (e) => this.#tell("moved", e));
 
+    // The textarea is sized to its text and must not scroll: the coloured layer under it does
+    // not move with it, and a caret that has scrolled away from its own word is the one defect
+    // this widget cannot have. Whatever the browser scrolls here is handed to the sheet, which
+    // scrolls both layers together.
+    this.#area.addEventListener("scroll", () => {
+      const { scrollLeft: x, scrollTop: y } = this.#area;
+      if (x === 0 && y === 0) return;
+      this.#sheet.scrollLeft += x;
+      this.#sheet.scrollTop += y;
+      this.#area.scrollLeft = 0;
+      this.#area.scrollTop = 0;
+    });
+
     this.#area.addEventListener("keydown", (e) => {
       if (w.readonly) return;
       this.#swallowed = false;
@@ -244,7 +257,7 @@ export class MachjsEditor extends LitElement {
     this.style.setProperty("--lines", String(source.length));
     this.style.setProperty(
       "--cols",
-      String(Math.max(0, ...source.map((line) => line.length))),
+      String(Math.max(0, ...source.map(columns))),
     );
     this.#rows.clear();
     this.#lines.clear();
@@ -526,6 +539,20 @@ export class MachjsEditor extends LitElement {
     this.#say.classList.toggle("wrong", this.#wrong !== null);
     this.#mark();
   }
+}
+
+/** The tab stop, in characters. The stylesheet sets `tab-size` to the same number. */
+const TAB = 2;
+
+/**
+ * How many columns a line occupies, which is not how many characters it holds: a tab is one
+ * character and as many as `TAB` columns. The box is sized in `ch`, so counting characters makes
+ * it too narrow for any line with a tab in it — and text is pasted in with tabs.
+ */
+function columns(line: string): number {
+  let n = 0;
+  for (const ch of line) n = ch === "\t" ? n + TAB - (n % TAB) : n + 1;
+  return n;
 }
 
 if (!customElements.get("machjs-editor"))
