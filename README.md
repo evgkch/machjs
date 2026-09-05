@@ -58,30 +58,72 @@ gate.state.type;       // "open"
 
 No handler tests the phase: the event goes to `dispatch`, and what happens to it is written in the schema.
 
-### Step 2. What that buys
+### Step 2. Three more words
 
-`can` runs the same check the next `dispatch` will run. It is what enables a control, with no phase test written by hand:
+A full rule is seven words; everything but `FROM`, `ON` and `TO` is optional:
+
+```text
+FROM <state> ON <event> [WHEN <guard>] TO <state> [WITH <context>] [EMIT <event> [BY <data>]]
+```
+
+The order of execution is `WHEN` → `TO` → `WITH` → `EMIT` → `BY`. `BY` works on the context already updated.
+
+The same gate, but the fare is two coins. What was paid sits in the state's context, not in the machine:
+
+```text
+FROM locked ON coin WHEN short TO locked WITH add
+FROM locked ON coin            TO open   WITH add   EMIT opened BY fare
+FROM open   ON push            TO locked WITH clear
+```
+
+```ts
+import { StateMachine } from "@evgkch/machjs";
+import type { IState, IEvent, Merge } from "@evgkch/machjs";
+
+type Paid = { paid: number };
+
+type Q = Merge<IState<"locked", Paid> | IState<"open", Paid>>;
+type Σ = Merge<IEvent<"coin"> | IEvent<"push">>;
+type Λ = IEvent<"opened", Paid>;
+
+const FARE = 2;
+
+const short = (c: Paid) => c.paid + 1 < FARE;    // WHEN: the guard
+const add = (c: Paid) => ({ paid: c.paid + 1 }); // WITH: the target's context
+const clear = () => ({ paid: 0 });
+const fare = (c: Paid) => ({ paid: c.paid });    // BY: the output event's data
+
+const gate = new StateMachine<Q, Σ, Λ>(
+  {
+    locked: {
+      coin: [
+        { when: short, to: ["locked", add] },
+        { to: ["open", add], emit: ["opened", fare] },
+      ],
+    },
+    open: { push: [{ to: ["locked", clear] }] },
+  },
+  { type: "locked", context: { paid: 0 } },
+);
+
+gate.rx.on("opened", ({ paid }) => console.log(`open, ${paid} paid`));
+
+gate.dispatch("coin"); // locked → locked, paid = 1
+gate.dispatch("coin"); // locked → open,   paid = 2, and opened on the way out
+gate.dispatch("push"); // open   → locked, paid = 0
+```
+
+The first coin leaves the gate shut: `short` lets its rule through only while less than the fare is paid. The second coin does not match that rule, so the next one in the same cell is taken — the one with no guard, and it is what opens the gate. An unconditional rule stands last in its cell: a rule after it can never fire, and `validate` from `analysis` finds it as `dead-rule`.
+
+The rule text above is not an illustration. It is what `toRules(gate.schema)` from `formatters` prints, and what the inspector's editor reads.
+
+Next: `can` runs the same check the next `dispatch` will run. That is what enables a control, with no phase test written by hand.
 
 ```ts
 button.disabled = !gate.can("push").isOk();
 ```
 
-The graph is a projection of the machine itself, not a second copy of it. The rule text is printed from it, and the inspector's editor reads that same text:
-
-```ts
-import { toRules } from "@evgkch/machjs/formatters";
-
-console.log(toRules(gate.schema));
-```
-
-```text
-FROM locked ON coin TO open   EMIT opened
-FROM open   ON push TO locked
-```
-
-From that same graph, `validate` from `analysis` finds unreachable states and rules that can never fire, without running the machine.
-
-Past this is the difference that matters: the context belongs to the state, not to the machine. A `to` is written as a pair — the state, and the function that builds the context it arrives with. That is where the [guide](packages/core/README.md) starts.
+The [guide](packages/core/README.md) has the rest.
 
 ## What is here
 

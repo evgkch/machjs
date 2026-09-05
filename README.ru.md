@@ -58,30 +58,72 @@ gate.state.type;       // "open"
 
 В обработчике нет проверки фазы: событие уходит в `dispatch`, а что с ним будет, записано в схеме.
 
-### Шаг 2. Что это даёт
+### Шаг 2. Ещё три слова
 
-`can` проверяет то же, что проверит следующий `dispatch`. Этим включают элементы управления, не проверяя фазу вручную:
+Полное правило — семь слов; всё, кроме `FROM`, `ON` и `TO`, необязательно:
+
+```text
+FROM <состояние> ON <событие> [WHEN <условие>] TO <состояние> [WITH <контекст>] [EMIT <событие> [BY <данные>]]
+```
+
+Порядок исполнения: `WHEN` → `TO` → `WITH` → `EMIT` → `BY`. `BY` работает с уже обновлённым контекстом.
+
+Те же ворота, но проход стоит две монеты. Уплаченное лежит в контексте состояния, а не в автомате:
+
+```text
+FROM locked ON coin WHEN short TO locked WITH add
+FROM locked ON coin            TO open   WITH add   EMIT opened BY fare
+FROM open   ON push            TO locked WITH clear
+```
+
+```ts
+import { StateMachine } from "@evgkch/machjs";
+import type { IState, IEvent, Merge } from "@evgkch/machjs";
+
+type Paid = { paid: number };
+
+type Q = Merge<IState<"locked", Paid> | IState<"open", Paid>>;
+type Σ = Merge<IEvent<"coin"> | IEvent<"push">>;
+type Λ = IEvent<"opened", Paid>;
+
+const FARE = 2;
+
+const short = (c: Paid) => c.paid + 1 < FARE;    // WHEN: условие
+const add = (c: Paid) => ({ paid: c.paid + 1 }); // WITH: контекст цели
+const clear = () => ({ paid: 0 });
+const fare = (c: Paid) => ({ paid: c.paid });    // BY: данные выходного события
+
+const gate = new StateMachine<Q, Σ, Λ>(
+  {
+    locked: {
+      coin: [
+        { when: short, to: ["locked", add] },
+        { to: ["open", add], emit: ["opened", fare] },
+      ],
+    },
+    open: { push: [{ to: ["locked", clear] }] },
+  },
+  { type: "locked", context: { paid: 0 } },
+);
+
+gate.rx.on("opened", ({ paid }) => console.log(`открыто, уплачено ${paid}`));
+
+gate.dispatch("coin"); // locked → locked, paid = 1
+gate.dispatch("coin"); // locked → open,   paid = 2, на выходе opened
+gate.dispatch("push"); // open   → locked, paid = 0
+```
+
+Первая монета оставляет ворота закрытыми: `short` пропускает своё правило, пока внесено меньше платы. Второй монете это правило не подходит, и берётся следующее в той же ячейке — без условия, оно и открывает ворота. Безусловное правило стоит в ячейке последним: правило после него не сработает никогда, и `validate` из `analysis` находит его как `dead-rule`.
+
+Текст правил выше — не иллюстрация. Его печатает `toRules(gate.schema)` из `formatters`, и его же читает редактор инспектора.
+
+Дальше: `can` проверяет то же, что проверит следующий `dispatch`. Этим включают элементы управления, не проверяя фазу вручную.
 
 ```ts
 button.disabled = !gate.can("push").isOk();
 ```
 
-Граф — проекция самой машины, а не её вторая копия. Из него печатают текст правил, и этот же текст читает редактор инспектора:
-
-```ts
-import { toRules } from "@evgkch/machjs/formatters";
-
-console.log(toRules(gate.schema));
-```
-
-```text
-FROM locked ON coin TO open   EMIT opened
-FROM open   ON push TO locked
-```
-
-По тому же графу `validate` из `analysis` находит недостижимые состояния и правила, которые не сработают никогда, — без запуска машины.
-
-Дальше — главное отличие: контекст принадлежит состоянию, а не автомату. В `to` пишут пару — состояние и функцию, которая строит его контекст. Об этом [руководство](packages/core/README.ru.md).
+Об остальном — [руководство](packages/core/README.ru.md).
 
 ## Что здесь лежит
 
