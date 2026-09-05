@@ -20,6 +20,69 @@
 
 ---
 
+## За минуту
+
+### Шаг 1. Четыре слова
+
+Правило — предложение из четырёх слов: **FROM** состояние, **ON** событие, **TO** состояние, и необязательное **EMIT** событие на выходе. Турникет — два правила:
+
+```text
+FROM locked ON coin TO open   EMIT opened
+FROM open   ON push TO locked
+```
+
+Те же два правила кодом. Схема — таблица: состояние, событие, список правил для этой пары.
+
+```ts
+import { StateMachine } from "@evgkch/machjs";
+import type { IState, IEvent, Merge } from "@evgkch/machjs";
+
+type Q = IState<"locked" | "open">;                // состояния
+type Σ = Merge<IEvent<"coin"> | IEvent<"push">>;   // входные события
+type Λ = IEvent<"opened">;                         // выходные
+
+const gate = new StateMachine<Q, Σ, Λ>(
+  {
+    locked: { coin: [{ to: "open", emit: "opened" }] },
+    open:   { push: [{ to: "locked" }] },
+  },
+  { type: "locked", context: undefined },
+);
+
+gate.rx.on("opened", () => console.log("турникет открыт"));
+
+gate.dispatch("push"); // UNHANDLED — в locked такого правила нет
+gate.dispatch("coin"); // OK — переход, и на выходе opened
+gate.state.type;       // "open"
+```
+
+В обработчике нет проверки фазы: событие уходит в `dispatch`, а что с ним будет, записано в схеме.
+
+### Шаг 2. Что это даёт
+
+`can` проверяет то же, что проверит следующий `dispatch`. Этим включают элементы управления, не проверяя фазу вручную:
+
+```ts
+button.disabled = !gate.can("push").isOk();
+```
+
+Граф — проекция самой машины, а не её вторая копия. Из него печатают текст правил, и этот же текст читает редактор инспектора:
+
+```ts
+import { toRules } from "@evgkch/machjs/formatters";
+
+console.log(toRules(gate.schema));
+```
+
+```text
+FROM locked ON coin TO open   EMIT opened
+FROM open   ON push TO locked
+```
+
+По тому же графу `validate` из `analysis` находит недостижимые состояния и правила, которые не сработают никогда, — без запуска машины.
+
+Дальше — главное отличие: контекст принадлежит состоянию, а не автомату. В `to` пишут пару — состояние и функцию, которая строит его контекст. Об этом [руководство](packages/core/README.ru.md).
+
 ## Что здесь лежит
 
 | Каталог                                    | Пакет                                                                                | Что внутри                                                    |

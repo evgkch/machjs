@@ -20,6 +20,69 @@ A Mealy state machine for TypeScript: one table of rules, a context that belongs
 
 ---
 
+## In a minute
+
+### Step 1. Four words
+
+A rule is a sentence of four words: **FROM** a state, **ON** an event, **TO** a state, and an optional **EMIT** on the way out. A turnstile is two rules:
+
+```text
+FROM locked ON coin TO open   EMIT opened
+FROM open   ON push TO locked
+```
+
+The same two rules as code. A schema is a table: state, event, the rules for that pair.
+
+```ts
+import { StateMachine } from "@evgkch/machjs";
+import type { IState, IEvent, Merge } from "@evgkch/machjs";
+
+type Q = IState<"locked" | "open">;                // states
+type Σ = Merge<IEvent<"coin"> | IEvent<"push">>;   // input events
+type Λ = IEvent<"opened">;                         // output events
+
+const gate = new StateMachine<Q, Σ, Λ>(
+  {
+    locked: { coin: [{ to: "open", emit: "opened" }] },
+    open:   { push: [{ to: "locked" }] },
+  },
+  { type: "locked", context: undefined },
+);
+
+gate.rx.on("opened", () => console.log("the gate opens"));
+
+gate.dispatch("push"); // UNHANDLED — locked has no rule for it
+gate.dispatch("coin"); // OK — the transition, and opened on the way out
+gate.state.type;       // "open"
+```
+
+No handler tests the phase: the event goes to `dispatch`, and what happens to it is written in the schema.
+
+### Step 2. What that buys
+
+`can` runs the same check the next `dispatch` will run. It is what enables a control, with no phase test written by hand:
+
+```ts
+button.disabled = !gate.can("push").isOk();
+```
+
+The graph is a projection of the machine itself, not a second copy of it. The rule text is printed from it, and the inspector's editor reads that same text:
+
+```ts
+import { toRules } from "@evgkch/machjs/formatters";
+
+console.log(toRules(gate.schema));
+```
+
+```text
+FROM locked ON coin TO open   EMIT opened
+FROM open   ON push TO locked
+```
+
+From that same graph, `validate` from `analysis` finds unreachable states and rules that can never fire, without running the machine.
+
+Past this is the difference that matters: the context belongs to the state, not to the machine. A `to` is written as a pair — the state, and the function that builds the context it arrives with. That is where the [guide](packages/core/README.md) starts.
+
 ## What is here
 
 | Directory                                  | Package                                                                              | What is in it                                              |
