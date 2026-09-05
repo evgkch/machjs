@@ -3,7 +3,7 @@ import type { IEvent, IState, Merge } from "@evgkch/machjs";
 /**
  * The machine's types — sections 2.1 and 3 of the example write-up.
  *
- * `Phase` is the control state (a node of the graph), `Σ` and `Λ` are the
+ * `Sel` carries the control state (a node of the graph), `Σ` and `Λ` are the
  * input and output carriers, and `Sel` is the context — everything the graph
  * does not show.
  */
@@ -11,8 +11,6 @@ import type { IEvent, IState, Merge } from "@evgkch/machjs";
 export type Point = { x: number; y: number };
 export type Rect = { x0: number; y0: number; x1: number; y1: number };
 export type Size = { w: number; h: number };
-
-export type Phase = "empty" | "ready" | "drawing" | "moving" | "resizing";
 
 /**
  * A pointer event's payload: where the pointer is, and the area it is in.

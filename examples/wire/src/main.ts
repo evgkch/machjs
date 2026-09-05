@@ -63,6 +63,13 @@ terminal.rx.on("auth", (ask) => {
 });
 
 /**
+ * How many times each question was answered. The host keeps one answer per ticket and the
+ * balance moves once; a copy delivered later is answered out of that file. Without this count the
+ * second delivery looks like nothing happening, which is exactly what it must not look like.
+ */
+const answered = new Map<number, number>();
+
+/**
  * The host answers. The same seam the other way — and the same absence of care about duplicates:
  * an answer about a ticket the terminal is not waiting on satisfies neither guard of `waiting`,
  * so `dispatch` refuses it and the page is not told anything happened.
@@ -74,13 +81,6 @@ host.rx.on("said", (said) => {
     terminal.dispatch("said", said),
   );
 });
-
-/**
- * How many times each question was answered. The host keeps one answer per ticket and the
- * balance moves once; a copy delivered later is answered out of that file. Without this count the
- * second delivery looks like nothing happening, which is exactly what it must not look like.
- */
-const answered = new Map<number, number>();
 
 /**
  * The check the host is running. It is not a promise held anywhere: the host stands in `working`
@@ -240,7 +240,6 @@ function paintTerm(): void {
 /** The host, the same way. */
 function paintHost(): void {
   const s = host.state;
-  document.body.dataset["host"] = s.type;
   balanceOut.textContent = money(s.context.balance);
   doingOut.textContent =
     s.type === "working" ? `Checking #${s.context.ask.ticket}…` : "Listening.";

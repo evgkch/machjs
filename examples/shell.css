@@ -121,8 +121,6 @@
         }
     }
 
-    /* The states, in their lane colours. Takes what the two ends leave it, and no more. */
-
     /* The desk's slot, at the far end of the bar: one switch per panel on the page. */
     .bar .board {
         display: flex;

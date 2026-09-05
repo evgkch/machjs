@@ -22,7 +22,7 @@ export const PAN = "4012 88 3316";
 const WIDTH = 6;
 
 /** The digits as money. An empty box is nothing, not zero. */
-export const moneyOf = (typed: string): number => Number(typed || "0");
+const moneyOf = (typed: string): number => Number(typed || "0");
 
 /** Money as it is written. The only place the minor unit turns into a point. */
 export const money = (c: number): string => `${(c / 100).toFixed(2)} €`;

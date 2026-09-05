@@ -12,6 +12,7 @@ Notation and definitions are given in the [guide](https://github.com/evgkch/mach
 npm install
 npm run dev       # http://localhost:5173/selection-rect/
 npm run build     # tsc --noEmit + build to dist/
+npm test          # every page is driven in a DOM
 ```
 
 Correspondence between files and sections of the document:
@@ -34,6 +35,7 @@ Correspondence between files and sections of the document:
 7. [Machine run](#7-machine-run)
 8. [Schema analysis](#8-schema-analysis)
 9. [Undo drag](#9-undo-drag)
+10. [The machine on the page](#10-the-machine-on-the-page)
 
 ## 1. Problem statement
 
@@ -661,28 +663,32 @@ The output matches `toRules(sel.schema)` line for line: there is no code in JSON
 Undo here means rolling back the entire drag, not a single `move` event. The built-in `history` records every transition, so one undo step would revert one pointer sample. `log` hands the full transition object to a sink of your own, so a record is pushed onto a stack under a condition.
 
 ```ts
-import type { FsmState } from "@evgkch/machjs";
-import { log } from "@evgkch/machjs/debug";
+import { history, log } from "@evgkch/machjs/debug";
 
 const DRAG = ["drawing", "moving", "resizing"];
-const undo: { at: FsmState<Sel> }[] = [];
+const undo: { at: number }[] = [];
+const past = history(sel);
 
 log(sel, (t) => {
   if (DRAG.includes(t.target.type) && !DRAG.includes(t.source.type))
-    undo.push({ at: t.source });
+    undo.push({ at: past.index - 1 });
 });
 ```
 
 The condition reads the `source` and `target` of a single transition, so a record is pushed only on the step *into* a drag — one per operation, no matter how many `move` events it contains.
 
-What is stored is `t.source` itself — a value of type `FsmState`, i.e. both the state and its context together. The rectangle alone is not enough; this is evident on the very first undo: that drag started in `empty`, so it must return to `empty`. If we restore only the rectangle while staying in `ready`, a 0×0 selection is left on the page, and no state in the schema corresponds to it.
+`history(sel)` is the recorder from `debug`: it keeps every state the machine has been in, context and all. What the stack holds is not a state but its index in that record. The rectangle alone would not be enough; this is evident on the very first undo: that drag started in `empty`, so it must return to `empty`, and not to `ready` with a 0×0 selection no state in the schema corresponds to.
 
 ```ts
 const back = undo.pop()!;
-sel.restore(back.at);
+past.jump(back.at);
 ```
 
-`restore` is not a transition: nothing is sent, no output event occurs, `TRANSITION` is not published (README, “Limitations”). This is why undo does not go into its own stack — but the subscriptions that render the page do not fire either, so the view after `restore` is updated manually: the box (or its absence in `empty`) and the readouts.
+`jump` is not a transition: nothing is sent, no output event occurs, `TRANSITION` is not published (README, “Limitations”). This is why undo does not go into its own stack. What does say the machine has moved is the recorder itself, with `moved`, and that is what the page draws on:
+
+```ts
+past.rx.on("moved", () => render(sel.state));
+```
 
 ```
 down 20,20 → drag → up       ready     20,20 100×60 | stack: 1
@@ -693,7 +699,7 @@ undo                          empty     —            | stack: 0
 
 ## 10. The machine on the page
 
-At the bottom of the page the automaton is drawn by the widgets of [`@evgkch/machjs-inspector`](https://github.com/evgkch/machjs/tree/master/packages/inspector): the legend of states, the transition diagram and the run. `<machjs-desk>` binds them — it wires the widgets to one subject and gives each a switch:
+In the dock on the right the automaton is drawn by the widgets of [`@evgkch/machjs-inspector`](https://github.com/evgkch/machjs/tree/master/packages/inspector): the legend of states, the transition diagram and the run. `<machjs-desk>` binds them — it wires the widgets to one subject and gives each a switch:
 
 ```ts
 import { MachjsDesk, fromMachine } from "@evgkch/machjs-inspector/ui";

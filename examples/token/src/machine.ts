@@ -23,7 +23,7 @@ import { StateMachine } from "@evgkch/machjs";
 import type { Q, Token, Λ, Σ } from "./types.js";
 
 /** What the client starts with. The stand-in server refuses it once the reader says so. */
-export const FIRST: Token = "tok-0";
+const FIRST: Token = "tok-0";
 
 // ── operations: each returns the context of the phase being entered ─────────
 
