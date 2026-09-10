@@ -1,6 +1,6 @@
 {
   "name": "@evgkch/machjs",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A small, typed Mealy state machine: one table of rules, a context that belongs to the state rather than the machine, and a graph that is a projection of the same object — serialize it, draw it, analyse it",
   "type": "module",
   "sideEffects": false,
